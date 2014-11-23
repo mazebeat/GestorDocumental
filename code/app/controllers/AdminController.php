@@ -9,11 +9,11 @@ class AdminController extends BaseController
 
 	public function __construct()
 	{
-		$this->beforeFilter('auth');
-
-		if (\Session::token() !== \Input::get('_token')) {
-			return \Response::json(array('msg' => 'Unauthorized mfk!'), $this->status, $this->headers);
-		}
+		//		$this->beforeFilter('auth');
+		//
+		//		if (\Session::token() !== \Input::get('_token')) {
+		//			return \Response::json(array('msg' => 'Unauthorized mfk!'), $this->status, $this->headers);
+		//		}
 	}
 
 	public function index()
@@ -58,9 +58,9 @@ class AdminController extends BaseController
 		}
 	}
 
-	public function folder()
+	public function folder($dir = '')
 	{
-		return View::make('dashboard.carpeta');
+		return View::make('dashboard.carpeta')->with('dir', $dir);
 	}
 
 	public function search_folder()
@@ -77,10 +77,10 @@ class AdminController extends BaseController
 					$number = explode("m_", trim($value->strcarpeta));
 					$name   = App\Util\Functions::convNumberToMonth((int)$number[1]);
 
-					array_push($folder, array('id'     => $value->stridcarpeta,
-					                          'name'   => $name,
-					                          'number' => $number[1],
-					                          'root'   => $value->strrutacarpeta));
+					array_push($folder, array('id'     => (string)$value->stridcarpeta,
+					                          'name'   => (string)$name,
+					                          'number' => (int)$number[1],
+					                          'root'   => (string)$value->strrutacarpeta));
 				}
 				$this->data['ok']     = true;
 				$this->data['folder'] = \App\Util\Functions::array_orderby($folder, 'number', SORT_ASC);
@@ -108,13 +108,13 @@ class AdminController extends BaseController
 			try {
 				foreach ($result->lista as $key => $value) {
 					if (is_object($value)) {
-						array_push($folders, array('name' => $value->strcarpeta,
-						                           'id'   => $value->stridcarpeta,
-						                           'root' => $value->strrutacarpeta));
+						array_push($folders, array('name' => (string)$value->strcarpeta,
+						                           'id'   => (string)$value->stridcarpeta,
+						                           'root' => base64_encode((string)$value->strrutacarpeta)));
 					} else {
-						$folders = array('name' => $result->lista->strcarpeta,
-						                 'id'   => $result->lista->stridcarpeta,
-						                 'root' => $result->lista->strrutacarpeta);
+						$folders = array('name' => (string)$result->lista->strcarpeta,
+						                 'id'   => (string)$result->lista->stridcarpeta,
+						                 'root' => base64_encode((string)$value->strrutacarpeta));
 					}
 				}
 				$this->data['ok']     = true;

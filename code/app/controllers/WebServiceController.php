@@ -1,7 +1,5 @@
 <?php
 
-use App\Util\Functions;
-
 include(app_path() . '/libs/nusoap/nusoap.php');
 
 class WebServiceController extends BaseController
@@ -14,7 +12,7 @@ class WebServiceController extends BaseController
 	private $server;
 	private $webservice;
 	private $wsdl;
-	//	Webservice vars
+	//	Webservice vars *****************************************
 
 	//	private $apellidosUser;
 	//	private $buscador;
@@ -34,50 +32,58 @@ class WebServiceController extends BaseController
 	//	private $nuevoEspacio;
 	//	private $pass;
 	//	private $rutaEspacio;
+	//  private $rutaCarpeta;
 	//	private $tipoDocumento;
 	//	private $user;
 	//	private $vigenciaIni;
 	//	private $vigenciaFin;
 
-	public function __construct($function = 'opRequestUtils', $ip_server = '192.168.1.86', $webservice = '/GestionDocIntelidata/UtilsAlfresco?WSDL', $secure = false)
+	public function __construct($webservice = '/GestionDocIntelidata/UtilsAlfresco?WSDL', $ip_server = '192.168.1.86', $port = '8080', $function = 'opRequestUtils', $secure = false)
 	{
 		$this->function   = $function;
 		$this->server     = $ip_server;
 		$this->webservice = $webservice;
+
 		if ($secure) {
-			$this->wsdl = 'https://' . $this->server . ':8080' . $this->webservice;
+			$this->wsdl = 'https://' . $this->server . ':' . $port . $this->webservice;
 		} else {
-			$this->wsdl = 'http://' . $this->server . ':8080' . $this->webservice;
+			$this->wsdl = 'http://' . $this->server . ':' . $port . $this->webservice;
 		}
-		$this->params = array(
-
-			'strTipoRespuestaUtils' => '',
-			'strCarpeta'            => '',
-			'strCodUtils'           => '',
-			'strUser'               => '',
-			'strPass'               => '',
-			'strNombresUser'        => '',
-			'strApellidosUser'      => '',
-			'strIdNegocio'          => '',
-			'strVigenciaIni'        => '',
-			'strVigenciaFin'        => '',
-			'strEstado'             => '',
-			'strNuevoEspacio'       => '',
-			'strRutaEspacio'        => '',
-			'strIdEspacio'          => '',
-			'strTipoDocumento'      => '',
-			'strDocumento'          => '',
-			'strIdProceso'          => '',
-			'strIdUser'             => '',
-			'strFechaLog'           => '',
-			'strCliente'            => '',
-			'strDescripcion'        => '',
-			'strBuscador'           => '',
-			'strIdPerfil'           => '',
-			'strPerfil'             => ''
-
-		);
-		//		$this->params = Functions::objectToArray(new WebService());
+		if (preg_match('/Utils/', $this->webservice)) {
+			$this->params = array('strTipoRespuestaUtils' => '',
+			                      'strCarpeta'            => '',
+			                      'strCodUtils'           => '',
+			                      'strUser'               => '',
+			                      'strPass'               => '',
+			                      'strNombresUser'        => '',
+			                      'strApellidosUser'      => '',
+			                      'strIdNegocio'          => '',
+			                      'strVigenciaIni'        => '',
+			                      'strVigenciaFin'        => '',
+			                      'strEstado'             => '',
+			                      'strNuevoEspacio'       => '',
+			                      'strRutaEspacio'        => '',
+			                      'trRutaCarpeta'         => '',
+			                      'strIdEspacio'          => '',
+			                      'strTipoDocumento'      => '',
+			                      'strDocumento'          => '',
+			                      'strIdProceso'          => '',
+			                      'strIdUser'             => '',
+			                      'strFechaLog'           => '',
+			                      'strCliente'            => '',
+			                      'strDescripcion'        => '',
+			                      'strBuscador'           => '',
+			                      'strIdPerfil'           => '',
+			                      'strPerfil'             => '');
+		}
+		if (preg_match('/Lista/', $this->webservice)) {
+			$this->params = array('strRutaCarpeta' => '');
+		}
+		if (preg_match('/Documento/', $this->webservice)) {
+			$this->params = array('strIdCliente'     => '',
+			                      'strIdDocumento'   => '',
+			                      'strTipoDocumento' => '');
+		}
 	}
 
 	public function getParams()
@@ -320,6 +326,36 @@ class WebServiceController extends BaseController
 		array_set($this->params, 'strPerfil', $perfil);
 	}
 
+	public function getRutaCarpeta()
+	{
+		return array_get($this->params, 'strRutaCarpeta');
+	}
+
+	public function setRutaCarpeta($carpeta)
+	{
+		array_set($this->params, 'strRutaCarpeta', $carpeta);
+	}
+
+	public function getIdCliente()
+	{
+		return array_get($this->params, 'strIdCliente');
+	}
+
+	public function setIdCliente($idCliente)
+	{
+		array_set($this->params, 'strIdCliente', $idCliente);
+	}
+
+	public function getIdDocumento()
+	{
+		return array_get($this->params, 'strIdDocumento');
+	}
+
+	public function setIdDocumento($idDocumento)
+	{
+		array_set($this->params, 'strIdDocumento', $idDocumento);
+	}
+
 	public function get($name = '')
 	{
 		if ($name === '') {
@@ -358,6 +394,12 @@ class WebServiceController extends BaseController
 				$this->beforeFilter('auth');
 				array_set($this->params, 'strTipoRespuestaUtils', '2');
 				break;
+			case 'showFolder':
+				$this->beforeFilter('auth');
+				break;
+			case 'showDocument':
+				$this->beforeFilter('auth');
+				break;
 			default:
 				array_set($this->params, 'strTipoRespuestaUtils', '2');
 				break;
@@ -379,8 +421,8 @@ class WebServiceController extends BaseController
 		}
 
 		$temp = App\Util\Functions::toObject($temp['return']);
-//		$temp = $temp['return'];
-//		return $temp;
+		//		$temp = $temp['return'];
+		//		return $temp;
 		$this->result = new stdClass();
 
 		if (!(Str::lower($temp->msgexecution) === Str::lower('Transacción Exitosa'))) {
@@ -394,9 +436,10 @@ class WebServiceController extends BaseController
 			return $temp->codexecution;
 		});
 		$this->result->lista   = value(function () use ($temp) {
-			if(isset($temp->documentlist)) {
+			if (isset($temp->documentlist)) {
 				return $temp->documentlist;
 			}
+
 			return null;
 		});
 		$this->result->mensaje = value(function () use ($temp) {

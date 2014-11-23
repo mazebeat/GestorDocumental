@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
 @section('title')
-Visualización carpeta cliente - {{ Auth::user()->name }}
+Visualización carpeta cliente
 @endsection
 
 @section('page-title')
@@ -129,7 +129,7 @@ Visualización carpeta cliente - {{ Auth::user()->name }}
 	</div>
 	<div class="col-md-9">
 		<div class="row filemanager">
-			{{ HTML::load_documents()  }}
+			{{ HTML::load_documents($dir)  }}
 		</div>
 	</div>
 	<div class="col-md-3">

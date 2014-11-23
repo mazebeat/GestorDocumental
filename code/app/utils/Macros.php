@@ -21,15 +21,14 @@
 \HTML::macro('create_nav', function () {
 });
 
-\HTML::macro('load_documents', function () {
-	$id        = 1;
-	$doc_name  = 'document.xls';
-	$extension = 'xls';
-	$type      = 'document';
-	$image_url = 'images/files/media-%s.png';
-	$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
-	$created   = \Carbon::now()->toFormattedDateString();
-	$element   = '<div class="col-xs-6 col-sm-4 col-md-3 %s">
+\HTML::macro('load_documents', function ($dir) {
+	$output = '';
+	//	var_dump('a_'.substr($dir, 0, 4).'**m_'.substr($dir, 4, 2).'**c_'.substr($dir, 6, strlen($dir)));
+	$ws = new \WebServiceController('/GestionDocIntelidata/RetornaListaAlfrescoPort?WSDL');
+	$ws->setRutaCarpeta(base64_decode($dir));
+	$result = $ws->get('showFolder');
+
+	$element = '<div class="col-xs-6 col-sm-4 col-md-3 %s">
 				    <div class="thmb">
 				        <div class="ckbox ckbox-default">
 				            <input type="checkbox" id="check%d" value="1"/>
@@ -53,7 +52,17 @@
 				        <small class="text-muted">Agregado: %s</small>
 				    </div>
 				</div>';
-	$output    = sprintf($element, $type, $id, $id, $image, $doc_name, $created);
+
+	foreach ($result->lista as $key => $value) {
+		$id        = $key;
+		$doc_name  = $value;// 'document.xls';
+		$extension = $value;// 'xls';
+		$type      = $value;// 'document';
+		$image_url = $value;// 'images/files/media-%s.png';
+		$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
+		$created   = \Carbon::now($value)->toFormattedDateString();
+		$output .= sprintf($element, $type, $id, $id, $image, $doc_name, $created);
+	}
 
 	return $output;
 });
@@ -108,6 +117,19 @@
 	}
 
 	return $output;
+});
+
+\Form::macro('chosenPerfiles', function ($name = 'perfiles', $options = array()) {
+	$perfiles = array();
+	$ws       = new \WebServiceController();
+	$ws->setRutaCarpeta('');
+	$result = $ws->get('showFolder');
+
+	foreach ($result->lista as $key => $value) {
+		$perfiles[] = $value;
+	}
+
+	return \Form::chosen($name, $perfiles, $options);
 });
 
 \Form::macro('chosen', function ($name, $list = array(), $options = array()) {

@@ -26,14 +26,14 @@ Route::group(array('after' => 'auth'), function () {
 });
 
 // Admin dashboard - Logged OK
-Route::group(array('before' => 'auth'), function () {
+//Route::group(array('before' => 'auth'), function () {
 	Route::group(array('prefix' => 'dashboard'), function () {
 		Route::get('/', 'AdminController@index');
 		Route::get('search', 'AdminController@search');
 		Route::post('search', 'AdminController@search_result');
 		Route::get('fastSearch/{keyword?}', 'AdminController@fast_search');
 		Route::post('export', 'AdminController@export');
-		Route::get('folder', 'AdminController@folder');
+		Route::get('folder/{dir}', 'AdminController@folder');
 		Route::post('folder', 'AdminController@search_folder');
 		Route::post('show_folder', 'AdminController@show_folders');
 		Route::get('viewer', 'AdminController@viewer');
@@ -41,7 +41,7 @@ Route::group(array('before' => 'auth'), function () {
 		Route::post('form', 'AdminController@form');
 		Route::get('profile', 'ProfileController@index');
 	});
-});
+//});
 
 // Test pages
 Route::get('test', function () {

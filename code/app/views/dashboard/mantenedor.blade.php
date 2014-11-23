@@ -81,7 +81,7 @@ Mantenedor
 							{{ Form::label('estado', 'Estado', array('class' => 'col-sm-2 control-label')) }}
 							<div class="col-sm-10">
 								{{ Form::chosen('estado', array(), array('class' => 'form-control', 'data-placeholder' => 'Seleccione un estado...')) }}
-								{{--<select data-placeholder="Seleccione un estado..." class="form-control chosen-select" style="display: none;">--}}
+								{{--<select data-placeholder="Seleccione un estado..." class="form-control chosen-select">--}}
 								{{--<option value=""></option>--}}
 								{{--<option value="United States">United States</option>--}}
 								{{--<option value="United Kingdom">United Kingdom</option>--}}
@@ -93,7 +93,14 @@ Mantenedor
 						<div class="col-md-6">
 							{{ Form::label('perfil', 'Perfil', array('class' => 'col-sm-2 control-label')) }}
 							<div class="col-sm-10">
-								{{ Form::chosen('perfil', array(), array('class' => 'form-control', 'data-placeholder' => 'Seleccione un perfil...')) }}
+								{{--{{ Form::chosenPerfiles('perfil', array('class' => 'form-control', 'data-placeholder' => 'Seleccione un perfil...')) }}--}}
+                                <select data-placeholder="Seleccione un perfil..." class="form-control chosen-select">
+                                    <option value=""></option>
+                                    <option value="ad">Administrador</option>
+                                    <option value="cc">Call Center</option>
+                                    <option value="ej">Ejecutivo</option>
+                                    <option value="ot">Otros</option>
+                                </select>
 							</div>
 						</div>
 					</div>

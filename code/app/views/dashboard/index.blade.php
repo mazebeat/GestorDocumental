@@ -14,12 +14,21 @@ Inicio
 @section('content')
 <h2>Bienvenido al Gestor Documental de Movistar</h2>
 <div ng-controller="treeViewController2">
- <ul class="breadcrumb">
-       <li ng-repeat="b in breadcrums" ng-class="{ active: $last }">@{{ b }} <span class="divider" ng-show="!$last">/</span></li>
-        </ul>
-  @{{ objeto.listFolder }}
-
-  @{{ objeto.messageError }}
+	<div ng-show="objeto.year">
+		<ul class="breadcrumb">
+			<li>Año @{{ objeto.year }}</li>
+			<li ng-repeat="b in objeto.breadcrums" ng-class="{ active: $last }">@{{ b }} <span class="divider" ng-show="!$last">/</span></li>
+		</ul>
+		<h3>Año @{{ objeto.year }}</h3>
+	</div>
+	<ul ng-show="objeto.listFolder">
+		<li show-folders ng-repeat="list in objeto.listFolder" ng-model='list'></li>
+	</ul>
+	<div ng-show="objeto.messageError">
+		<div class="alert alert-warning">
+			@{{ objeto.messageError }}
+		</div>
+	</div>
 </div>
 @endsection
 
