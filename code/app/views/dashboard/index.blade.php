@@ -14,16 +14,28 @@ Inicio
 @section('content')
 <h2>Bienvenido al Gestor Documental de Movistar</h2>
 <div ng-controller="treeViewController2">
-	<div ng-show="objeto.year">
-		<ul class="breadcrumb">
-			<li>Año @{{ objeto.year }}</li>
-			<li ng-repeat="b in objeto.breadcrums" ng-class="{ active: $last }">@{{ b }} <span class="divider" ng-show="!$last">/</span></li>
-		</ul>
-		<h3>Año @{{ objeto.year }}</h3>
-	</div>
-	<ul ng-show="objeto.listFolder">
-		<li show-folders ng-repeat="list in objeto.listFolder" ng-model='list'></li>
-	</ul>
+	{{--<div ng-show="objeto.listFolder && objeto.year && !objeto.messageError">--}}
+        <div ng-show="objeto.year">
+            <ul class="breadcrumb">
+                <li>Año @{{ objeto.year }}</li>
+                <li ng-repeat="b in objeto.breadcrums" ng-class="{ active: $last }">@{{ b }} <span class="divider" ng-show="!$last">/</span></li>
+            </ul>
+        </div>
+		<div class="panel panel-dark panel-alt widget-messaging">
+			<div class="panel-heading">
+				<div class="panel-btns">
+					{{--<a title="" data-toggle="tooltip" class="tooltips" href="" data-original-title="Settings"><i class="glyphicon glyphicon-cog"></i></a>--}}
+					{{--<a title="" data-toggle="tooltip" class="tooltips" id="addnewtodo" href="" data-original-title="Add New"><i class="glyphicon glyphicon-plus"></i></a>--}}
+				</div><!-- panel-btns -->
+				<h3 class="panel-title">Listado de carpetas año @{{ objeto.year }}</h3>
+			</div>
+			<div class="panel-body nopadding">
+				<ul class="todo-list">
+					<li show-folders ng-repeat="list in objeto.listFolder" ng-model='list'></li>
+				</ul>
+			</div><!-- panel-body -->
+		</div>
+	{{--</div>--}}
 	<div ng-show="objeto.messageError">
 		<div class="alert alert-warning">
 			@{{ objeto.messageError }}

@@ -30,4 +30,9 @@ class ProfileController extends BaseController
 		return View::make('dashboard.profiles');
 	}
 
+	public function saveProfile()
+	{
+		dd(Input::all());
+	}
+
 }

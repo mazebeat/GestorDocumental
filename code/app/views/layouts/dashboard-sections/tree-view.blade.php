@@ -7,7 +7,7 @@
             {{ Form::selectYear2('year', 2000, null, array('class' => 'form-control chosen-select', 'data-placeholder' => 'Seleccione un año...', 'ng-change' => 'buscarCarpeta()', 'ng-model' => 'year')) }}
             {{ Form::close() }}
         </li>
-        <div ng-show="objeto.year"><strong>@{{ objeto.year }}</strong></div>
+        {{--<li ng-show="objeto.year"><strong>@{{ objeto.year }}</strong></li>--}}
         <li>
             <div tree-view="objeto.structure" tree-view-options="options"></div>
             <div ng-show="objeto.messageError">

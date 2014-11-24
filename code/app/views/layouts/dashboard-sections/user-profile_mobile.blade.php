@@ -2,7 +2,7 @@
     <div class="media userlogged">
         {{ HTML::image('images/photos/loggeduser.png', null, array('class' => 'media-object')) }}
         <div class="media-body">
-            {{--<h4>{{ Auth::user()->name }}</h4>--}}
+            <h4>{{ Auth::user()->name }}</h4>
             <span>"... ?"</span>
         </div>
     </div>

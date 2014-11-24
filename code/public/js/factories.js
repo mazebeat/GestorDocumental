@@ -2,18 +2,8 @@
 gestorDocumental.factory('treeFactory', function () {
     var service = {
         objeto: {
-            structure: {
-                folders: [
-                    {name: 'Mes1', root: 'a_2014**m_04**c_1111'},
-                    {name: 'Mes2', root: 'a_2014**m_04**c_1111'},
-                    {name: 'Mes3', root: 'a_2014**m_04**c_1111'}
-                ]
-            },
-            listFolder: [
-                {name: 'Carpeta1', root: '2014121111'},
-                {name: 'Carpeta2', root: '20150'},
-                {name: 'Carpeta3', root: '201604222145'}
-            ],
+            structure: {},
+            listFolder: [],
             breadcrums: [],
             messageError: '',
             year: ''

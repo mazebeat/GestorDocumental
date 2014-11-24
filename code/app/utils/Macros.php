@@ -24,9 +24,10 @@
 \HTML::macro('load_documents', function ($dir) {
 	$output = '';
 	//	var_dump('a_'.substr($dir, 0, 4).'**m_'.substr($dir, 4, 2).'**c_'.substr($dir, 6, strlen($dir)));
-	$ws = new \WebServiceController('/GestionDocIntelidata/RetornaListaAlfrescoPort?WSDL');
+	$ws = new \WebServiceController('/GestionDocIntelidata/RetornaListaAlfrescoPort?WSDL', '192.168.1.86', '8080', 'opRequestList', false);
 	$ws->setRutaCarpeta(base64_decode($dir));
 	$result = $ws->get('showFolder');
+	//	dd($result);
 
 	$element = '<div class="col-xs-6 col-sm-4 col-md-3 %s">
 				    <div class="thmb">
@@ -54,13 +55,50 @@
 				</div>';
 
 	foreach ($result->lista as $key => $value) {
-		$id        = $key;
-		$doc_name  = $value;// 'document.xls';
-		$extension = $value;// 'xls';
-		$type      = $value;// 'document';
-		$image_url = $value;// 'images/files/media-%s.png';
-		$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
-		$created   = \Carbon::now($value)->toFormattedDateString();
+		if (is_object($value)) {
+			$año = explode('a_', $value->strcarpetaaño)[1];
+			$mes = explode('m_', $value->strcarpetames)[1];
+
+			$id        = $key;
+			$doc_name  = $value->strnombredocumento;// 'document.xls';
+			$extension = explode('.', $doc_name)[1];// 'xls';
+			$type      = 'document';
+			$image_url = 'images/files/media-%s.png';
+			$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
+			$created   = new \Carbon($value->strfechacreaciondocumento);
+		} else {
+			$año = explode('a_', $result->lista->strcarpetaaño)[1];
+			$mes = explode('m_', $result->lista->strcarpetames)[1];
+
+			$id        = $key;
+			$doc_name  = $result->lista->strnombredocumento;// 'document.xls';
+			$extension = explode('.', $doc_name)[1];// 'xls';
+			$type      = 'document';
+			$image_url = 'images/files/media-%s.png';
+			$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
+			$created   = new \Carbon($result->lista->strfechacreaciondocumento);
+
+			break;
+		}
+		//
+		//public 'strcarpetaaño' => string 'a_2014' (length=6)
+		//public 'strcarpetacliente' => string 'c_111111111' (length=11)
+		//public 'strcarpetames' => string 'm_04' (length=4)
+		//public 'strdescripciondocumento' => string 'prueba.txt' (length=10)
+		//public 'strfechacreaciondocumento' => string '2014-11-17' (length=10)
+		//public 'strfechamodificaciondocumento' => string '2014-11-17' (length=10)
+		//public 'stridcliente' => string '6b40a727-2a22-4dab-b2c1-5c5600cedde2' (length=36)
+		//public 'striddocumento' => string '3e3e4376-e7b5-48ed-8fcc-83c94f6fbc7a' (length=36)
+		//public 'strnombrecliente' => string 'c_111111111' (length=11)
+		//public 'strnombredocumento' => string 'prueba.txt' (length=10)
+		//public 'strnrodocumento' => string '1' (length=1)
+		//public 'strpathruta' => string '/{http://www.alfresco.org/model/application/1.0}company_home/{http://www.alfresco.org/model/content/1.0}e_MOVISTAR/{http://www.alfresco.org/model/content/1.0}a_2014/{http://www.alfresco.org/model/content/1.0}m_04/{http://www.alfresco.org/model/content/1.0}c_111111111/{http://www.alfresco.org/model/content/1.0}prueba.txt' (length=321)
+		//public 'strtipodocumento' => string 'contentUrl=store://2014/11/17/15/49/0e224750-1fa7-4014-9ab6-f09ce97bf175.bin|mimetype=application/vnd.ms-excel|size=625|encoding=UTF-8|locale=es_CL_' (length=148)
+		//public 'strtitulodocumento' => string 'prueba.txt' (length=10)
+		//public 'strusuariocreadordocumento' => string 'admin' (length=5)
+		//public 'strusuariomodificaciondocumento' => string 'admin' (length=5)
+		//public 'strversiondocumento' => string '1.1' (length=3)
+
 		$output .= sprintf($element, $type, $id, $id, $image, $doc_name, $created);
 	}
 
@@ -177,14 +215,14 @@
 	return "<select{$options}>{$list}</select>";
 });
 
-\Form::macro('checkbox2', function ($name, $title, $class = 'default', $check = false, $options = array()) {
+\Form::macro('checkbox2', function ($name, $title, $value, $class = 'default', $check = false, $options = array()) {
 	$output = '<div class="ckbox ckbox-%s">%s%s</div>';
 	if (!isset($options['name']))
 		$options['name'] = $name;
 	if (!isset($options['id']))
 		$options['id'] = $name;
 
-	return sprintf($output, $class, \Form::checkbox($name, 1, $check, $options), \Form::label($name, $title, $options));
+	return sprintf($output, $class, \Form::checkbox($name, $value, $check, $options), \Form::label($name, $title, $options));
 });
 
 function attributes($attributes)

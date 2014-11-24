@@ -119,3 +119,17 @@ gestorDocumental.controller('signInController', ['$scope', '$http', function ($s
             });
     }
 }]);
+
+// New User controller
+gestorDocumental.controller('userFormController', ['$scope', '$http', function ($scope, $http) {
+
+    $scope.loginFormSubmit = function () {
+        return false;
+    };
+}]);
+
+
+// Profile controller
+gestorDocumental.controller('profileController', ['$scope', '$http', function ($scope, $http) {
+
+}]);

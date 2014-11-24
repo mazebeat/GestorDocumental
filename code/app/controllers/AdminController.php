@@ -9,11 +9,11 @@ class AdminController extends BaseController
 
 	public function __construct()
 	{
-		//		$this->beforeFilter('auth');
-		//
-		//		if (\Session::token() !== \Input::get('_token')) {
-		//			return \Response::json(array('msg' => 'Unauthorized mfk!'), $this->status, $this->headers);
-		//		}
+		$this->beforeFilter('auth');
+
+		if (\Session::token() !== \Input::get('_token')) {
+			return \Response::json(array('msg' => 'Unauthorized mfk!'), $this->status, $this->headers);
+		}
 	}
 
 	public function index()
@@ -21,7 +21,7 @@ class AdminController extends BaseController
 		return \View::make('dashboard.index');
 	}
 
-	public function fast_search()
+	public function fastSearch()
 	{
 		$response = array('status' => 'success',
 		                  'msg'    => 'Setting created successfully',);
@@ -34,7 +34,7 @@ class AdminController extends BaseController
 		return \View::make('dashboard.busqueda');
 	}
 
-	public function search_result()
+	public function searchResult()
 	{
 		$this->data = \Input::all();
 		$word       = array_get($this->data, 'keyword');
@@ -63,7 +63,7 @@ class AdminController extends BaseController
 		return View::make('dashboard.carpeta')->with('dir', $dir);
 	}
 
-	public function search_folder()
+	public function searchFolder()
 	{
 		$folder = array();
 		$ws     = new \WebServiceController();
@@ -96,7 +96,7 @@ class AdminController extends BaseController
 		return \Response::json($this->data, $this->status, $this->headers);
 	}
 
-	public function show_folders()
+	public function showFolders()
 	{
 		$folders = array();
 		$ws      = new \WebServiceController();
@@ -138,6 +138,11 @@ class AdminController extends BaseController
 	}
 
 	public function form()
+	{
+		return \View::make('dashboard.mantenedor');
+	}
+
+	public function saveForm()
 	{
 		return \View::make('dashboard.mantenedor');
 	}

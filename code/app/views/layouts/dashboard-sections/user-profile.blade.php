@@ -2,7 +2,7 @@
     <div class="btn-group">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
             {{ HTML::image('images/photos/loggeduser.png') }}
-            {{--{{ Auth::user()->name }}--}}
+            {{ Auth::user()->name }}
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-usermenu pull-right">

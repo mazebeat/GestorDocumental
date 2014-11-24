@@ -11,6 +11,7 @@
 
 	{{--{{ HTML::style('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css') }}--}}
 	{{ HTML::style('css/style.default.css') }}
+		{{ HTML::style('js/ladda/dist/ladda.min.css') }}
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" />
     <!--[if IE 7]>
       <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome-ie7.min.css" />
@@ -69,33 +70,14 @@
 	{{ HTML::script('js/jquery.cookies.js') }}
 	{{ HTML::script('js/chosen.jquery.min.js') }}
 	{{ HTML::script('js/colorpicker.js') }}
+	{{ HTML::script('js/ladda/dist/spin.min.js') }}
+    	{{ HTML::script('js/ladda/dist/ladda.min.js') }}
 
 	@yield('file-script')
 
-	{{-- AngularJS --}}
-	{{ HTML::script('http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js') }}
-	{{ HTML::script('https://code.angularjs.org/1.2.26/i18n/angular-locale_es-cl.js') }}
-	{{-- Angular Directives --}}
-	{{ HTML::script('js/angular-debounce.js') }}
-	{{ HTML::script('js/chosen.js') }}
-	{{ HTML::script('js/treeView.js') }}
-	{{ HTML::script('js/angular-utf8-base64.min.js') }}
-	{{-- Main app --}}
-	{{ HTML::script('js/app.js') }}
-	<script>
-		gestorDocumental.factory('rootFactory', function () {
-		    var servicio = {
-		        raiz: "{{ Request::root() }}"
-		    };
+    @include('layouts.angularjs')
 
-		    return servicio;
-		});
-	</script>
-	{{ HTML::script('js/factories.js') }}
-	{{ HTML::script('js/directives.js') }}
-	{{ HTML::script('js/controllers.js') }}
-
-
+    {{-- Custom javascript --}}
 	{{ HTML::script('js/custom.js') }}
 
 	@yield('text-script')

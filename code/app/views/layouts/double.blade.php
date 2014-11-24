@@ -57,15 +57,7 @@
     @yield('file-script')
 	@yield('text-script')
 
-     {{--AngularJS--}}
-    {{ HTML::script('http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js') }}
-    {{ HTML::script('https://code.angularjs.org/1.2.26/i18n/angular-locale_es-cl.js') }}
-     {{--Angular Directives--}}
-    {{ HTML::script('js/angular-debounce.js') }}
-    {{ HTML::script('js/chosen.js') }}
-    {{ HTML::script('js/treeView.js') }}
-     {{--Main app--}}
-    {{ HTML::script('js/app.js') }}
+    @include('layouts.angularjs')
 
     {{ HTML::script('js/custom.js') }}
 

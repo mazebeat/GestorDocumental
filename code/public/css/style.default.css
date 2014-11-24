@@ -753,7 +753,7 @@ strong {
 }
 
 form .form-group:last-child {
-    margin-bottom: 0;
+    /*margin-bottom: 0;*/    
 }
 
 .row-pad-5 {
