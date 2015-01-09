@@ -120,7 +120,9 @@ return array(
 		'Way\Generators\GeneratorsServiceProvider',
 		'Artisaninweb\SoapWrapper\ServiceProvider',
 		'Barryvdh\VendorCleanup\VendorCleanupServiceProvider',
-		'Clockwork\Support\Laravel\ClockworkServiceProvider',),
+		'Clockwork\Support\Laravel\ClockworkServiceProvider',
+
+	),
 	/*
 	|--------------------------------------------------------------------------
 	| Service Provider Manifest

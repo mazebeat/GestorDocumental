@@ -1,6 +1,6 @@
 {{-- AngularJS --}}
-	{{ HTML::script('http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js') }}
-	{{ HTML::script('https://code.angularjs.org/1.2.26/i18n/angular-locale_es-cl.js') }}
+{{ HTML::script('http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js') }}
+{{ HTML::script('https://code.angularjs.org/1.2.26/i18n/angular-locale_es-cl.js') }}
 {{----}}
 {{--{{ HTML::script('js/angular-1.3.2/angular.min.js') }}--}}
 {{--{{ HTML::script('js/angular-1.3.2/i18n/angular-locale_es-cl.js') }}--}}
