@@ -1,4 +1,12 @@
 <?php
+ini_set('memory_limit', '1024M');
+ini_set('max_execution_time', '0');
+ini_set('set_time_limit', '0');
+ini_set('xdebug.collect_vars', 'on');
+ini_set('xdebug.collect_params', '4');
+ini_set('xdebug.dump_globals', 'on');
+ini_set('xdebug.dump.SERVER', 'REQUEST_URI');
+error_reporting(E_ALL);
 
 /*
 |--------------------------------------------------------------------------
@@ -27,21 +35,21 @@ Route::group(array('after' => 'auth'), function () {
 
 // Admin dashboard - Logged OK
 //Route::group(array('before' => 'auth'), function () {
-	Route::group(array('prefix' => 'dashboard'), function () {
-		Route::get('/', 'AdminController@index');
-		Route::get('search', 'AdminController@search');
-		Route::post('search', 'AdminController@searchResult');
-		Route::get('fastSearch/{keyword?}', 'AdminController@fastSearch');
-		Route::post('export', 'AdminController@export');
-		Route::get('folder/{dir}', 'AdminController@folder');
-		Route::post('folder', 'AdminController@searchFolder');
-		Route::post('show_folder', 'AdminController@showFolders');
-		Route::get('viewer', 'AdminController@viewer');
-		Route::get('form', 'AdminController@form');
-		Route::post('form', 'AdminController@saveForm');
-		Route::get('profile', 'ProfileController@index');
-		Route::post('profile', 'ProfileController@saveProfile');
-	});
+Route::group(array('prefix' => 'dashboard'), function () {
+	Route::get('/', 'AdminController@index');
+	Route::get('search', 'AdminController@search');
+	Route::post('search', 'AdminController@searchResult');
+	Route::get('fastSearch/{keyword?}', 'AdminController@fastSearch');
+	Route::post('export', 'AdminController@export');
+	Route::get('folder/{dir}', 'AdminController@folder');
+	Route::post('folder', 'AdminController@searchFolder');
+	Route::post('show_folder', 'AdminController@showFolders');
+	Route::get('viewer', 'AdminController@viewer');
+	Route::get('form', 'AdminController@form');
+	Route::post('form', 'AdminController@saveForm');
+	Route::get('profile', 'ProfileController@index');
+	Route::post('profile', 'ProfileController@saveProfile');
+});
 //});
 
 // Test pages
