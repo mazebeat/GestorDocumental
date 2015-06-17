@@ -3,8 +3,7 @@
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
-class ChangesCommand extends Command
-{
+class ChangesCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -31,7 +30,8 @@ class ChangesCommand extends Command
 
 		$this->writeHeader($version);
 
-		foreach ($changes as $change) {
+		foreach ($changes as $change)
+		{
 			$this->line($this->formatMessage($change));
 		}
 	}
@@ -39,15 +39,15 @@ class ChangesCommand extends Command
 	/**
 	 * Get the change list for the specified version.
 	 *
-	 * @param  array $changes
-	 *
+	 * @param  array  $changes
 	 * @return array
 	 */
 	protected function getChangeVersion(array $changes)
 	{
 		$version = $this->argument('version');
 
-		if (is_null($version)) {
+		if (is_null($version))
+		{
 			$latest = head(array_keys($changes));
 
 			return array($latest, $changes[$latest]);
@@ -63,19 +63,18 @@ class ChangesCommand extends Command
 	 */
 	protected function getChangesArray()
 	{
-		return json_decode(file_get_contents(__DIR__ . '/../changes.json'), true);
+		return json_decode(file_get_contents(__DIR__.'/../changes.json'), true);
 	}
 
 	/**
 	 * Write the heading for the change log.
 	 *
-	 * @param  string $version
-	 *
+	 * @param  string  $version
 	 * @return void
 	 */
 	protected function writeHeader($version)
 	{
-		$this->info($heading = 'Changes For Laravel ' . $version);
+		$this->info($heading = 'Changes For Laravel '.$version);
 
 		$this->comment(str_repeat('-', strlen($heading)));
 	}
@@ -83,16 +82,16 @@ class ChangesCommand extends Command
 	/**
 	 * Format the given change message.
 	 *
-	 * @param  array $change
-	 *
+	 * @param  array   $change
 	 * @return string
 	 */
 	protected function formatMessage(array $change)
 	{
-		$message = '<comment>-></comment> <info>' . $change['message'] . '</info>';
+		$message = '<comment>-></comment> <info>'.$change['message'].'</info>';
 
-		if (!is_null($change['backport'])) {
-			$message .= ' <comment>(Backported to ' . $change['backport'] . ')</comment>';
+		if ( ! is_null($change['backport']))
+		{
+			$message .= ' <comment>(Backported to '.$change['backport'].')</comment>';
 		}
 
 		return $message;
@@ -105,7 +104,9 @@ class ChangesCommand extends Command
 	 */
 	protected function getArguments()
 	{
-		return array(array('version', InputArgument::OPTIONAL, 'The version to list changes for.'),);
+		return array(
+			array('version', InputArgument::OPTIONAL, 'The version to list changes for.'),
+		);
 	}
 
 }

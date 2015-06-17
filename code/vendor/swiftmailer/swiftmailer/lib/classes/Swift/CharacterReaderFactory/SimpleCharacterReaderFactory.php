@@ -11,106 +11,114 @@
 /**
  * Standard factory for creating CharacterReaders.
  *
- * @author     Chris Corbyn
+ * @author Chris Corbyn
  */
 class Swift_CharacterReaderFactory_SimpleCharacterReaderFactory implements Swift_CharacterReaderFactory
 {
-	/**
-	 * A map of charset patterns to their implementation classes.
-	 *
-	 * @var array
-	 */
-	private static $_map = array();
+    /**
+     * A map of charset patterns to their implementation classes.
+     *
+     * @var array
+     */
+    private static $_map = array();
 
-	/**
-	 * Factories which have already been loaded.
-	 *
-	 * @var Swift_CharacterReaderFactory[]
-	 */
-	private static $_loaded = array();
+    /**
+     * Factories which have already been loaded.
+     *
+     * @var Swift_CharacterReaderFactory[]
+     */
+    private static $_loaded = array();
 
-	/**
-	 * Creates a new CharacterReaderFactory.
-	 */
-	public function __construct()
-	{
-		$this->init();
-	}
+    /**
+     * Creates a new CharacterReaderFactory.
+     */
+    public function __construct()
+    {
+        $this->init();
+    }
 
-	public function init()
-	{
-		if (count(self::$_map) > 0) {
-			return;
-		}
+    public function __wakeup()
+    {
+        $this->init();
+    }
 
-		$prefix = 'Swift_CharacterReader_';
+    public function init()
+    {
+        if (count(self::$_map) > 0) {
+            return;
+        }
 
-		$singleByte = array('class'       => $prefix . 'GenericFixedWidthReader',
-		                    'constructor' => array(1),);
+        $prefix = 'Swift_CharacterReader_';
 
-		$doubleByte = array('class'       => $prefix . 'GenericFixedWidthReader',
-		                    'constructor' => array(2),);
+        $singleByte = array(
+            'class' => $prefix.'GenericFixedWidthReader',
+            'constructor' => array(1),
+            );
 
-		$fourBytes = array('class'       => $prefix . 'GenericFixedWidthReader',
-		                   'constructor' => array(4),);
+        $doubleByte = array(
+            'class' => $prefix.'GenericFixedWidthReader',
+            'constructor' => array(2),
+            );
 
-		// Utf-8
-		self::$_map['utf-?8'] = array('class'       => $prefix . 'Utf8Reader',
-		                              'constructor' => array(),);
+        $fourBytes = array(
+            'class' => $prefix.'GenericFixedWidthReader',
+            'constructor' => array(4),
+            );
 
-		//7-8 bit charsets
-		self::$_map['(us-)?ascii']             = $singleByte;
-		self::$_map['(iso|iec)-?8859-?[0-9]+'] = $singleByte;
-		self::$_map['windows-?125[0-9]']       = $singleByte;
-		self::$_map['cp-?[0-9]+']              = $singleByte;
-		self::$_map['ansi']                    = $singleByte;
-		self::$_map['macintosh']               = $singleByte;
-		self::$_map['koi-?7']                  = $singleByte;
-		self::$_map['koi-?8-?.+']              = $singleByte;
-		self::$_map['mik']                     = $singleByte;
-		self::$_map['(cork|t1)']               = $singleByte;
-		self::$_map['v?iscii']                 = $singleByte;
+        // Utf-8
+        self::$_map['utf-?8'] = array(
+            'class' => $prefix.'Utf8Reader',
+            'constructor' => array(),
+            );
 
-		//16 bits
-		self::$_map['(ucs-?2|utf-?16)'] = $doubleByte;
+        //7-8 bit charsets
+        self::$_map['(us-)?ascii'] = $singleByte;
+        self::$_map['(iso|iec)-?8859-?[0-9]+'] = $singleByte;
+        self::$_map['windows-?125[0-9]'] = $singleByte;
+        self::$_map['cp-?[0-9]+'] = $singleByte;
+        self::$_map['ansi'] = $singleByte;
+        self::$_map['macintosh'] = $singleByte;
+        self::$_map['koi-?7'] = $singleByte;
+        self::$_map['koi-?8-?.+'] = $singleByte;
+        self::$_map['mik'] = $singleByte;
+        self::$_map['(cork|t1)'] = $singleByte;
+        self::$_map['v?iscii'] = $singleByte;
 
-		//32 bits
-		self::$_map['(ucs-?4|utf-?32)'] = $fourBytes;
+        //16 bits
+        self::$_map['(ucs-?2|utf-?16)'] = $doubleByte;
 
-		// Fallback
-		self::$_map['.*'] = $singleByte;
-	}
+        //32 bits
+        self::$_map['(ucs-?4|utf-?32)'] = $fourBytes;
 
-	public function __wakeup()
-	{
-		$this->init();
-	}
+        // Fallback
+        self::$_map['.*'] = $singleByte;
+    }
 
-	/**
-	 * Returns a CharacterReader suitable for the charset applied.
-	 *
-	 * @param string $charset
-	 *
-	 * @return Swift_CharacterReader
-	 */
-	public function getReaderFor($charset)
-	{
-		$charset = trim(strtolower($charset));
-		foreach (self::$_map as $pattern => $spec) {
-			$re = '/^' . $pattern . '$/D';
-			if (preg_match($re, $charset)) {
-				if (!array_key_exists($pattern, self::$_loaded)) {
-					$reflector = new ReflectionClass($spec['class']);
-					if ($reflector->getConstructor()) {
-						$reader = $reflector->newInstanceArgs($spec['constructor']);
-					} else {
-						$reader = $reflector->newInstance();
-					}
-					self::$_loaded[$pattern] = $reader;
-				}
+    /**
+     * Returns a CharacterReader suitable for the charset applied.
+     *
+     * @param string $charset
+     *
+     * @return Swift_CharacterReader
+     */
+    public function getReaderFor($charset)
+    {
+        $charset = trim(strtolower($charset));
+        foreach (self::$_map as $pattern => $spec) {
+            $re = '/^'.$pattern.'$/D';
+            if (preg_match($re, $charset)) {
+                if (!array_key_exists($pattern, self::$_loaded)) {
+                    $reflector = new ReflectionClass($spec['class']);
+                    if ($reflector->getConstructor()) {
+                        $reader = $reflector->newInstanceArgs($spec['constructor']);
+                    } else {
+                        $reader = $reflector->newInstance();
+                    }
+                    self::$_loaded[$pattern] = $reader;
+                }
 
-				return self::$_loaded[$pattern];
-			}
-		}
-	}
+                return self::$_loaded[$pattern];
+            }
+        }
+    }
 }

@@ -17,132 +17,136 @@ use Psr\Log\AbstractLogger;
  */
 class MessagesCollector extends AbstractLogger implements DataCollectorInterface, MessagesAggregateInterface, Renderable
 {
-	protected $name;
+    protected $name;
 
-	protected $messages = array();
+    protected $messages = array();
 
-	protected $aggregates = array();
+    protected $aggregates = array();
 
-	protected $dataFormater;
+    protected $dataFormater;
 
-	/**
-	 * @param string $name
-	 */
-	public function __construct($name = 'messages')
-	{
-		$this->name = $name;
-	}
+    /**
+     * @param string $name
+     */
+    public function __construct($name = 'messages')
+    {
+        $this->name = $name;
+    }
 
-	/**
-	 * Sets the data formater instance used by this collector
-	 *
-	 * @param DataFormatterInterface $formater
-	 */
-	public function setDataFormatter(DataFormatterInterface $formater)
-	{
-		$this->dataFormater = $formater;
+    /**
+     * Sets the data formater instance used by this collector
+     *
+     * @param DataFormatterInterface $formater
+     */
+    public function setDataFormatter(DataFormatterInterface $formater)
+    {
+        $this->dataFormater = $formater;
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * Aggregates messages from other collectors
+     *
+     * @param MessagesAggregateInterface $messages
+     */
+    public function aggregate(MessagesAggregateInterface $messages)
+    {
+        $this->aggregates[] = $messages;
+    }
 
-	/**
-	 * Aggregates messages from other collectors
-	 *
-	 * @param MessagesAggregateInterface $messages
-	 */
-	public function aggregate(MessagesAggregateInterface $messages)
-	{
-		$this->aggregates[] = $messages;
-	}
+    public function log($level, $message, array $context = array())
+    {
+        $this->addMessage($message, $level);
+    }
 
-	public function log($level, $message, array $context = array())
-	{
-		$this->addMessage($message, $level);
-	}
+    /**
+     * Adds a message
+     *
+     * A message can be anything from an object to a string
+     *
+     * @param mixed $message
+     * @param string $label
+     */
+    public function addMessage($message, $label = 'info', $isString = true)
+    {
+        if (!is_string($message)) {
+            $message = $this->getDataFormatter()->formatVar($message);
+            $isString = false;
+        }
+        $this->messages[] = array(
+            'message' => $message,
+            'is_string' => $isString,
+            'label' => $label,
+            'time' => microtime(true)
+        );
+    }
 
-	/**
-	 * Adds a message
-	 *
-	 * A message can be anything from an object to a string
-	 *
-	 * @param mixed  $message
-	 * @param string $label
-	 */
-	public function addMessage($message, $label = 'info', $isString = true)
-	{
-		if (!is_string($message)) {
-			$message  = $this->getDataFormatter()->formatVar($message);
-			$isString = false;
-		}
-		$this->messages[] = array('message'   => $message,
-		                          'is_string' => $isString,
-		                          'label'     => $label,
-		                          'time'      => microtime(true));
-	}
+    public function getDataFormatter()
+    {
+        if ($this->dataFormater === null) {
+            $this->dataFormater = DataCollector::getDefaultDataFormatter();
+        }
+        return $this->dataFormater;
+    }
 
-	public function getDataFormatter()
-	{
-		if ($this->dataFormater === null) {
-			$this->dataFormater = DataCollector::getDefaultDataFormatter();
-		}
+    /**
+     * Deletes all messages
+     */
+    public function clear()
+    {
+        $this->messages = array();
+    }
 
-		return $this->dataFormater;
-	}
+    public function collect()
+    {
+        $messages = $this->getMessages();
+        return array(
+            'count' => count($messages),
+            'messages' => $messages
+        );
+    }
 
-	/**
-	 * Deletes all messages
-	 */
-	public function clear()
-	{
-		$this->messages = array();
-	}
+    public function getName()
+    {
+        return $this->name;
+    }
 
-	public function collect()
-	{
-		$messages = $this->getMessages();
+    public function getMessages()
+    {
+        $messages = $this->messages;
+        foreach ($this->aggregates as $collector) {
+            $msgs = array_map(function ($m) use ($collector) {
+                $m['collector'] = $collector->getName();
+                return $m;
+            }, $collector->getMessages());
+            $messages = array_merge($messages, $msgs);
+        }
 
-		return array('count'    => count($messages),
-		             'messages' => $messages);
-	}
+        // sort messages by their timestamp
+        usort($messages, function ($a, $b) {
+            if ($a['time'] === $b['time']) {
+                return 0;
+            }
+            return $a['time'] < $b['time'] ? -1 : 1;
+        });
 
-	public function getMessages()
-	{
-		$messages = $this->messages;
-		foreach ($this->aggregates as $collector) {
-			$msgs     = array_map(function ($m) use ($collector) {
-				$m['collector'] = $collector->getName();
+        return $messages;
+    }
 
-				return $m;
-			}, $collector->getMessages());
-			$messages = array_merge($messages, $msgs);
-		}
-
-		// sort messages by their timestamp
-		usort($messages, function ($a, $b) {
-			if ($a['time'] === $b['time']) {
-				return 0;
-			}
-
-			return $a['time'] < $b['time'] ? -1 : 1;
-		});
-
-		return $messages;
-	}
-
-	public function getWidgets()
-	{
-		$name = $this->getName();
-
-		return array("$name"       => array('icon'    => 'list-alt',
-		                                    "widget"  => "PhpDebugBar.Widgets.MessagesWidget",
-		                                    "map"     => "$name.messages",
-		                                    "default" => "[]"),
-		             "$name:badge" => array("map"     => "$name.count",
-		                                    "default" => "null"));
-	}
-
-	public function getName()
-	{
-		return $this->name;
-	}
+    public function getWidgets()
+    {
+        $name = $this->getName();
+        return array(
+            "$name" => array(
+                'icon' => 'list-alt',
+                "widget" => "PhpDebugBar.Widgets.MessagesWidget",
+                "map" => "$name.messages",
+                "default" => "[]"
+            ),
+            "$name:badge" => array(
+                "map" => "$name.count",
+                "default" => "null"
+            )
+        );
+    }
 }

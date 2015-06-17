@@ -1,18 +1,20 @@
 <?php
 
-class HomeController extends BaseController
+class HomeController extends ApiController
 {
 	private $credentials;
 	private $data;
 	private $status = 200;
-	private $headers = array('ContentType' => 'application/json',
-	                         'charset'     => 'utf-8');
+	private $headers
+	                = array(
+			'ContentType' => 'application/json',
+			'charset'     => 'utf-8'
+		);
 
 	public function __construct()
 	{
 		$this->credentials = $this->credentials;
 	}
-
 
 	public function index()
 	{
@@ -25,8 +27,10 @@ class HomeController extends BaseController
 
 	public function login()
 	{
-		$validator = \Validator::make(\Input::all(), array('username' => 'required',
-		                                                   'password' => 'required'));
+		$validator = \Validator::make(\Input::all(), array(
+			'username' => 'required',
+			'password' => 'required'
+		));
 
 		if ($validator->fails()) {
 			$this->data['message'] = $validator->messages();
@@ -47,7 +51,7 @@ class HomeController extends BaseController
 
 			return \Response::json($this->data, $this->status, $this->headers);
 		}
-		if($result->ok) {
+		if ($result->ok) {
 			$this->credentials = array(
 
 				'id'          => $result->lista->intiduser,
@@ -84,8 +88,10 @@ class HomeController extends BaseController
 						$result = $ws->get('profiles');
 
 						if ($result->ok) {
-							array_push($this->data['profiles'], array('code' => $value,
-							                                          'name' => $result->lista->stridperfil));
+							array_push($this->data['profiles'], array(
+								'code' => $value,
+								'name' => $result->lista->stridperfil
+							));
 						}
 					}
 					$this->data['message'] = array('Usuario con perfiles asociados');
@@ -94,13 +100,15 @@ class HomeController extends BaseController
 					$this->data['message'] = array($e->getMessage());
 				}
 
-			} else {
+			}
+			else {
 				$this->data['find']     = false;
 				$this->data['ok']       = true;
 				$this->data['profiles'] = array();
 				$this->data['message']  = array('Usuario sin perfiles asociados');
 			}
 		}
+
 		return \Response::json($this->data, $this->status, $this->headers);
 	}
 

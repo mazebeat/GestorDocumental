@@ -18,7 +18,7 @@ class FrameGuard implements HttpKernelInterface
 	 *
 	 * @param  \Symfony\Component\HttpKernel\HttpKernelInterface $app
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(HttpKernelInterface $app)
 	{
@@ -34,7 +34,7 @@ class FrameGuard implements HttpKernelInterface
 	 * @param  int                                       $type
 	 * @param  bool                                      $catch
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Response
+*@return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function handle(SymfonyRequest $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
 	{

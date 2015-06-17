@@ -37,7 +37,7 @@ class ConfigPublishCommand extends Command
 	 *
 	 * @param  \Illuminate\Foundation\ConfigPublisher $config
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(ConfigPublisher $config)
 	{
@@ -64,7 +64,8 @@ class ConfigPublishCommand extends Command
 
 		if (!is_null($path = $this->getPath())) {
 			$this->config->publish($package, $path);
-		} else {
+		}
+		else {
 			$this->config->publishPackage($package);
 		}
 
@@ -103,7 +104,8 @@ class ConfigPublishCommand extends Command
 	protected function getOptions()
 	{
 		return array(array('path', null, InputOption::VALUE_OPTIONAL, 'The path to the configuration files.', null),
-			array('force', null, InputOption::VALUE_NONE, 'Force the operation to run when the file already exists.'),);
+
+		             array('force', null, InputOption::VALUE_NONE, 'Force the operation to run when the file already exists.'),);
 	}
 
 }

@@ -6,8 +6,7 @@ use Swift_Events_EventListener;
 use Swift_Mime_Message;
 use Swift_Transport;
 
-class MailgunTransport implements Swift_Transport
-{
+class MailgunTransport implements Swift_Transport {
 
 	/**
 	 * The Mailgun API key.
@@ -33,16 +32,14 @@ class MailgunTransport implements Swift_Transport
 	/**
 	 * Create a new Mailgun transport instance.
 	 *
-	 * @param  string $key
-	 * @param  string $domain
-	 *
+	 * @param  string  $key
+	 * @param  string  $domain
 	 * @return void
 	 */
 	public function __construct($key, $domain)
 	{
-		$this->key    = $key;
-		$this->domain = $domain;
-		$this->url    = 'https://api.mailgun.net/v2/' . $this->domain . '/messages.mime';
+		$this->key = $key;
+		$this->setDomain($domain);
 	}
 
 	/**
@@ -51,6 +48,29 @@ class MailgunTransport implements Swift_Transport
 	public function isStarted()
 	{
 		return true;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function registerPlugin(Swift_Events_EventListener $plugin)
+	{
+		//
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
+	{
+		$client = $this->getHttpClient();
+
+		$client->post($this->url, ['auth' => ['api', $this->key],
+			'body' => [
+				'to' => $this->getTo($message),
+				'message' => new PostFile('message', (string) $message),
+			],
+		]);
 	}
 
 	/**
@@ -70,18 +90,6 @@ class MailgunTransport implements Swift_Transport
 	}
 
 	/**
-	 * {@inheritdoc}
-	 */
-	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
-	{
-		$client = $this->getHttpClient();
-
-		$client->post($this->url, ['auth' => ['api', $this->key],
-		                           'body' => ['to'      => $this->getTo($message),
-		                                      'message' => new PostFile('message', (string)$message),],]);
-	}
-
-	/**
 	 * Get a new HTTP client instance.
 	 *
 	 * @return \GuzzleHttp\Client
@@ -94,29 +102,23 @@ class MailgunTransport implements Swift_Transport
 	/**
 	 * Get the "to" payload field for the API request.
 	 *
-	 * @param  \Swift_Mime_Message $message
-	 *
+	 * @param  \Swift_Mime_Message  $message
 	 * @return array
 	 */
 	protected function getTo(Swift_Mime_Message $message)
 	{
 		$formatted = [];
 
-		$contacts = array_merge((array)$message->getTo(), (array)$message->getCc(), (array)$message->getBcc());
+		$contacts = array_merge(
+			(array) $message->getTo(), (array) $message->getCc(), (array) $message->getBcc()
+		);
 
-		foreach ($contacts as $address => $display) {
-			$formatted[] = $display ? $display . " <$address>" : $address;
+		foreach ($contacts as $address => $display)
+		{
+			$formatted[] = $display ? $display." <$address>" : $address;
 		}
 
 		return implode(',', $formatted);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function registerPlugin(Swift_Events_EventListener $plugin)
-	{
-		//
 	}
 
 	/**
@@ -132,8 +134,7 @@ class MailgunTransport implements Swift_Transport
 	/**
 	 * Set the API key being used by the transport.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function setKey($key)
@@ -154,12 +155,13 @@ class MailgunTransport implements Swift_Transport
 	/**
 	 * Set the domain being used by the transport.
 	 *
-	 * @param  string $domain
-	 *
+	 * @param  string  $domain
 	 * @return void
 	 */
 	public function setDomain($domain)
 	{
+		$this->url = 'https://api.mailgun.net/v2/'.$domain.'/messages.mime';
+
 		return $this->domain = $domain;
 	}
 

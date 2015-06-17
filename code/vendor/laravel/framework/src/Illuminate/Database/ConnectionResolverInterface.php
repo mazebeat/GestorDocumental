@@ -8,7 +8,7 @@ interface ConnectionResolverInterface
 	 *
 	 * @param  string $name
 	 *
-	 * @return \Illuminate\Database\Connection
+*@return \Illuminate\Database\Connection
 	 */
 	public function connection($name = null);
 
@@ -24,7 +24,7 @@ interface ConnectionResolverInterface
 	 *
 	 * @param  string $name
 	 *
-	 * @return void
+*@return void
 	 */
 	public function setDefaultConnection($name);
 

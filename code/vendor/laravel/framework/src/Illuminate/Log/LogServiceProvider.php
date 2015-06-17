@@ -14,6 +14,16 @@ class LogServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('log', 'Psr\Log\LoggerInterface');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -37,16 +47,6 @@ class LogServiceProvider extends ServiceProvider
 		if (isset($this->app['log.setup'])) {
 			call_user_func($this->app['log.setup'], $logger);
 		}
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('log');
 	}
 
 }

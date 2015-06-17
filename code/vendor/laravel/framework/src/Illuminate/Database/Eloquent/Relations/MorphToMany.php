@@ -3,8 +3,7 @@
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class MorphToMany extends BelongsToMany
-{
+class MorphToMany extends BelongsToMany {
 
 	/**
 	 * The type of the polymorphic relation.
@@ -32,70 +31,108 @@ class MorphToMany extends BelongsToMany
 	/**
 	 * Create a new has many relationship instance.
 	 *
-	 * @param  \Illuminate\Database\Eloquent\Builder $query
-	 * @param  \Illuminate\Database\Eloquent\Model   $parent
-	 * @param  string                                $name
-	 * @param  string                                $table
-	 * @param  string                                $foreignKey
-	 * @param  string                                $otherKey
-	 * @param  string                                $relationName
-	 * @param  bool                                  $inverse
-	 *
+	 * @param  \Illuminate\Database\Eloquent\Builder  $query
+	 * @param  \Illuminate\Database\Eloquent\Model  $parent
+	 * @param  string  $name
+	 * @param  string  $table
+	 * @param  string  $foreignKey
+	 * @param  string  $otherKey
+	 * @param  string  $relationName
+	 * @param  bool   $inverse
 	 * @return void
 	 */
 	public function __construct(Builder $query, Model $parent, $name, $table, $foreignKey, $otherKey, $relationName = null, $inverse = false)
 	{
-		$this->inverse    = $inverse;
-		$this->morphType  = $name . '_type';
-		$this->morphClass = $inverse ? get_class($query->getModel()) : get_class($parent);
+		$this->inverse = $inverse;
+		$this->morphType = $name.'_type';
+		$this->morphClass = $inverse ? $query->getModel()->getMorphClass() : $parent->getMorphClass();
 
 		parent::__construct($query, $parent, $table, $foreignKey, $otherKey, $relationName);
 	}
 
 	/**
-	 * Add the constraints for a relationship count query.
-	 *
-	 * @param  \Illuminate\Database\Eloquent\Builder $query
-	 * @param  \Illuminate\Database\Eloquent\Builder $parent
-	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
-	 */
-	public function getRelationCountQuery(Builder $query, Builder $parent)
-	{
-		$query = parent::getRelationCountQuery($query, $parent);
-
-		return $query->where($this->table . '.' . $this->morphType, $this->morphClass);
-	}
-
-	/**
 	 * Set the constraints for an eager load of the relation.
 	 *
-	 * @param  array $models
-	 *
+	 * @param  array  $models
 	 * @return void
 	 */
 	public function addEagerConstraints(array $models)
 	{
 		parent::addEagerConstraints($models);
 
-		$this->query->where($this->table . '.' . $this->morphType, $this->morphClass);
+		$this->query->where($this->table.'.'.$this->morphType, $this->morphClass);
+	}
+
+	/**
+	 * Create a new pivot attachment record.
+	 *
+	 * @param  int   $id
+	 * @param  bool  $timed
+	 * @return array
+	 */
+	protected function createAttachRecord($id, $timed)
+	{
+		$record = parent::createAttachRecord($id, $timed);
+
+		return array_add($record, $this->morphType, $this->morphClass);
+	}
+
+	/**
+	 * Add the constraints for a relationship count query.
+	 *
+	 * @param  \Illuminate\Database\Eloquent\Builder  $query
+	 * @param  \Illuminate\Database\Eloquent\Builder  $parent
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	public function getRelationCountQuery(Builder $query, Builder $parent)
+	{
+		$query = parent::getRelationCountQuery($query, $parent);
+
+		return $query->where($this->table.'.'.$this->morphType, $this->morphClass);
 	}
 
 	/**
 	 * Create a new pivot model instance.
 	 *
-	 * @param  array $attributes
-	 * @param  bool  $exists
-	 *
+	 * @param  array  $attributes
+	 * @param  bool   $exists
 	 * @return \Illuminate\Database\Eloquent\Relations\Pivot
 	 */
 	public function newPivot(array $attributes = array(), $exists = false)
 	{
 		$pivot = new MorphPivot($this->parent, $attributes, $this->table, $exists);
 
-		$pivot->setPivotKeys($this->foreignKey, $this->otherKey)->setMorphType($this->morphType)->setMorphClass($this->morphClass);
+		$pivot->setPivotKeys($this->foreignKey, $this->otherKey)
+			  ->setMorphType($this->morphType)
+			  ->setMorphClass($this->morphClass);
 
 		return $pivot;
+	}
+
+	/**
+	 * Create a new query builder for the pivot table.
+	 *
+	 * @return \Illuminate\Database\Query\Builder
+	 */
+	protected function newPivotQuery()
+	{
+		$query = parent::newPivotQuery();
+
+		return $query->where($this->morphType, $this->morphClass);
+	}
+
+	/**
+	 * Set the where clause for the relation query.
+	 *
+	 * @return $this
+	 */
+	protected function setWhere()
+	{
+		parent::setWhere();
+
+		$this->query->where($this->table.'.'.$this->morphType, $this->morphClass);
+
+		return $this;
 	}
 
 	/**
@@ -116,47 +153,6 @@ class MorphToMany extends BelongsToMany
 	public function getMorphClass()
 	{
 		return $this->morphClass;
-	}
-
-	/**
-	 * Set the where clause for the relation query.
-	 *
-	 * @return $this
-	 */
-	protected function setWhere()
-	{
-		parent::setWhere();
-
-		$this->query->where($this->table . '.' . $this->morphType, $this->morphClass);
-
-		return $this;
-	}
-
-	/**
-	 * Create a new pivot attachment record.
-	 *
-	 * @param  int  $id
-	 * @param  bool $timed
-	 *
-	 * @return array
-	 */
-	protected function createAttachRecord($id, $timed)
-	{
-		$record = parent::createAttachRecord($id, $timed);
-
-		return array_add($record, $this->morphType, $this->morphClass);
-	}
-
-	/**
-	 * Create a new query builder for the pivot table.
-	 *
-	 * @return \Illuminate\Database\Query\Builder
-	 */
-	protected function newPivotQuery()
-	{
-		$query = parent::newPivotQuery();
-
-		return $query->where($this->morphType, $this->morphClass);
 	}
 
 }

@@ -5,8 +5,7 @@ use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-class CommandMakeCommand extends Command
-{
+class CommandMakeCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -25,8 +24,7 @@ class CommandMakeCommand extends Command
 	/**
 	 * Create a new command creator command.
 	 *
-	 * @param  \Illuminate\Filesystem\Filesystem $files
-	 *
+	 * @param  \Illuminate\Filesystem\Filesystem  $files
 	 * @return void
 	 */
 	public function __construct(Filesystem $files)
@@ -45,12 +43,12 @@ class CommandMakeCommand extends Command
 	{
 		$path = $this->getPath();
 
-		$stub = $this->files->get(__DIR__ . '/stubs/command.stub');
+		$stub = $this->files->get(__DIR__.'/stubs/command.stub');
 
 		// We'll grab the class name to determine the file name. Since applications are
 		// typically using the PSR-0 standards we can safely assume the classes name
 		// will correspond to what the actual file should be stored as on storage.
-		$file = $path . '/' . $this->input->getArgument('name') . '.php';
+		$file = $path.'/'.$this->input->getArgument('name').'.php';
 
 		$this->writeCommand($file, $stub);
 	}
@@ -64,28 +62,31 @@ class CommandMakeCommand extends Command
 	{
 		$path = $this->input->getOption('path');
 
-		if (is_null($path)) {
-			return $this->laravel['path'] . '/commands';
+		if (is_null($path))
+		{
+			return $this->laravel['path'].'/commands';
 		}
 
-		return $this->laravel['path.base'] . '/' . $path;
+		return $this->laravel['path.base'].'/'.$path;
 	}
 
 	/**
 	 * Write the finished command file to disk.
 	 *
-	 * @param  string $file
-	 * @param  string $stub
-	 *
+	 * @param  string  $file
+	 * @param  string  $stub
 	 * @return void
 	 */
 	protected function writeCommand($file, $stub)
 	{
-		if (!file_exists($file)) {
+		if ( ! file_exists($file))
+		{
 			$this->files->put($file, $this->formatStub($stub));
 
 			$this->info('Command created successfully.');
-		} else {
+		}
+		else
+		{
 			$this->error('Command already exists!');
 		}
 	}
@@ -93,15 +94,15 @@ class CommandMakeCommand extends Command
 	/**
 	 * Format the command class stub.
 	 *
-	 * @param  string $stub
-	 *
+	 * @param  string  $stub
 	 * @return string
 	 */
 	protected function formatStub($stub)
 	{
 		$stub = str_replace('{{class}}', $this->input->getArgument('name'), $stub);
 
-		if (!is_null($this->option('command'))) {
+		if ( ! is_null($this->option('command')))
+		{
 			$stub = str_replace('command:name', $this->option('command'), $stub);
 		}
 
@@ -111,14 +112,14 @@ class CommandMakeCommand extends Command
 	/**
 	 * Add the proper namespace to the command.
 	 *
-	 * @param  string $stub
-	 *
+	 * @param  string  $stub
 	 * @return string
 	 */
 	protected function addNamespace($stub)
 	{
-		if (!is_null($namespace = $this->input->getOption('namespace'))) {
-			return str_replace('{{namespace}}', ' namespace ' . $namespace . ';', $stub);
+		if ( ! is_null($namespace = $this->input->getOption('namespace')))
+		{
+			return str_replace('{{namespace}}', ' namespace '.$namespace.';', $stub);
 		}
 
 		return str_replace('{{namespace}}', '', $stub);
@@ -131,7 +132,9 @@ class CommandMakeCommand extends Command
 	 */
 	protected function getArguments()
 	{
-		return array(array('name', InputArgument::REQUIRED, 'The name of the command.'),);
+		return array(
+			array('name', InputArgument::REQUIRED, 'The name of the command.'),
+		);
 	}
 
 	/**
@@ -141,13 +144,13 @@ class CommandMakeCommand extends Command
 	 */
 	protected function getOptions()
 	{
-		return array(array('command',
-			null,
-			InputOption::VALUE_OPTIONAL,
-			'The terminal command that should be assigned.',
-			null),
+		return array(
+			array('command', null, InputOption::VALUE_OPTIONAL, 'The terminal command that should be assigned.', null),
+
 			array('path', null, InputOption::VALUE_OPTIONAL, 'The path where the command should be stored.', null),
-			array('namespace', null, InputOption::VALUE_OPTIONAL, 'The command namespace.', null),);
+
+			array('namespace', null, InputOption::VALUE_OPTIONAL, 'The command namespace.', null),
+		);
 	}
 
 }

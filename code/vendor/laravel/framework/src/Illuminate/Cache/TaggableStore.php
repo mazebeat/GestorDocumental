@@ -8,7 +8,7 @@ abstract class TaggableStore
 	 *
 	 * @param  string $name
 	 *
-	 * @return \Illuminate\Cache\TaggedCache
+*@return \Illuminate\Cache\TaggedCache
 	 */
 	public function section($name)
 	{
@@ -20,7 +20,7 @@ abstract class TaggableStore
 	 *
 	 * @param  array|mixed $names
 	 *
-	 * @return \Illuminate\Cache\TaggedCache
+*@return \Illuminate\Cache\TaggedCache
 	 */
 	public function tags($names)
 	{

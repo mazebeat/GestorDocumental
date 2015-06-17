@@ -3,8 +3,7 @@
 use Aws\Sqs\SqsClient;
 use Illuminate\Container\Container;
 
-class SqsJob extends Job
-{
+class SqsJob extends Job {
 
 	/**
 	 * The Amazon SQS client instance.
@@ -23,19 +22,47 @@ class SqsJob extends Job
 	/**
 	 * Create a new job instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 * @param  \Aws\Sqs\SqsClient              $sqs
-	 * @param  string                          $queue
-	 * @param  array                           $job
+	 * @param  \Illuminate\Container\Container  $container
+	 * @param  \Aws\Sqs\SqsClient  $sqs
+	 * @param  string  $queue
+	 * @param  array   $job
+	 * @return void
+	 */
+	public function __construct(Container $container,
+                                SqsClient $sqs,
+                                $queue,
+                                array $job)
+	{
+		$this->sqs = $sqs;
+		$this->job = $job;
+		$this->queue = $queue;
+		$this->container = $container;
+	}
+
+	/**
+	 * Get the number of times the job has been attempted.
+	 *
+	 * @return int
+	 */
+	public function attempts()
+	{
+		return (int) $this->job['Attributes']['ApproximateReceiveCount'];
+	}
+
+	/**
+	 * Delete the job from the queue.
 	 *
 	 * @return void
 	 */
-	public function __construct(Container $container, SqsClient $sqs, $queue, array $job)
+	public function delete()
 	{
-		$this->sqs       = $sqs;
-		$this->job       = $job;
-		$this->queue     = $queue;
-		$this->container = $container;
+		parent::delete();
+
+		$this->sqs->deleteMessage(array(
+
+			'QueueUrl' => $this->queue, 'ReceiptHandle' => $this->job['ReceiptHandle'],
+
+		));
 	}
 
 	/**
@@ -59,42 +86,14 @@ class SqsJob extends Job
 	}
 
 	/**
-	 * Delete the job from the queue.
-	 *
-	 * @return void
-	 */
-	public function delete()
-	{
-		parent::delete();
-
-		$this->sqs->deleteMessage(array(
-
-			'QueueUrl'      => $this->queue,
-			'ReceiptHandle' => $this->job['ReceiptHandle'],
-
-		));
-	}
-
-	/**
 	 * Release the job back into the queue.
 	 *
-	 * @param  int $delay
-	 *
+	 * @param  int   $delay
 	 * @return void
 	 */
 	public function release($delay = 0)
 	{
 		// SQS job releases are handled by the server configuration...
-	}
-
-	/**
-	 * Get the number of times the job has been attempted.
-	 *
-	 * @return int
-	 */
-	public function attempts()
-	{
-		return (int)$this->job['Attributes']['ApproximateReceiveCount'];
 	}
 
 	/**

@@ -19,140 +19,140 @@ namespace Symfony\Component\HttpFoundation\Session\Attribute;
  */
 class NamespacedAttributeBag extends AttributeBag
 {
-	/**
-	 * Namespace character.
-	 *
-	 * @var string
-	 */
-	private $namespaceCharacter;
+    /**
+     * Namespace character.
+     *
+     * @var string
+     */
+    private $namespaceCharacter;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $storageKey         Session storage key.
-	 * @param string $namespaceCharacter Namespace character to use in keys.
-	 */
-	public function __construct($storageKey = '_sf2_attributes', $namespaceCharacter = '/')
-	{
-		$this->namespaceCharacter = $namespaceCharacter;
-		parent::__construct($storageKey);
-	}
+    /**
+     * Constructor.
+     *
+     * @param string $storageKey         Session storage key.
+     * @param string $namespaceCharacter Namespace character to use in keys.
+     */
+    public function __construct($storageKey = '_sf2_attributes', $namespaceCharacter = '/')
+    {
+        $this->namespaceCharacter = $namespaceCharacter;
+        parent::__construct($storageKey);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function has($name)
-	{
-		$attributes = $this->resolveAttributePath($name);
-		$name       = $this->resolveKey($name);
+    /**
+     * {@inheritdoc}
+     */
+    public function has($name)
+    {
+        $attributes = $this->resolveAttributePath($name);
+        $name = $this->resolveKey($name);
 
-		if (null === $attributes) {
-			return false;
-		}
+        if (null === $attributes) {
+            return false;
+        }
 
-		return array_key_exists($name, $attributes);
-	}
+        return array_key_exists($name, $attributes);
+    }
 
-	/**
-	 * Resolves a path in attributes property and returns it as a reference.
-	 *
-	 * This method allows structured namespacing of session attributes.
-	 *
-	 * @param string $name         Key name
-	 * @param bool   $writeContext Write context, default false
-	 *
-	 * @return array
-	 */
-	protected function &resolveAttributePath($name, $writeContext = false)
-	{
-		$array = &$this->attributes;
-		$name  = (strpos($name, $this->namespaceCharacter) === 0) ? substr($name, 1) : $name;
+    /**
+     * {@inheritdoc}
+     */
+    public function get($name, $default = null)
+    {
+        $attributes = $this->resolveAttributePath($name);
+        $name = $this->resolveKey($name);
 
-		// Check if there is anything to do, else return
-		if (!$name) {
-			return $array;
-		}
+        if (null === $attributes) {
+            return $default;
+        }
 
-		$parts = explode($this->namespaceCharacter, $name);
-		if (count($parts) < 2) {
-			if (!$writeContext) {
-				return $array;
-			}
+        return array_key_exists($name, $attributes) ? $attributes[$name] : $default;
+    }
 
-			$array[$parts[0]] = array();
+    /**
+     * {@inheritdoc}
+     */
+    public function set($name, $value)
+    {
+        $attributes = & $this->resolveAttributePath($name, true);
+        $name = $this->resolveKey($name);
+        $attributes[$name] = $value;
+    }
 
-			return $array;
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function remove($name)
+    {
+        $retval = null;
+        $attributes = & $this->resolveAttributePath($name);
+        $name = $this->resolveKey($name);
+        if (null !== $attributes && array_key_exists($name, $attributes)) {
+            $retval = $attributes[$name];
+            unset($attributes[$name]);
+        }
 
-		unset($parts[count($parts) - 1]);
+        return $retval;
+    }
 
-		foreach ($parts as $part) {
-			if (null !== $array && !array_key_exists($part, $array)) {
-				$array[$part] = $writeContext ? array() : null;
-			}
+    /**
+     * Resolves a path in attributes property and returns it as a reference.
+     *
+     * This method allows structured namespacing of session attributes.
+     *
+     * @param string $name         Key name
+     * @param bool   $writeContext Write context, default false
+     *
+     * @return array
+     */
+    protected function &resolveAttributePath($name, $writeContext = false)
+    {
+        $array = & $this->attributes;
+        $name = (strpos($name, $this->namespaceCharacter) === 0) ? substr($name, 1) : $name;
 
-			$array = &$array[$part];
-		}
+        // Check if there is anything to do, else return
+        if (!$name) {
+            return $array;
+        }
 
-		return $array;
-	}
+        $parts = explode($this->namespaceCharacter, $name);
+        if (count($parts) < 2) {
+            if (!$writeContext) {
+                return $array;
+            }
 
-	/**
-	 * Resolves the key from the name.
-	 *
-	 * This is the last part in a dot separated string.
-	 *
-	 * @param string $name
-	 *
-	 * @return string
-	 */
-	protected function resolveKey($name)
-	{
-		if (false !== $pos = strrpos($name, $this->namespaceCharacter)) {
-			$name = substr($name, $pos + 1);
-		}
+            $array[$parts[0]] = array();
 
-		return $name;
-	}
+            return $array;
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function get($name, $default = null)
-	{
-		$attributes = $this->resolveAttributePath($name);
-		$name       = $this->resolveKey($name);
+        unset($parts[count($parts)-1]);
 
-		if (null === $attributes) {
-			return $default;
-		}
+        foreach ($parts as $part) {
+            if (null !== $array && !array_key_exists($part, $array)) {
+                $array[$part] = $writeContext ? array() : null;
+            }
 
-		return array_key_exists($name, $attributes) ? $attributes[$name] : $default;
-	}
+            $array = & $array[$part];
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function set($name, $value)
-	{
-		$attributes        = &$this->resolveAttributePath($name, true);
-		$name              = $this->resolveKey($name);
-		$attributes[$name] = $value;
-	}
+        return $array;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function remove($name)
-	{
-		$retval     = null;
-		$attributes = &$this->resolveAttributePath($name);
-		$name       = $this->resolveKey($name);
-		if (null !== $attributes && array_key_exists($name, $attributes)) {
-			$retval = $attributes[$name];
-			unset($attributes[$name]);
-		}
+    /**
+     * Resolves the key from the name.
+     *
+     * This is the last part in a dot separated string.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    protected function resolveKey($name)
+    {
+        if (false !== $pos = strrpos($name, $this->namespaceCharacter)) {
+            $name = substr($name, $pos+1);
+        }
 
-		return $retval;
-	}
+        return $name;
+    }
 }

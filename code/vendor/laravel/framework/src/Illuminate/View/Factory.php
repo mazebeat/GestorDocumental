@@ -6,8 +6,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Contracts\ArrayableInterface as Arrayable;
 use Illuminate\View\Engines\EngineResolver;
 
-class Factory
-{
+class Factory {
 
 	/**
 	 * The engine implementation.
@@ -96,16 +95,15 @@ class Factory
 	/**
 	 * Create a new view factory instance.
 	 *
-	 * @param  \Illuminate\View\Engines\EngineResolver $engines
-	 * @param  \Illuminate\View\ViewFinderInterface    $finder
-	 * @param  \Illuminate\Events\Dispatcher           $events
-	 *
+	 * @param  \Illuminate\View\Engines\EngineResolver  $engines
+	 * @param  \Illuminate\View\ViewFinderInterface  $finder
+	 * @param  \Illuminate\Events\Dispatcher  $events
 	 * @return void
 	 */
 	public function __construct(EngineResolver $engines, ViewFinderInterface $finder, Dispatcher $events)
 	{
-		$this->finder  = $finder;
-		$this->events  = $events;
+		$this->finder = $finder;
+		$this->events = $events;
 		$this->engines = $engines;
 
 		$this->share('__env', $this);
@@ -114,17 +112,16 @@ class Factory
 	/**
 	 * Add a piece of shared data to the environment.
 	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
 	 * @return void
 	 */
 	public function share($key, $value = null)
 	{
-		if (!is_array($key))
-			return $this->shared[$key] = $value;
+		if ( ! is_array($key)) return $this->shared[$key] = $value;
 
-		foreach ($key as $innerKey => $innerValue) {
+		foreach ($key as $innerKey => $innerValue)
+		{
 			$this->share($innerKey, $innerValue);
 		}
 	}
@@ -132,9 +129,8 @@ class Factory
 	/**
 	 * Get the evaluated view contents for a named view.
 	 *
-	 * @param  string $view
-	 * @param  mixed  $data
-	 *
+	 * @param  string  $view
+	 * @param  mixed   $data
 	 * @return \Illuminate\View\View
 	 */
 	public function of($view, $data = array())
@@ -145,16 +141,14 @@ class Factory
 	/**
 	 * Get the evaluated view contents for the given view.
 	 *
-	 * @param  string $view
-	 * @param  array  $data
-	 * @param  array  $mergeData
-	 *
+	 * @param  string  $view
+	 * @param  array   $data
+	 * @param  array   $mergeData
 	 * @return \Illuminate\View\View
 	 */
 	public function make($view, $data = array(), $mergeData = array())
 	{
-		if (isset($this->aliases[$view]))
-			$view = $this->aliases[$view];
+		if (isset($this->aliases[$view])) $view = $this->aliases[$view];
 
 		$path = $this->finder->find($view);
 
@@ -168,8 +162,7 @@ class Factory
 	/**
 	 * Parse the given data into a raw array.
 	 *
-	 * @param  mixed $data
-	 *
+	 * @param  mixed  $data
 	 * @return array
 	 */
 	protected function parseData($data)
@@ -180,27 +173,26 @@ class Factory
 	/**
 	 * Call the creator for a given view.
 	 *
-	 * @param  \Illuminate\View\View $view
-	 *
+	 * @param  \Illuminate\View\View  $view
 	 * @return void
 	 */
 	public function callCreator(View $view)
 	{
-		$this->events->fire('creating: ' . $view->getName(), array($view));
+		$this->events->fire('creating: '.$view->getName(), array($view));
 	}
 
 	/**
 	 * Get the appropriate view engine for the given path.
 	 *
-	 * @param  string $path
-	 *
+	 * @param  string  $path
 	 * @return \Illuminate\View\Engines\EngineInterface
 	 *
 	 * @throws \InvalidArgumentException
 	 */
 	public function getEngineFromPath($path)
 	{
-		if (!$extension = $this->getExtension($path)) {
+		if ( ! $extension = $this->getExtension($path))
+		{
 			throw new \InvalidArgumentException("Unrecognized extension in file: $path");
 		}
 
@@ -212,15 +204,15 @@ class Factory
 	/**
 	 * Get the extension used by the view file.
 	 *
-	 * @param  string $path
-	 *
+	 * @param  string  $path
 	 * @return string
 	 */
 	protected function getExtension($path)
 	{
 		$extensions = array_keys($this->extensions);
 
-		return array_first($extensions, function ($key, $value) use ($path) {
+		return array_first($extensions, function($key, $value) use ($path)
+		{
 			return ends_with($path, $value);
 		});
 	}
@@ -228,9 +220,8 @@ class Factory
 	/**
 	 * Register a named view.
 	 *
-	 * @param  string $view
-	 * @param  string $name
-	 *
+	 * @param  string  $view
+	 * @param  string  $name
 	 * @return void
 	 */
 	public function name($view, $name)
@@ -241,9 +232,8 @@ class Factory
 	/**
 	 * Add an alias for a view.
 	 *
-	 * @param  string $view
-	 * @param  string $alias
-	 *
+	 * @param  string  $view
+	 * @param  string  $alias
 	 * @return void
 	 */
 	public function alias($view, $alias)
@@ -254,15 +244,17 @@ class Factory
 	/**
 	 * Determine if a given view exists.
 	 *
-	 * @param  string $view
-	 *
+	 * @param  string  $view
 	 * @return bool
 	 */
 	public function exists($view)
 	{
-		try {
+		try
+		{
 			$this->finder->find($view);
-		} catch (\InvalidArgumentException $e) {
+		}
+		catch (\InvalidArgumentException $e)
+		{
 			return false;
 		}
 
@@ -272,11 +264,10 @@ class Factory
 	/**
 	 * Get the rendered contents of a partial from a loop.
 	 *
-	 * @param  string $view
-	 * @param  array  $data
-	 * @param  string $iterator
-	 * @param  string $empty
-	 *
+	 * @param  string  $view
+	 * @param  array   $data
+	 * @param  string  $iterator
+	 * @param  string  $empty
 	 * @return string
 	 */
 	public function renderEach($view, $data, $iterator, $empty = 'raw|')
@@ -286,8 +277,10 @@ class Factory
 		// If is actually data in the array, we will loop through the data and append
 		// an instance of the partial view to the final result HTML passing in the
 		// iterated value of this data array, allowing the views to access them.
-		if (count($data) > 0) {
-			foreach ($data as $key => $value) {
+		if (count($data) > 0)
+		{
+			foreach ($data as $key => $value)
+			{
 				$data = array('key' => $key, $iterator => $value);
 
 				$result .= $this->make($view, $data)->render();
@@ -297,10 +290,14 @@ class Factory
 		// If there is no data in the array, we will render the contents of the empty
 		// view. Alternatively, the "empty view" could be a raw string that begins
 		// with "raw|" for convenience and to let this know that it is a string.
-		else {
-			if (starts_with($empty, 'raw|')) {
+		else
+		{
+			if (starts_with($empty, 'raw|'))
+			{
 				$result = substr($empty, 4);
-			} else {
+			}
+			else
+			{
 				$result = $this->make($empty)->render();
 			}
 		}
@@ -311,16 +308,16 @@ class Factory
 	/**
 	 * Register a view creator event.
 	 *
-	 * @param  array|string    $views
-	 * @param  \Closure|string $callback
-	 *
+	 * @param  array|string     $views
+	 * @param  \Closure|string  $callback
 	 * @return array
 	 */
 	public function creator($views, $callback)
 	{
 		$creators = array();
 
-		foreach ((array)$views as $view) {
+		foreach ((array) $views as $view)
+		{
 			$creators[] = $this->addViewEvent($view, $callback, 'creating: ');
 		}
 
@@ -330,20 +327,22 @@ class Factory
 	/**
 	 * Add an event for a given view.
 	 *
-	 * @param  string          $view
-	 * @param  \Closure|string $callback
-	 * @param  string          $prefix
-	 * @param  int|null        $priority
-	 *
+	 * @param  string  $view
+	 * @param  \Closure|string  $callback
+	 * @param  string  $prefix
+	 * @param  int|null  $priority
 	 * @return \Closure
 	 */
 	protected function addViewEvent($view, $callback, $prefix = 'composing: ', $priority = null)
 	{
-		if ($callback instanceof Closure) {
-			$this->addEventListener($prefix . $view, $callback, $priority);
+		if ($callback instanceof Closure)
+		{
+			$this->addEventListener($prefix.$view, $callback, $priority);
 
 			return $callback;
-		} elseif (is_string($callback)) {
+		}
+		elseif (is_string($callback))
+		{
 			return $this->addClassEvent($view, $callback, $prefix, $priority);
 		}
 	}
@@ -353,15 +352,17 @@ class Factory
 	 *
 	 * @param  string   $name
 	 * @param  \Closure $callback
-	 * @param  integer  $priority
-	 *
+	 * @param  int      $priority
 	 * @return void
 	 */
 	protected function addEventListener($name, $callback, $priority = null)
 	{
-		if (is_null($priority)) {
+		if (is_null($priority))
+		{
 			$this->events->listen($name, $callback);
-		} else {
+		}
+		else
+		{
 			$this->events->listen($name, $callback, $priority);
 		}
 	}
@@ -369,16 +370,15 @@ class Factory
 	/**
 	 * Register a class based view composer.
 	 *
-	 * @param  string   $view
-	 * @param  string   $class
-	 * @param  string   $prefix
-	 * @param  int|null $priority
-	 *
+	 * @param  string    $view
+	 * @param  string    $class
+	 * @param  string    $prefix
+	 * @param  int|null  $priority
 	 * @return \Closure
 	 */
 	protected function addClassEvent($view, $class, $prefix, $priority = null)
 	{
-		$name = $prefix . $view;
+		$name = $prefix.$view;
 
 		// When registering a class based view "composer", we will simply resolve the
 		// classes from the application IoC container then call the compose method
@@ -393,9 +393,8 @@ class Factory
 	/**
 	 * Build a class based container callback Closure.
 	 *
-	 * @param  string $class
-	 * @param  string $prefix
-	 *
+	 * @param  string  $class
+	 * @param  string  $prefix
 	 * @return \Closure
 	 */
 	protected function buildClassEventCallback($class, $prefix)
@@ -407,7 +406,8 @@ class Factory
 		// Once we have the class and method name, we can build the Closure to resolve
 		// the instance out of the IoC container and call the method on it with the
 		// given arguments that are passed to the Closure as the composer's data.
-		return function () use ($class, $method, $container) {
+		return function() use ($class, $method, $container)
+		{
 			$callable = array($container->make($class), $method);
 
 			return call_user_func_array($callable, func_get_args());
@@ -417,14 +417,14 @@ class Factory
 	/**
 	 * Parse a class based composer name.
 	 *
-	 * @param  string $class
-	 * @param  string $prefix
-	 *
+	 * @param  string  $class
+	 * @param  string  $prefix
 	 * @return array
 	 */
 	protected function parseClassEvent($class, $prefix)
 	{
-		if (str_contains($class, '@')) {
+		if (str_contains($class, '@'))
+		{
 			return explode('@', $class);
 		}
 
@@ -436,16 +436,16 @@ class Factory
 	/**
 	 * Register multiple view composers via an array.
 	 *
-	 * @param  array $composers
-	 *
+	 * @param  array  $composers
 	 * @return array
 	 */
 	public function composers(array $composers)
 	{
 		$registered = array();
 
-		foreach ($composers as $callback => $views) {
-			$registered += $this->composer($views, $callback);
+		foreach ($composers as $callback => $views)
+		{
+			$registered = array_merge($registered, $this->composer($views, $callback));
 		}
 
 		return $registered;
@@ -454,17 +454,17 @@ class Factory
 	/**
 	 * Register a view composer event.
 	 *
-	 * @param  array|string    $views
-	 * @param  \Closure|string $callback
-	 * @param  int|null        $priority
-	 *
+	 * @param  array|string  $views
+	 * @param  \Closure|string  $callback
+	 * @param  int|null  $priority
 	 * @return array
 	 */
 	public function composer($views, $callback, $priority = null)
 	{
 		$composers = array();
 
-		foreach ((array)$views as $view) {
+		foreach ((array) $views as $view)
+		{
 			$composers[] = $this->addViewEvent($view, $callback, 'composing: ', $priority);
 		}
 
@@ -474,21 +474,19 @@ class Factory
 	/**
 	 * Call the composer for a given view.
 	 *
-	 * @param  \Illuminate\View\View $view
-	 *
+	 * @param  \Illuminate\View\View  $view
 	 * @return void
 	 */
 	public function callComposer(View $view)
 	{
-		$this->events->fire('composing: ' . $view->getName(), array($view));
+		$this->events->fire('composing: '.$view->getName(), array($view));
 	}
 
 	/**
 	 * Inject inline content into a section.
 	 *
-	 * @param  string $section
-	 * @param  string $content
-	 *
+	 * @param  string  $section
+	 * @param  string  $content
 	 * @return void
 	 */
 	public function inject($section, $content)
@@ -499,18 +497,21 @@ class Factory
 	/**
 	 * Start injecting content into a section.
 	 *
-	 * @param  string $section
-	 * @param  string $content
-	 *
+	 * @param  string  $section
+	 * @param  string  $content
 	 * @return void
 	 */
 	public function startSection($section, $content = '')
 	{
-		if ($content === '') {
-			if (ob_start()) {
+		if ($content === '')
+		{
+			if (ob_start())
+			{
 				$this->sectionStack[] = $section;
 			}
-		} else {
+		}
+		else
+		{
 			$this->extendSection($section, $content);
 		}
 	}
@@ -518,14 +519,14 @@ class Factory
 	/**
 	 * Append content to a given section.
 	 *
-	 * @param  string $section
-	 * @param  string $content
-	 *
+	 * @param  string  $section
+	 * @param  string  $content
 	 * @return void
 	 */
 	protected function extendSection($section, $content)
 	{
-		if (isset($this->sections[$section])) {
+		if (isset($this->sections[$section]))
+		{
 			$content = str_replace('@parent', $content, $this->sections[$section]);
 		}
 
@@ -545,16 +546,16 @@ class Factory
 	/**
 	 * Get the string contents of a section.
 	 *
-	 * @param  string $section
-	 * @param  string $default
-	 *
+	 * @param  string  $section
+	 * @param  string  $default
 	 * @return string
 	 */
 	public function yieldContent($section, $default = '')
 	{
 		$sectionContent = $default;
 
-		if (isset($this->sections[$section])) {
+		if (isset($this->sections[$section]))
+		{
 			$sectionContent = $this->sections[$section];
 		}
 
@@ -564,17 +565,19 @@ class Factory
 	/**
 	 * Stop injecting content into a section.
 	 *
-	 * @param  bool $overwrite
-	 *
+	 * @param  bool  $overwrite
 	 * @return string
 	 */
 	public function stopSection($overwrite = false)
 	{
 		$last = array_pop($this->sectionStack);
 
-		if ($overwrite) {
+		if ($overwrite)
+		{
 			$this->sections[$last] = ob_get_clean();
-		} else {
+		}
+		else
+		{
 			$this->extendSection($last, ob_get_clean());
 		}
 
@@ -590,9 +593,12 @@ class Factory
 	{
 		$last = array_pop($this->sectionStack);
 
-		if (isset($this->sections[$last])) {
+		if (isset($this->sections[$last]))
+		{
 			$this->sections[$last] .= ob_get_clean();
-		} else {
+		}
+		else
+		{
 			$this->sections[$last] = ob_get_clean();
 		}
 
@@ -606,8 +612,7 @@ class Factory
 	 */
 	public function flushSectionsIfDoneRendering()
 	{
-		if ($this->doneRendering())
-			$this->flushSections();
+		if ($this->doneRendering()) $this->flushSections();
 	}
 
 	/**
@@ -655,8 +660,7 @@ class Factory
 	/**
 	 * Add a location to the array of view locations.
 	 *
-	 * @param  string $location
-	 *
+	 * @param  string  $location
 	 * @return void
 	 */
 	public function addLocation($location)
@@ -667,9 +671,8 @@ class Factory
 	/**
 	 * Add a new namespace to the loader.
 	 *
-	 * @param  string       $namespace
-	 * @param  string|array $hints
-	 *
+	 * @param  string  $namespace
+	 * @param  string|array  $hints
 	 * @return void
 	 */
 	public function addNamespace($namespace, $hints)
@@ -680,9 +683,8 @@ class Factory
 	/**
 	 * Prepend a new namespace to the loader.
 	 *
-	 * @param  string       $namespace
-	 * @param  string|array $hints
-	 *
+	 * @param  string  $namespace
+	 * @param  string|array  $hints
 	 * @return void
 	 */
 	public function prependNamespace($namespace, $hints)
@@ -693,17 +695,17 @@ class Factory
 	/**
 	 * Register a valid view extension and its engine.
 	 *
-	 * @param  string   $extension
-	 * @param  string   $engine
-	 * @param  \Closure $resolver
-	 *
+	 * @param  string    $extension
+	 * @param  string    $engine
+	 * @param  \Closure  $resolver
 	 * @return void
 	 */
 	public function addExtension($extension, $engine, $resolver = null)
 	{
 		$this->finder->addExtension($extension);
 
-		if (isset($resolver)) {
+		if (isset($resolver))
+		{
 			$this->engines->register($engine, $resolver);
 		}
 
@@ -745,8 +747,7 @@ class Factory
 	/**
 	 * Set the view finder instance.
 	 *
-	 * @param  \Illuminate\View\ViewFinderInterface $finder
-	 *
+	 * @param  \Illuminate\View\ViewFinderInterface  $finder
 	 * @return void
 	 */
 	public function setFinder(ViewFinderInterface $finder)
@@ -768,7 +769,6 @@ class Factory
 	 * Set the event dispatcher instance.
 	 *
 	 * @param  \Illuminate\Events\Dispatcher
-	 *
 	 * @return void
 	 */
 	public function setDispatcher(Dispatcher $events)
@@ -789,8 +789,7 @@ class Factory
 	/**
 	 * Set the IoC container instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 *
+	 * @param  \Illuminate\Container\Container  $container
 	 * @return void
 	 */
 	public function setContainer(Container $container)
@@ -801,9 +800,8 @@ class Factory
 	/**
 	 * Get an item from the shared data.
 	 *
-	 * @param  string $key
-	 * @param  mixed  $default
-	 *
+	 * @param  string  $key
+	 * @param  mixed   $default
 	 * @return mixed
 	 */
 	public function shared($key, $default = null)

@@ -3,5 +3,5 @@
 @include('layouts.dashboard-sections.menu')
 @include('layouts.dashboard-sections.tree-view')
 <div class="infosummary">
-	{{--@include('layouts.dashboard-sections.info-summary')--}}
+    {{--@include('layouts.dashboard-sections.info-summary')--}}
 </div><!-- infosummary -->

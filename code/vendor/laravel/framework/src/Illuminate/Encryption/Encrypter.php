@@ -3,8 +3,7 @@
 use Symfony\Component\Security\Core\Util\SecureRandom;
 use Symfony\Component\Security\Core\Util\StringUtils;
 
-class Encrypter
-{
+class Encrypter {
 
 	/**
 	 * The encryption key.
@@ -37,20 +36,18 @@ class Encrypter
 	/**
 	 * Create a new encrypter instance.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function __construct($key)
 	{
-		$this->key = $key;
+		$this->key = (string) $key;
 	}
 
 	/**
 	 * Encrypt the given value.
 	 *
-	 * @param  string $value
-	 *
+	 * @param  string  $value
 	 * @return string
 	 */
 	public function encrypt($value)
@@ -84,11 +81,9 @@ class Encrypter
 	 */
 	protected function getRandomizer()
 	{
-		if (defined('MCRYPT_DEV_URANDOM'))
-			return MCRYPT_DEV_URANDOM;
+		if (defined('MCRYPT_DEV_URANDOM')) return MCRYPT_DEV_URANDOM;
 
-		if (defined('MCRYPT_DEV_RANDOM'))
-			return MCRYPT_DEV_RANDOM;
+		if (defined('MCRYPT_DEV_RANDOM')) return MCRYPT_DEV_RANDOM;
 
 		mt_srand();
 
@@ -98,9 +93,8 @@ class Encrypter
 	/**
 	 * Pad and use mcrypt on the given value and input vector.
 	 *
-	 * @param  string $value
-	 * @param  string $iv
-	 *
+	 * @param  string  $value
+	 * @param  string  $iv
 	 * @return string
 	 */
 	protected function padAndMcrypt($value, $iv)
@@ -113,35 +107,32 @@ class Encrypter
 	/**
 	 * Add PKCS7 padding to a given value.
 	 *
-	 * @param  string $value
-	 *
+	 * @param  string  $value
 	 * @return string
 	 */
 	protected function addPadding($value)
 	{
 		$pad = $this->block - (strlen($value) % $this->block);
 
-		return $value . str_repeat(chr($pad), $pad);
+		return $value.str_repeat(chr($pad), $pad);
 	}
 
 	/**
 	 * Create a MAC for the given value.
 	 *
-	 * @param  string $iv
-	 * @param  string $value
-	 *
+	 * @param  string  $iv
+	 * @param  string  $value
 	 * @return string
 	 */
 	protected function hash($iv, $value)
 	{
-		return hash_hmac('sha256', $iv . $value, $this->key);
+		return hash_hmac('sha256', $iv.$value, $this->key);
 	}
 
 	/**
 	 * Decrypt the given value.
 	 *
-	 * @param  string $payload
-	 *
+	 * @param  string  $payload
 	 * @return string
 	 */
 	public function decrypt($payload)
@@ -161,8 +152,7 @@ class Encrypter
 	/**
 	 * Get the JSON array from the given payload.
 	 *
-	 * @param  string $payload
-	 *
+	 * @param  string  $payload
 	 * @return array
 	 *
 	 * @throws \Illuminate\Encryption\DecryptException
@@ -174,12 +164,14 @@ class Encrypter
 		// If the payload is not valid JSON or does not have the proper keys set we will
 		// assume it is invalid and bail out of the routine since we will not be able
 		// to decrypt the given value. We'll also check the MAC for this encryption.
-		if (!$payload || $this->invalidPayload($payload)) {
-			throw new DecryptException("Invalid data.");
+		if ( ! $payload || $this->invalidPayload($payload))
+		{
+			throw new DecryptException('Invalid data.');
 		}
 
-		if (!$this->validMac($payload)) {
-			throw new DecryptException("MAC is invalid.");
+		if ( ! $this->validMac($payload))
+		{
+			throw new DecryptException('MAC is invalid.');
 		}
 
 		return $payload;
@@ -188,27 +180,26 @@ class Encrypter
 	/**
 	 * Verify that the encryption payload is valid.
 	 *
-	 * @param  array|mixed $data
-	 *
+	 * @param  array|mixed  $data
 	 * @return bool
 	 */
 	protected function invalidPayload($data)
 	{
-		return !is_array($data) || !isset($data['iv']) || !isset($data['value']) || !isset($data['mac']);
+		return ! is_array($data) || ! isset($data['iv']) || ! isset($data['value']) || ! isset($data['mac']);
 	}
 
 	/**
 	 * Determine if the MAC for the given payload is valid.
 	 *
-	 * @param  array $payload
-	 *
+	 * @param  array  $payload
 	 * @return bool
 	 *
 	 * @throws \RuntimeException
 	 */
 	protected function validMac(array $payload)
 	{
-		if (!function_exists('openssl_random_pseudo_bytes')) {
+		if ( ! function_exists('openssl_random_pseudo_bytes'))
+		{
 			throw new \RuntimeException('OpenSSL extension is required.');
 		}
 
@@ -222,8 +213,7 @@ class Encrypter
 	/**
 	 * Remove the padding from the given value.
 	 *
-	 * @param  string $value
-	 *
+	 * @param  string  $value
 	 * @return string
 	 */
 	protected function stripPadding($value)
@@ -236,9 +226,8 @@ class Encrypter
 	/**
 	 * Determine if the given padding for a value is valid.
 	 *
-	 * @param  string $pad
-	 * @param  string $value
-	 *
+	 * @param  string  $pad
+	 * @param  string  $value
 	 * @return bool
 	 */
 	protected function paddingIsValid($pad, $value)
@@ -251,18 +240,20 @@ class Encrypter
 	/**
 	 * Run the mcrypt decryption routine for the value.
 	 *
-	 * @param  string $value
-	 * @param  string $iv
-	 *
+	 * @param  string  $value
+	 * @param  string  $iv
 	 * @return string
 	 *
 	 * @throws \Exception
 	 */
 	protected function mcryptDecrypt($value, $iv)
 	{
-		try {
+		try
+		{
 			return mcrypt_decrypt($this->cipher, $this->key, $value, $this->mode, $iv);
-		} catch (\Exception $e) {
+		}
+		catch (\Exception $e)
+		{
 			throw new DecryptException($e->getMessage());
 		}
 	}
@@ -270,20 +261,18 @@ class Encrypter
 	/**
 	 * Set the encryption key.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function setKey($key)
 	{
-		$this->key = $key;
+		$this->key = (string) $key;
 	}
 
 	/**
 	 * Set the encryption cipher.
 	 *
-	 * @param  string $cipher
-	 *
+	 * @param  string  $cipher
 	 * @return void
 	 */
 	public function setCipher($cipher)
@@ -306,8 +295,7 @@ class Encrypter
 	/**
 	 * Set the encryption mode.
 	 *
-	 * @param  string $mode
-	 *
+	 * @param  string  $mode
 	 * @return void
 	 */
 	public function setMode($mode)

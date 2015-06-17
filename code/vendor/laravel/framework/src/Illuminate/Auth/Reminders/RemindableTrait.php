@@ -1,7 +1,6 @@
 <?php namespace Illuminate\Auth\Reminders;
 
-trait RemindableTrait
-{
+trait RemindableTrait {
 
 	/**
 	 * Get the e-mail address where password reminders are sent.

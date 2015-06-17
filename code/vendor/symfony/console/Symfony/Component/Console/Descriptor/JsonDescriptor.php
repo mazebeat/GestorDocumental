@@ -24,136 +24,142 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class JsonDescriptor extends Descriptor
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function describeInputArgument(InputArgument $argument, array $options = array())
-	{
-		$this->writeData($this->getInputArgumentData($argument), $options);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputArgument(InputArgument $argument, array $options = array())
+    {
+        $this->writeData($this->getInputArgumentData($argument), $options);
+    }
 
-	/**
-	 * Writes data as json.
-	 *
-	 * @param array $data
-	 * @param array $options
-	 *
-	 * @return array|string
-	 */
-	private function writeData(array $data, array $options)
-	{
-		$this->write(json_encode($data, isset($options['json_encoding']) ? $options['json_encoding'] : 0));
-	}
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputOption(InputOption $option, array $options = array())
+    {
+        $this->writeData($this->getInputOptionData($option), $options);
+    }
 
-	/**
-	 * @param InputArgument $argument
-	 *
-	 * @return array
-	 */
-	private function getInputArgumentData(InputArgument $argument)
-	{
-		return array('name'        => $argument->getName(),
-		             'is_required' => $argument->isRequired(),
-		             'is_array'    => $argument->isArray(),
-		             'description' => $argument->getDescription(),
-		             'default'     => $argument->getDefault(),);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputDefinition(InputDefinition $definition, array $options = array())
+    {
+        $this->writeData($this->getInputDefinitionData($definition), $options);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function describeInputOption(InputOption $option, array $options = array())
-	{
-		$this->writeData($this->getInputOptionData($option), $options);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeCommand(Command $command, array $options = array())
+    {
+        $this->writeData($this->getCommandData($command), $options);
+    }
 
-	/**
-	 * @param InputOption $option
-	 *
-	 * @return array
-	 */
-	private function getInputOptionData(InputOption $option)
-	{
-		return array('name'              => '--' . $option->getName(),
-		             'shortcut'          => $option->getShortcut() ? '-' . implode('|-', explode('|', $option->getShortcut())) : '',
-		             'accept_value'      => $option->acceptValue(),
-		             'is_value_required' => $option->isValueRequired(),
-		             'is_multiple'       => $option->isArray(),
-		             'description'       => $option->getDescription(),
-		             'default'           => $option->getDefault(),);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeApplication(Application $application, array $options = array())
+    {
+        $describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
+        $description = new ApplicationDescription($application, $describedNamespace);
+        $commands = array();
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function describeInputDefinition(InputDefinition $definition, array $options = array())
-	{
-		$this->writeData($this->getInputDefinitionData($definition), $options);
-	}
+        foreach ($description->getCommands() as $command) {
+            $commands[] = $this->getCommandData($command);
+        }
 
-	/**
-	 * @param InputDefinition $definition
-	 *
-	 * @return array
-	 */
-	private function getInputDefinitionData(InputDefinition $definition)
-	{
-		$inputArguments = array();
-		foreach ($definition->getArguments() as $name => $argument) {
-			$inputArguments[$name] = $this->getInputArgumentData($argument);
-		}
+        $data = $describedNamespace
+            ? array('commands' => $commands, 'namespace' => $describedNamespace)
+            : array('commands' => $commands, 'namespaces' => array_values($description->getNamespaces()));
 
-		$inputOptions = array();
-		foreach ($definition->getOptions() as $name => $option) {
-			$inputOptions[$name] = $this->getInputOptionData($option);
-		}
+        $this->writeData($data, $options);
+    }
 
-		return array('arguments' => $inputArguments, 'options' => $inputOptions);
-	}
+    /**
+     * Writes data as json.
+     *
+     * @param array $data
+     * @param array $options
+     *
+     * @return array|string
+     */
+    private function writeData(array $data, array $options)
+    {
+        $this->write(json_encode($data, isset($options['json_encoding']) ? $options['json_encoding'] : 0));
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function describeCommand(Command $command, array $options = array())
-	{
-		$this->writeData($this->getCommandData($command), $options);
-	}
+    /**
+     * @param InputArgument $argument
+     *
+     * @return array
+     */
+    private function getInputArgumentData(InputArgument $argument)
+    {
+        return array(
+            'name' => $argument->getName(),
+            'is_required' => $argument->isRequired(),
+            'is_array' => $argument->isArray(),
+            'description' => $argument->getDescription(),
+            'default' => $argument->getDefault(),
+        );
+    }
 
-	/**
-	 * @param Command $command
-	 *
-	 * @return array
-	 */
-	private function getCommandData(Command $command)
-	{
-		$command->getSynopsis();
-		$command->mergeApplicationDefinition(false);
+    /**
+     * @param InputOption $option
+     *
+     * @return array
+     */
+    private function getInputOptionData(InputOption $option)
+    {
+        return array(
+            'name' => '--'.$option->getName(),
+            'shortcut' => $option->getShortcut() ? '-'.implode('|-', explode('|', $option->getShortcut())) : '',
+            'accept_value' => $option->acceptValue(),
+            'is_value_required' => $option->isValueRequired(),
+            'is_multiple' => $option->isArray(),
+            'description' => $option->getDescription(),
+            'default' => $option->getDefault(),
+        );
+    }
 
-		return array('name'        => $command->getName(),
-		             'usage'       => $command->getSynopsis(),
-		             'description' => $command->getDescription(),
-		             'help'        => $command->getProcessedHelp(),
-		             'aliases'     => $command->getAliases(),
-		             'definition'  => $this->getInputDefinitionData($command->getNativeDefinition()),);
-	}
+    /**
+     * @param InputDefinition $definition
+     *
+     * @return array
+     */
+    private function getInputDefinitionData(InputDefinition $definition)
+    {
+        $inputArguments = array();
+        foreach ($definition->getArguments() as $name => $argument) {
+            $inputArguments[$name] = $this->getInputArgumentData($argument);
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function describeApplication(Application $application, array $options = array())
-	{
-		$describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
-		$description        = new ApplicationDescription($application, $describedNamespace);
-		$commands           = array();
+        $inputOptions = array();
+        foreach ($definition->getOptions() as $name => $option) {
+            $inputOptions[$name] = $this->getInputOptionData($option);
+        }
 
-		foreach ($description->getCommands() as $command) {
-			$commands[] = $this->getCommandData($command);
-		}
+        return array('arguments' => $inputArguments, 'options' => $inputOptions);
+    }
 
-		$data = $describedNamespace ? array('commands'  => $commands,
-		                                    'namespace' => $describedNamespace) : array('commands'   => $commands,
-		                                                                                'namespaces' => array_values($description->getNamespaces()));
+    /**
+     * @param Command $command
+     *
+     * @return array
+     */
+    private function getCommandData(Command $command)
+    {
+        $command->getSynopsis();
+        $command->mergeApplicationDefinition(false);
 
-		$this->writeData($data, $options);
-	}
+        return array(
+            'name' => $command->getName(),
+            'usage' => $command->getSynopsis(),
+            'description' => $command->getDescription(),
+            'help' => $command->getProcessedHelp(),
+            'aliases' => $command->getAliases(),
+            'definition' => $this->getInputDefinitionData($command->getNativeDefinition()),
+        );
+    }
 }

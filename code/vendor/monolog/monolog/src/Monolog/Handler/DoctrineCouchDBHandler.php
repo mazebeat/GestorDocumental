@@ -22,24 +22,24 @@ use Monolog\Logger;
  */
 class DoctrineCouchDBHandler extends AbstractProcessingHandler
 {
-	private $client;
+    private $client;
 
-	public function __construct(CouchDBClient $client, $level = Logger::DEBUG, $bubble = true)
-	{
-		$this->client = $client;
-		parent::__construct($level, $bubble);
-	}
+    public function __construct(CouchDBClient $client, $level = Logger::DEBUG, $bubble = true)
+    {
+        $this->client = $client;
+        parent::__construct($level, $bubble);
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	protected function write(array $record)
-	{
-		$this->client->postDocument($record['formatted']);
-	}
+    protected function getDefaultFormatter()
+    {
+        return new NormalizerFormatter;
+    }
 
-	protected function getDefaultFormatter()
-	{
-		return new NormalizerFormatter;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    protected function write(array $record)
+    {
+        $this->client->postDocument($record['formatted']);
+    }
 }

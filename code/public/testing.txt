@@ -1,0 +1,1 @@
+Este es un archivo de prueba para convertir los datos a base64 y viceversa

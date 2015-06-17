@@ -18,27 +18,27 @@ use Symfony\Component\CssSelector\Parser\TokenStream;
 /**
  * CSS selector whitespace handler.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
  */
 class WhitespaceHandler implements HandlerInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function handle(Reader $reader, TokenStream $stream)
-	{
-		$match = $reader->findPattern('~^[ \t\r\n\f]+~');
+    /**
+     * {@inheritdoc}
+     */
+    public function handle(Reader $reader, TokenStream $stream)
+    {
+        $match = $reader->findPattern('~^[ \t\r\n\f]+~');
 
-		if (false === $match) {
-			return false;
-		}
+        if (false === $match) {
+            return false;
+        }
 
-		$stream->push(new Token(Token::TYPE_WHITESPACE, $match[0], $reader->getPosition()));
-		$reader->moveForward(strlen($match[0]));
+        $stream->push(new Token(Token::TYPE_WHITESPACE, $match[0], $reader->getPosition()));
+        $reader->moveForward(strlen($match[0]));
 
-		return true;
-	}
+        return true;
+    }
 }

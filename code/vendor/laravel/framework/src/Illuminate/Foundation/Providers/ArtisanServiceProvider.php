@@ -17,6 +17,16 @@ class ArtisanServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('artisan', 'command.changes', 'command.environment');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -40,16 +50,6 @@ class ArtisanServiceProvider extends ServiceProvider
 		});
 
 		$this->commands('command.tail', 'command.changes', 'command.environment');
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('artisan', 'command.changes', 'command.environment');
 	}
 
 }

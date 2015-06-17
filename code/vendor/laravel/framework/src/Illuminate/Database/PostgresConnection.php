@@ -5,8 +5,17 @@ use Illuminate\Database\Query\Grammars\PostgresGrammar as QueryGrammar;
 use Illuminate\Database\Query\Processors\PostgresProcessor;
 use Illuminate\Database\Schema\Grammars\PostgresGrammar as SchemaGrammar;
 
-class PostgresConnection extends Connection
-{
+class PostgresConnection extends Connection {
+
+	/**
+	 * Get the default post processor instance.
+	 *
+	 * @return \Illuminate\Database\Query\Processors\PostgresProcessor
+	 */
+	protected function getDefaultPostProcessor()
+	{
+		return new PostgresProcessor;
+	}
 
 	/**
 	 * Get the default query grammar instance.
@@ -26,16 +35,6 @@ class PostgresConnection extends Connection
 	protected function getDefaultSchemaGrammar()
 	{
 		return $this->withTablePrefix(new SchemaGrammar);
-	}
-
-	/**
-	 * Get the default post processor instance.
-	 *
-	 * @return \Illuminate\Database\Query\Processors\PostgresProcessor
-	 */
-	protected function getDefaultPostProcessor()
-	{
-		return new PostgresProcessor;
 	}
 
 	/**

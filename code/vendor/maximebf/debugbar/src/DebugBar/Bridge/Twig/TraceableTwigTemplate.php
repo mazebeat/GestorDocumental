@@ -18,107 +18,114 @@ use Twig_TemplateInterface;
  */
 class TraceableTwigTemplate implements Twig_TemplateInterface
 {
-	protected $template;
+    protected $template;
 
-	/**
-	 * @param TraceableTwigEnvironment $env
-	 * @param Twig_Template            $template
-	 */
-	public function __construct(TraceableTwigEnvironment $env, Twig_Template $template)
-	{
-		$this->env      = $env;
-		$this->template = $template;
-	}
+    /**
+     * @param TraceableTwigEnvironment $env
+     * @param Twig_Template $template
+     */
+    public function __construct(TraceableTwigEnvironment $env, Twig_Template $template)
+    {
+        $this->env = $env;
+        $this->template = $template;
+    }
 
-	public static function clearCache()
-	{
-		Twig_Template::clearCache();
-	}
+    public static function clearCache()
+    {
+        Twig_Template::clearCache();
+    }
 
-	public function getTemplateName()
-	{
-		return $this->template->getTemplateName();
-	}
+    public function __call($name, $arguments)
+    {
+        return call_user_func_array(array($this->template, $name), $arguments);
+    }
 
-	public function getEnvironment()
-	{
-		return $this->template->getEnvironment();
-	}
+    public function getTemplateName()
+    {
+        return $this->template->getTemplateName();
+    }
 
-	public function getParent(array $context)
-	{
-		return $this->template->getParent($context);
-	}
+    public function getEnvironment()
+    {
+        return $this->template->getEnvironment();
+    }
 
-	public function isTraitable()
-	{
-		return $this->template->isTraitable();
-	}
+    public function getParent(array $context)
+    {
+        return $this->template->getParent($context);
+    }
 
-	public function displayParentBlock($name, array $context, array $blocks = array())
-	{
-		$this->template->displayParentBlock($name, $context, $blocks);
-	}
+    public function isTraitable()
+    {
+        return $this->template->isTraitable();
+    }
 
-	public function displayBlock($name, array $context, array $blocks = array(), $useBlocks = true)
-	{
-		$this->template->displayBlock($name, $context, $blocks, $useBlocks);
-	}
+    public function displayParentBlock($name, array $context, array $blocks = array())
+    {
+        $this->template->displayParentBlock($name, $context, $blocks);
+    }
 
-	public function renderParentBlock($name, array $context, array $blocks = array())
-	{
-		return $this->template->renderParentBlock($name, $context, $blocks);
-	}
+    public function displayBlock($name, array $context, array $blocks = array(), $useBlocks = true)
+    {
+        $this->template->displayBlock($name, $context, $blocks, $useBlocks);
+    }
 
-	public function renderBlock($name, array $context, array $blocks = array(), $useBlocks = true)
-	{
-		return $this->template->renderBlock($name, $context, $blocks, $useBlocks);
-	}
+    public function renderParentBlock($name, array $context, array $blocks = array())
+    {
+        return $this->template->renderParentBlock($name, $context, $blocks);
+    }
 
-	public function hasBlock($name)
-	{
-		return $this->template->hasBlock($name);
-	}
+    public function renderBlock($name, array $context, array $blocks = array(), $useBlocks = true)
+    {
+        return $this->template->renderBlock($name, $context, $blocks, $useBlocks);
+    }
 
-	public function getBlockNames()
-	{
-		return $this->template->getBlockNames();
-	}
+    public function hasBlock($name)
+    {
+        return $this->template->hasBlock($name);
+    }
 
-	public function getBlocks()
-	{
-		return $this->template->getBlocks();
-	}
+    public function getBlockNames()
+    {
+        return $this->template->getBlockNames();
+    }
 
-	public function render(array $context)
-	{
-		$level = ob_get_level();
-		ob_start();
-		try {
-			$this->display($context);
-		} catch (Exception $e) {
-			while (ob_get_level() > $level) {
-				ob_end_clean();
-			}
+    public function getBlocks()
+    {
+        return $this->template->getBlocks();
+    }
 
-			throw $e;
-		}
+    public function render(array $context)
+    {
+        $level = ob_get_level();
+        ob_start();
+        try {
+            $this->display($context);
+        } catch (Exception $e) {
+            while (ob_get_level() > $level) {
+                ob_end_clean();
+            }
 
-		return ob_get_clean();
-	}
+            throw $e;
+        }
 
-	public function display(array $context, array $blocks = array())
-	{
-		$start = microtime(true);
-		$this->template->display($context, $blocks);
-		$end = microtime(true);
+        return ob_get_clean();
+    }
 
-		if ($timeDataCollector = $this->env->getTimeDataCollector()) {
-			$name = sprintf("twig.render(%s)", $this->template->getTemplateName());
-			$timeDataCollector->addMeasure($name, $start, $end);
-		}
+    public function display(array $context, array $blocks = array())
+    {
+        $start = microtime(true);
+        $this->template->display($context, $blocks);
+        $end = microtime(true);
 
-		$this->env->addRenderedTemplate(array('name'        => $this->template->getTemplateName(),
-		                                      'render_time' => $end - $start));
-	}
+        if ($timeDataCollector = $this->env->getTimeDataCollector()) {
+            $name = sprintf("twig.render(%s)", $this->template->getTemplateName());
+            $timeDataCollector->addMeasure($name, $start, $end);
+        }
+
+        $this->env->addRenderedTemplate(array(
+            'name' => $this->template->getTemplateName(),
+            'render_time' => $end - $start
+        ));
+    }
 }

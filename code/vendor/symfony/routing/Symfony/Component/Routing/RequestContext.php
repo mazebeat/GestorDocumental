@@ -23,300 +23,300 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class RequestContext
 {
-	private $baseUrl;
-	private $pathInfo;
-	private $method;
-	private $host;
-	private $scheme;
-	private $httpPort;
-	private $httpsPort;
-	private $queryString;
+    private $baseUrl;
+    private $pathInfo;
+    private $method;
+    private $host;
+    private $scheme;
+    private $httpPort;
+    private $httpsPort;
+    private $queryString;
 
-	/**
-	 * @var array
-	 */
-	private $parameters = array();
+    /**
+     * @var array
+     */
+    private $parameters = array();
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $baseUrl     The base URL
-	 * @param string $method      The HTTP method
-	 * @param string $host        The HTTP host name
-	 * @param string $scheme      The HTTP scheme
-	 * @param int    $httpPort    The HTTP port
-	 * @param int    $httpsPort   The HTTPS port
-	 * @param string $path        The path
-	 * @param string $queryString The query string
-	 *
-	 * @api
-	 */
-	public function __construct($baseUrl = '', $method = 'GET', $host = 'localhost', $scheme = 'http', $httpPort = 80, $httpsPort = 443, $path = '/', $queryString = '')
-	{
-		$this->setBaseUrl($baseUrl);
-		$this->setMethod($method);
-		$this->setHost($host);
-		$this->setScheme($scheme);
-		$this->setHttpPort($httpPort);
-		$this->setHttpsPort($httpsPort);
-		$this->setPathInfo($path);
-		$this->setQueryString($queryString);
-	}
+    /**
+     * Constructor.
+     *
+     * @param string $baseUrl     The base URL
+     * @param string $method      The HTTP method
+     * @param string $host        The HTTP host name
+     * @param string $scheme      The HTTP scheme
+     * @param int    $httpPort    The HTTP port
+     * @param int    $httpsPort   The HTTPS port
+     * @param string $path        The path
+     * @param string $queryString The query string
+     *
+     * @api
+     */
+    public function __construct($baseUrl = '', $method = 'GET', $host = 'localhost', $scheme = 'http', $httpPort = 80, $httpsPort = 443, $path = '/', $queryString = '')
+    {
+        $this->setBaseUrl($baseUrl);
+        $this->setMethod($method);
+        $this->setHost($host);
+        $this->setScheme($scheme);
+        $this->setHttpPort($httpPort);
+        $this->setHttpsPort($httpsPort);
+        $this->setPathInfo($path);
+        $this->setQueryString($queryString);
+    }
 
-	/**
-	 * Updates the RequestContext information based on a HttpFoundation Request.
-	 *
-	 * @param Request $request A Request instance
-	 */
-	public function fromRequest(Request $request)
-	{
-		$this->setBaseUrl($request->getBaseUrl());
-		$this->setPathInfo($request->getPathInfo());
-		$this->setMethod($request->getMethod());
-		$this->setHost($request->getHost());
-		$this->setScheme($request->getScheme());
-		$this->setHttpPort($request->isSecure() ? $this->httpPort : $request->getPort());
-		$this->setHttpsPort($request->isSecure() ? $request->getPort() : $this->httpsPort);
-		$this->setQueryString($request->server->get('QUERY_STRING', ''));
-	}
+    /**
+     * Updates the RequestContext information based on a HttpFoundation Request.
+     *
+     * @param Request $request A Request instance
+     */
+    public function fromRequest(Request $request)
+    {
+        $this->setBaseUrl($request->getBaseUrl());
+        $this->setPathInfo($request->getPathInfo());
+        $this->setMethod($request->getMethod());
+        $this->setHost($request->getHost());
+        $this->setScheme($request->getScheme());
+        $this->setHttpPort($request->isSecure() ? $this->httpPort : $request->getPort());
+        $this->setHttpsPort($request->isSecure() ? $request->getPort() : $this->httpsPort);
+        $this->setQueryString($request->server->get('QUERY_STRING', ''));
+    }
 
-	/**
-	 * Gets the base URL.
-	 *
-	 * @return string The base URL
-	 */
-	public function getBaseUrl()
-	{
-		return $this->baseUrl;
-	}
+    /**
+     * Gets the base URL.
+     *
+     * @return string The base URL
+     */
+    public function getBaseUrl()
+    {
+        return $this->baseUrl;
+    }
 
-	/**
-	 * Sets the base URL.
-	 *
-	 * @param string $baseUrl The base URL
-	 *
-	 * @api
-	 */
-	public function setBaseUrl($baseUrl)
-	{
-		$this->baseUrl = $baseUrl;
-	}
+    /**
+     * Sets the base URL.
+     *
+     * @param string $baseUrl The base URL
+     *
+     * @api
+     */
+    public function setBaseUrl($baseUrl)
+    {
+        $this->baseUrl = $baseUrl;
+    }
 
-	/**
-	 * Gets the path info.
-	 *
-	 * @return string The path info
-	 */
-	public function getPathInfo()
-	{
-		return $this->pathInfo;
-	}
+    /**
+     * Gets the path info.
+     *
+     * @return string The path info
+     */
+    public function getPathInfo()
+    {
+        return $this->pathInfo;
+    }
 
-	/**
-	 * Sets the path info.
-	 *
-	 * @param string $pathInfo The path info
-	 */
-	public function setPathInfo($pathInfo)
-	{
-		$this->pathInfo = $pathInfo;
-	}
+    /**
+     * Sets the path info.
+     *
+     * @param string $pathInfo The path info
+     */
+    public function setPathInfo($pathInfo)
+    {
+        $this->pathInfo = $pathInfo;
+    }
 
-	/**
-	 * Gets the HTTP method.
-	 *
-	 * The method is always an uppercased string.
-	 *
-	 * @return string The HTTP method
-	 */
-	public function getMethod()
-	{
-		return $this->method;
-	}
+    /**
+     * Gets the HTTP method.
+     *
+     * The method is always an uppercased string.
+     *
+     * @return string The HTTP method
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
 
-	/**
-	 * Sets the HTTP method.
-	 *
-	 * @param string $method The HTTP method
-	 *
-	 * @api
-	 */
-	public function setMethod($method)
-	{
-		$this->method = strtoupper($method);
-	}
+    /**
+     * Sets the HTTP method.
+     *
+     * @param string $method The HTTP method
+     *
+     * @api
+     */
+    public function setMethod($method)
+    {
+        $this->method = strtoupper($method);
+    }
 
-	/**
-	 * Gets the HTTP host.
-	 *
-	 * The host is always lowercased because it must be treated case-insensitive.
-	 *
-	 * @return string The HTTP host
-	 */
-	public function getHost()
-	{
-		return $this->host;
-	}
+    /**
+     * Gets the HTTP host.
+     *
+     * The host is always lowercased because it must be treated case-insensitive.
+     *
+     * @return string The HTTP host
+     */
+    public function getHost()
+    {
+        return $this->host;
+    }
 
-	/**
-	 * Sets the HTTP host.
-	 *
-	 * @param string $host The HTTP host
-	 *
-	 * @api
-	 */
-	public function setHost($host)
-	{
-		$this->host = strtolower($host);
-	}
+    /**
+     * Sets the HTTP host.
+     *
+     * @param string $host The HTTP host
+     *
+     * @api
+     */
+    public function setHost($host)
+    {
+        $this->host = strtolower($host);
+    }
 
-	/**
-	 * Gets the HTTP scheme.
-	 *
-	 * @return string The HTTP scheme
-	 */
-	public function getScheme()
-	{
-		return $this->scheme;
-	}
+    /**
+     * Gets the HTTP scheme.
+     *
+     * @return string The HTTP scheme
+     */
+    public function getScheme()
+    {
+        return $this->scheme;
+    }
 
-	/**
-	 * Sets the HTTP scheme.
-	 *
-	 * @param string $scheme The HTTP scheme
-	 *
-	 * @api
-	 */
-	public function setScheme($scheme)
-	{
-		$this->scheme = strtolower($scheme);
-	}
+    /**
+     * Sets the HTTP scheme.
+     *
+     * @param string $scheme The HTTP scheme
+     *
+     * @api
+     */
+    public function setScheme($scheme)
+    {
+        $this->scheme = strtolower($scheme);
+    }
 
-	/**
-	 * Gets the HTTP port.
-	 *
-	 * @return int The HTTP port
-	 */
-	public function getHttpPort()
-	{
-		return $this->httpPort;
-	}
+    /**
+     * Gets the HTTP port.
+     *
+     * @return int The HTTP port
+     */
+    public function getHttpPort()
+    {
+        return $this->httpPort;
+    }
 
-	/**
-	 * Sets the HTTP port.
-	 *
-	 * @param int $httpPort The HTTP port
-	 *
-	 * @api
-	 */
-	public function setHttpPort($httpPort)
-	{
-		$this->httpPort = (int)$httpPort;
-	}
+    /**
+     * Sets the HTTP port.
+     *
+     * @param int $httpPort The HTTP port
+     *
+     * @api
+     */
+    public function setHttpPort($httpPort)
+    {
+        $this->httpPort = (int) $httpPort;
+    }
 
-	/**
-	 * Gets the HTTPS port.
-	 *
-	 * @return int The HTTPS port
-	 */
-	public function getHttpsPort()
-	{
-		return $this->httpsPort;
-	}
+    /**
+     * Gets the HTTPS port.
+     *
+     * @return int The HTTPS port
+     */
+    public function getHttpsPort()
+    {
+        return $this->httpsPort;
+    }
 
-	/**
-	 * Sets the HTTPS port.
-	 *
-	 * @param int $httpsPort The HTTPS port
-	 *
-	 * @api
-	 */
-	public function setHttpsPort($httpsPort)
-	{
-		$this->httpsPort = (int)$httpsPort;
-	}
+    /**
+     * Sets the HTTPS port.
+     *
+     * @param int $httpsPort The HTTPS port
+     *
+     * @api
+     */
+    public function setHttpsPort($httpsPort)
+    {
+        $this->httpsPort = (int) $httpsPort;
+    }
 
-	/**
-	 * Gets the query string.
-	 *
-	 * @return string The query string without the "?"
-	 */
-	public function getQueryString()
-	{
-		return $this->queryString;
-	}
+    /**
+     * Gets the query string.
+     *
+     * @return string The query string without the "?"
+     */
+    public function getQueryString()
+    {
+        return $this->queryString;
+    }
 
-	/**
-	 * Sets the query string.
-	 *
-	 * @param string $queryString The query string (after "?")
-	 *
-	 * @api
-	 */
-	public function setQueryString($queryString)
-	{
-		// string cast to be fault-tolerant, accepting null
-		$this->queryString = (string)$queryString;
-	}
+    /**
+     * Sets the query string.
+     *
+     * @param string $queryString The query string (after "?")
+     *
+     * @api
+     */
+    public function setQueryString($queryString)
+    {
+        // string cast to be fault-tolerant, accepting null
+        $this->queryString = (string) $queryString;
+    }
 
-	/**
-	 * Returns the parameters.
-	 *
-	 * @return array The parameters
-	 */
-	public function getParameters()
-	{
-		return $this->parameters;
-	}
+    /**
+     * Returns the parameters.
+     *
+     * @return array The parameters
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
 
-	/**
-	 * Sets the parameters.
-	 *
-	 * @param array $parameters The parameters
-	 *
-	 * @return RequestContext The current instance, implementing a fluent interface
-	 */
-	public function setParameters(array $parameters)
-	{
-		$this->parameters = $parameters;
+    /**
+     * Sets the parameters.
+     *
+     * @param array $parameters The parameters
+     *
+     * @return RequestContext The current instance, implementing a fluent interface
+     */
+    public function setParameters(array $parameters)
+    {
+        $this->parameters = $parameters;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Gets a parameter value.
-	 *
-	 * @param string $name A parameter name
-	 *
-	 * @return mixed The parameter value or null if nonexistent
-	 */
-	public function getParameter($name)
-	{
-		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
-	}
+    /**
+     * Gets a parameter value.
+     *
+     * @param string $name A parameter name
+     *
+     * @return mixed The parameter value or null if nonexistent
+     */
+    public function getParameter($name)
+    {
+        return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+    }
 
-	/**
-	 * Checks if a parameter value is set for the given parameter.
-	 *
-	 * @param string $name A parameter name
-	 *
-	 * @return bool True if the parameter value is set, false otherwise
-	 */
-	public function hasParameter($name)
-	{
-		return array_key_exists($name, $this->parameters);
-	}
+    /**
+     * Checks if a parameter value is set for the given parameter.
+     *
+     * @param string $name A parameter name
+     *
+     * @return bool True if the parameter value is set, false otherwise
+     */
+    public function hasParameter($name)
+    {
+        return array_key_exists($name, $this->parameters);
+    }
 
-	/**
-	 * Sets a parameter value.
-	 *
-	 * @param string $name      A parameter name
-	 * @param mixed  $parameter The parameter value
-	 *
-	 * @api
-	 */
-	public function setParameter($name, $parameter)
-	{
-		$this->parameters[$name] = $parameter;
-	}
+    /**
+     * Sets a parameter value.
+     *
+     * @param string $name      A parameter name
+     * @param mixed  $parameter The parameter value
+     *
+     * @api
+     */
+    public function setParameter($name, $parameter)
+    {
+        $this->parameters[$name] = $parameter;
+    }
 }

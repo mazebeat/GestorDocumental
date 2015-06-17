@@ -2,8 +2,7 @@
 
 use Illuminate\Cache\Repository;
 
-class CacheBasedSessionHandler implements \SessionHandlerInterface
-{
+class CacheBasedSessionHandler implements \SessionHandlerInterface {
 
 	/**
 	 * The cache repository instance.
@@ -22,21 +21,20 @@ class CacheBasedSessionHandler implements \SessionHandlerInterface
 	/**
 	 * Create a new cache driven handler instance.
 	 *
-	 * @param  \Illuminate\Cache\Repository $cache
-	 * @param  int                          $minutes
-	 *
+	 * @param  \Illuminate\Cache\Repository  $cache
+	 * @param  int  $minutes
 	 * @return void
 	 */
 	public function __construct(Repository $cache, $minutes)
 	{
-		$this->cache   = $cache;
+		$this->cache = $cache;
 		$this->minutes = $minutes;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function open($savePath, $sessionName)
+	public function close()
 	{
 		return true;
 	}
@@ -44,7 +42,23 @@ class CacheBasedSessionHandler implements \SessionHandlerInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function close()
+	public function destroy($sessionId)
+	{
+		return $this->cache->forget($sessionId);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function gc($lifetime)
+	{
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function open($savePath, $sessionName)
 	{
 		return true;
 	}
@@ -63,22 +77,6 @@ class CacheBasedSessionHandler implements \SessionHandlerInterface
 	public function write($sessionId, $data)
 	{
 		return $this->cache->put($sessionId, $data, $this->minutes);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function destroy($sessionId)
-	{
-		return $this->cache->forget($sessionId);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function gc($lifetime)
-	{
-		return true;
 	}
 
 	/**

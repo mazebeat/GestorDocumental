@@ -2,8 +2,7 @@
 
 use Illuminate\Console\Command;
 
-class ListFailedCommand extends Command
-{
+class ListFailedCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -28,28 +27,27 @@ class ListFailedCommand extends Command
 	{
 		$rows = array();
 
-		foreach ($this->laravel['queue.failer']->all() as $failed) {
-			$rows[] = $this->parseFailedJob((array)$failed);
+		foreach ($this->laravel['queue.failer']->all() as $failed)
+		{
+			$rows[] = $this->parseFailedJob((array) $failed);
 		}
 
-		if (count($rows) == 0) {
+		if (count($rows) == 0)
+		{
 			return $this->info('No failed jobs!');
 		}
 
 		$table = $this->getHelperSet()->get('table');
 
-		$table->setHeaders(array('ID',
-				'Connection',
-				'Queue',
-				'Class',
-				'Failed At'))->setRows($rows)->render($this->output);
+		$table->setHeaders(array('ID', 'Connection', 'Queue', 'Class', 'Failed At'))
+              ->setRows($rows)
+              ->render($this->output);
 	}
 
 	/**
 	 * Parse the failed job row.
 	 *
-	 * @param  array $failed
-	 *
+	 * @param  array  $failed
 	 * @return array
 	 */
 	protected function parseFailedJob(array $failed)

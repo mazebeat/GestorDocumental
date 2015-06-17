@@ -3,8 +3,7 @@
 use Illuminate\Foundation\Console\RoutesCommand;
 use Illuminate\Support\ServiceProvider;
 
-class RouteListServiceProvider extends ServiceProvider
-{
+class RouteListServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -14,20 +13,6 @@ class RouteListServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('command.routes', function ($app) {
-			return new RoutesCommand($app['router']);
-		});
-
-		$this->commands('command.routes');
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -35,6 +20,21 @@ class RouteListServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('command.routes');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('command.routes', function($app)
+		{
+			return new RoutesCommand($app['router']);
+		});
+
+		$this->commands('command.routes');
 	}
 
 }

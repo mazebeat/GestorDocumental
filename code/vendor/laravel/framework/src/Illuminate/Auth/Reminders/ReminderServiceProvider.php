@@ -6,8 +6,7 @@ use Illuminate\Auth\Console\RemindersTableCommand;
 use Illuminate\Auth\Reminders\DatabaseReminderRepository as DbRepository;
 use Illuminate\Support\ServiceProvider;
 
-class ReminderServiceProvider extends ServiceProvider
-{
+class ReminderServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -15,6 +14,16 @@ class ReminderServiceProvider extends ServiceProvider
 	 * @var bool
 	 */
 	protected $defer = true;
+
+	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('auth.reminder', 'auth.reminder.repository', 'command.auth.reminders');
+	}
 
 	/**
 	 * Register the service provider.
@@ -37,7 +46,8 @@ class ReminderServiceProvider extends ServiceProvider
 	 */
 	protected function registerPasswordBroker()
 	{
-		$this->app->bindShared('auth.reminder', function ($app) {
+		$this->app->bindShared('auth.reminder', function($app)
+		{
 			// The reminder repository is responsible for storing the user e-mail addresses
 			// and password reset tokens. It will be used to verify the tokens are valid
 			// for the given e-mail addresses. We will resolve an implementation here.
@@ -65,7 +75,8 @@ class ReminderServiceProvider extends ServiceProvider
 	 */
 	protected function registerReminderRepository()
 	{
-		$this->app->bindShared('auth.reminder.repository', function ($app) {
+		$this->app->bindShared('auth.reminder.repository', function($app)
+		{
 			$connection = $app['db']->connection();
 
 			// The database reminder repository is an implementation of the reminder repo
@@ -88,29 +99,24 @@ class ReminderServiceProvider extends ServiceProvider
 	 */
 	protected function registerCommands()
 	{
-		$this->app->bindShared('command.auth.reminders', function ($app) {
+		$this->app->bindShared('command.auth.reminders', function($app)
+		{
 			return new RemindersTableCommand($app['files']);
 		});
 
-		$this->app->bindShared('command.auth.reminders.clear', function () {
+		$this->app->bindShared('command.auth.reminders.clear', function()
+		{
 			return new ClearRemindersCommand;
 		});
 
-		$this->app->bindShared('command.auth.reminders.controller', function ($app) {
+		$this->app->bindShared('command.auth.reminders.controller', function($app)
+		{
 			return new RemindersControllerCommand($app['files']);
 		});
 
-		$this->commands('command.auth.reminders', 'command.auth.reminders.clear', 'command.auth.reminders.controller');
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('auth.reminder', 'auth.reminder.repository', 'command.auth.reminders');
+		$this->commands(
+			'command.auth.reminders', 'command.auth.reminders.clear', 'command.auth.reminders.controller'
+		);
 	}
 
 }

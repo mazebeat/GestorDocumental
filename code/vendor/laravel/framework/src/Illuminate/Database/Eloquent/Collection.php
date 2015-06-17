@@ -2,21 +2,19 @@
 
 use Illuminate\Support\Collection as BaseCollection;
 
-class Collection extends BaseCollection
-{
+class Collection extends BaseCollection {
 
 	/**
 	 * Load a set of relationships onto the collection.
 	 *
-	 * @param  mixed $relations
-	 *
+	 * @param  mixed  $relations
 	 * @return $this
 	 */
 	public function load($relations)
 	{
-		if (count($this->items) > 0) {
-			if (is_string($relations))
-				$relations = func_get_args();
+		if (count($this->items) > 0)
+		{
+			if (is_string($relations)) $relations = func_get_args();
 
 			$query = $this->first()->newQuery()->with($relations);
 
@@ -29,130 +27,18 @@ class Collection extends BaseCollection
 	/**
 	 * Determine if a key exists in the collection.
 	 *
-	 * @param  mixed $key
-	 *
+	 * @param  mixed  $key
 	 * @return bool
 	 */
 	public function contains($key)
 	{
-		return !is_null($this->find($key));
-	}
-
-	/**
-	 * Find a model in the collection by key.
-	 *
-	 * @param  mixed $key
-	 * @param  mixed $default
-	 *
-	 * @return \Illuminate\Database\Eloquent\Model
-	 */
-	public function find($key, $default = null)
-	{
-		if ($key instanceof Model) {
-			$key = $key->getKey();
-		}
-
-		return array_first($this->items, function ($itemKey, $model) use ($key) {
-			return $model->getKey() == $key;
-
-		}, $default);
-	}
-
-	/**
-	 * Fetch a nested element of the collection.
-	 *
-	 * @param  string $key
-	 *
-	 * @return static
-	 */
-	public function fetch($key)
-	{
-		return new static(array_fetch($this->toArray(), $key));
-	}
-
-	/**
-	 * Get the max value of a given key.
-	 *
-	 * @param  string $key
-	 *
-	 * @return mixed
-	 */
-	public function max($key)
-	{
-		return $this->reduce(function ($result, $item) use ($key) {
-			return (is_null($result) || $item->{$key} > $result) ? $item->{$key} : $result;
-		});
-	}
-
-	/**
-	 * Get the min value of a given key.
-	 *
-	 * @param  string $key
-	 *
-	 * @return mixed
-	 */
-	public function min($key)
-	{
-		return $this->reduce(function ($result, $item) use ($key) {
-			return (is_null($result) || $item->{$key} < $result) ? $item->{$key} : $result;
-		});
-	}
-
-	/**
-	 * Get the array of primary keys
-	 *
-	 * @return array
-	 */
-	public function modelKeys()
-	{
-		return array_map(function ($m) {
-			return $m->getKey();
-		}, $this->items);
-	}
-
-	/**
-	 * Merge the collection with the given items.
-	 *
-	 * @param  \ArrayAccess|array $items
-	 *
-	 * @return static
-	 */
-	public function merge($items)
-	{
-		$dictionary = $this->getDictionary();
-
-		foreach ($items as $item) {
-			$dictionary[$item->getKey()] = $item;
-		}
-
-		return new static(array_values($dictionary));
-	}
-
-	/**
-	 * Get a dictionary keyed by primary keys.
-	 *
-	 * @param  \ArrayAccess|array $items
-	 *
-	 * @return array
-	 */
-	public function getDictionary($items = null)
-	{
-		$items = is_null($items) ? $this->items : $items;
-
-		$dictionary = array();
-
-		foreach ($items as $value) {
-			$dictionary[$value->getKey()] = $value;
-		}
-
-		return $dictionary;
+		return ! is_null($this->find($key));
 	}
 
 	/**
 	 * Diff the collection with the given items.
 	 *
-	 * @param  \ArrayAccess|array $items
-	 *
+	 * @param  \ArrayAccess|array  $items
 	 * @return static
 	 */
 	public function diff($items)
@@ -161,8 +47,10 @@ class Collection extends BaseCollection
 
 		$dictionary = $this->getDictionary($items);
 
-		foreach ($this->items as $item) {
-			if (!isset($dictionary[$item->getKey()])) {
+		foreach ($this->items as $item)
+		{
+			if ( ! isset($dictionary[$item->getKey()]))
+			{
 				$diff->add($item);
 			}
 		}
@@ -171,24 +59,20 @@ class Collection extends BaseCollection
 	}
 
 	/**
-	 * Add an item to the collection.
+	 * Fetch a nested element of the collection.
 	 *
-	 * @param  mixed $item
-	 *
-	 * @return $this
+	 * @param  string  $key
+	 * @return static
 	 */
-	public function add($item)
+	public function fetch($key)
 	{
-		$this->items[] = $item;
-
-		return $this;
+		return new static(array_fetch($this->toArray(), $key));
 	}
 
 	/**
 	 * Intersect the collection with the given items.
 	 *
-	 * @param  \ArrayAccess|array $items
-	 *
+ 	 * @param  \ArrayAccess|array  $items
 	 * @return static
 	 */
 	public function intersect($items)
@@ -197,13 +81,33 @@ class Collection extends BaseCollection
 
 		$dictionary = $this->getDictionary($items);
 
-		foreach ($this->items as $item) {
-			if (isset($dictionary[$item->getKey()])) {
+		foreach ($this->items as $item)
+		{
+			if (isset($dictionary[$item->getKey()]))
+			{
 				$intersect->add($item);
 			}
 		}
 
 		return $intersect;
+	}
+
+	/**
+	 * Merge the collection with the given items.
+	 *
+	 * @param  \ArrayAccess|array  $items
+	 * @return static
+	 */
+	public function merge($items)
+	{
+		$dictionary = $this->getDictionary();
+
+		foreach ($items as $item)
+		{
+			$dictionary[$item->getKey()] = $item;
+		}
+
+		return new static(array_values($dictionary));
 	}
 
 	/**
@@ -219,10 +123,101 @@ class Collection extends BaseCollection
 	}
 
 	/**
+	 * Find a model in the collection by key.
+	 *
+	 * @param  mixed  $key
+	 * @param  mixed  $default
+	 * @return \Illuminate\Database\Eloquent\Model
+	 */
+	public function find($key, $default = null)
+	{
+		if ($key instanceof Model)
+		{
+			$key = $key->getKey();
+		}
+
+		return array_first($this->items, function($itemKey, $model) use ($key)
+		{
+			return $model->getKey() == $key;
+
+		}, $default);
+	}
+
+	/**
+	 * Get a dictionary keyed by primary keys.
+	 *
+	 * @param  \ArrayAccess|array  $items
+	 * @return array
+	 */
+	public function getDictionary($items = null)
+	{
+		$items = is_null($items) ? $this->items : $items;
+
+		$dictionary = array();
+
+		foreach ($items as $value)
+		{
+			$dictionary[$value->getKey()] = $value;
+		}
+
+		return $dictionary;
+	}
+
+	/**
+	 * Add an item to the collection.
+	 *
+	 * @param  mixed  $item
+	 * @return $this
+	 */
+	public function add($item)
+	{
+		$this->items[] = $item;
+
+		return $this;
+	}
+
+	/**
+	 * Get the max value of a given key.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function max($key)
+	{
+		return $this->reduce(function($result, $item) use ($key)
+		{
+			return (is_null($result) || $item->{$key} > $result) ? $item->{$key} : $result;
+		});
+	}
+
+	/**
+	 * Get the min value of a given key.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function min($key)
+	{
+		return $this->reduce(function($result, $item) use ($key)
+		{
+			return (is_null($result) || $item->{$key} < $result) ? $item->{$key} : $result;
+		});
+	}
+
+	/**
+	 * Get the array of primary keys
+	 *
+	 * @return array
+	 */
+	public function modelKeys()
+	{
+		return array_map(function($m) { return $m->getKey(); }, $this->items);
+	}
+
+	/**
 	 * Returns only the models from the collection with the specified keys.
 	 *
-	 * @param  mixed $keys
-	 *
+	 * @param  mixed  $keys
 	 * @return static
 	 */
 	public function only($keys)
@@ -235,8 +230,7 @@ class Collection extends BaseCollection
 	/**
 	 * Returns all models in the collection except the models with specified keys.
 	 *
-	 * @param  mixed $keys
-	 *
+	 * @param  mixed  $keys
 	 * @return static
 	 */
 	public function except($keys)

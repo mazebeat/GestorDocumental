@@ -55,7 +55,7 @@
  * @category  Crypt
  * @package   Crypt_RC4
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMVII Jim Wigginton
+ * @copyright 2007 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -182,6 +182,70 @@ class Crypt_RC4 extends Crypt_Base
     }
 
     /**
+     * Setup the key (expansion)
+     *
+     * @see Crypt_Base::_setupKey()
+     * @access private
+     */
+    function _setupKey()
+    {
+        $key = $this->key;
+        $keyLength = strlen($key);
+        $keyStream = range(0, 255);
+        $j = 0;
+        for ($i = 0; $i < 256; $i++) {
+            $j = ($j + $keyStream[$i] + ord($key[$i % $keyLength])) & 255;
+            $temp = $keyStream[$i];
+            $keyStream[$i] = $keyStream[$j];
+            $keyStream[$j] = $temp;
+        }
+
+        $this->stream = array();
+        $this->stream[CRYPT_RC4_DECRYPT] = $this->stream[CRYPT_RC4_ENCRYPT] = array(
+            0, // index $i
+            0, // index $j
+            $keyStream
+        );
+    }
+
+    /**
+     * Decrypts a message.
+     *
+     * $this->decrypt($this->encrypt($plaintext)) == $this->encrypt($this->encrypt($plaintext)).
+     * At least if the continuous buffer is disabled.
+     *
+     * @see Crypt_Base::encrypt()
+     * @see Crypt_RC4::_crypt()
+     * @access public
+     * @param String $ciphertext
+     * @return String $plaintext
+     */
+    function decrypt($ciphertext)
+    {
+        if ($this->engine == CRYPT_MODE_MCRYPT) {
+            return parent::decrypt($ciphertext);
+        }
+        return $this->_crypt($ciphertext, CRYPT_RC4_DECRYPT);
+    }
+
+    /**
+     * Encrypts a message.
+     *
+     * @see Crypt_Base::decrypt()
+     * @see Crypt_RC4::_crypt()
+     * @access public
+     * @param String $plaintext
+     * @return String $ciphertext
+     */
+    function encrypt($plaintext)
+    {
+        if ($this->engine == CRYPT_MODE_MCRYPT) {
+            return parent::encrypt($plaintext);
+        }
+        return $this->_crypt($plaintext, CRYPT_RC4_ENCRYPT);
+    }
+
+    /**
      * Dummy function.
      *
      * Some protocols, such as WEP, prepend an "initialization vector" to the key, effectively creating a new key [1].
@@ -217,71 +281,6 @@ class Crypt_RC4 extends Crypt_Base
     function setKey($key)
     {
         parent::setKey(substr($key, 0, 256));
-    }
-
-    /**
-     * Encrypts a message.
-     *
-     * @see Crypt_Base::decrypt()
-     * @see Crypt_RC4::_crypt()
-     * @access public
-     * @param String $plaintext
-     * @return String $ciphertext
-     */
-    function encrypt($plaintext)
-    {
-        if ($this->engine == CRYPT_MODE_MCRYPT) {
-            return parent::encrypt($plaintext);
-        }
-        return $this->_crypt($plaintext, CRYPT_RC4_ENCRYPT);
-    }
-
-    /**
-     * Decrypts a message.
-     *
-     * $this->decrypt($this->encrypt($plaintext)) == $this->encrypt($this->encrypt($plaintext)).
-     * At least if the continuous buffer is disabled.
-     *
-     * @see Crypt_Base::encrypt()
-     * @see Crypt_RC4::_crypt()
-     * @access public
-     * @param String $ciphertext
-     * @return String $plaintext
-     */
-    function decrypt($ciphertext)
-    {
-        if ($this->engine == CRYPT_MODE_MCRYPT) {
-            return parent::decrypt($ciphertext);
-        }
-        return $this->_crypt($ciphertext, CRYPT_RC4_DECRYPT);
-    }
-
-
-    /**
-     * Setup the key (expansion)
-     *
-     * @see Crypt_Base::_setupKey()
-     * @access private
-     */
-    function _setupKey()
-    {
-        $key = $this->key;
-        $keyLength = strlen($key);
-        $keyStream = range(0, 255);
-        $j = 0;
-        for ($i = 0; $i < 256; $i++) {
-            $j = ($j + $keyStream[$i] + ord($key[$i % $keyLength])) & 255;
-            $temp = $keyStream[$i];
-            $keyStream[$i] = $keyStream[$j];
-            $keyStream[$j] = $temp;
-        }
-
-        $this->stream = array();
-        $this->stream[CRYPT_RC4_DECRYPT] = $this->stream[CRYPT_RC4_ENCRYPT] = array(
-            0, // index $i
-            0, // index $j
-            $keyStream
-        );
     }
 
     /**

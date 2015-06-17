@@ -26,11 +26,11 @@ class RedisConnector implements ConnectorInterface
 	 * @param  \Illuminate\Redis\Database $redis
 	 * @param  string|null                $connection
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Database $redis, $connection = null)
 	{
-		$this->redis      = $redis;
+		$this->redis = $redis;
 		$this->connection = $connection;
 	}
 
@@ -39,11 +39,15 @@ class RedisConnector implements ConnectorInterface
 	 *
 	 * @param  array $config
 	 *
-	 * @return \Illuminate\Queue\QueueInterface
+*@return \Illuminate\Queue\QueueInterface
 	 */
 	public function connect(array $config)
 	{
-		return new RedisQueue($this->redis, $config['queue'], $this->connection);
+		$queue = new RedisQueue($this->redis, $config['queue'], array_get($config, 'connection', $this->connection));
+
+		$queue->setExpire(array_get($config, 'expire', 60));
+
+		return $queue;
 	}
 
 }

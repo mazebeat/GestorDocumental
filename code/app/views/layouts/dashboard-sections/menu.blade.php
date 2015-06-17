@@ -1,7 +1,7 @@
 <h5 class="sidebartitle">Navegación</h5>
 <ul class="nav nav-pills nav-stacked nav-bracket">
     <li class="active"><a href="{{ URL::to('/') }}"><i class="fa fa-home"></i> <span>Inicio</span></a></li>
-     {{--<li class="nav-parent"><a href="{{ URL::to('#') }}"><i class="fa fa-edit"></i> <span>Forms</span></a>--}}
+    {{--<li class="nav-parent"><a href="{{ URL::to('#') }}"><i class="fa fa-edit"></i> <span>Forms</span></a>--}}
     {{--<ul class="children">--}}
     {{--<li><a href="general-forms.html"><i class="fa fa-caret-right"></i> General Forms</a></li>--}}
     {{--<li><a href="form-layouts.html"><i class="fa fa-caret-right"></i> Form Layouts</a></li>--}}

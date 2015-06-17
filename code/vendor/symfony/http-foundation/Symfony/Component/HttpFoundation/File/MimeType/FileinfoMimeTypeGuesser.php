@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\HttpFoundation\File\MimeType;
 
-use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 
 /**
  * Guesses the mime type using the PECL extension FileInfo.
@@ -21,51 +21,51 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
  */
 class FileinfoMimeTypeGuesser implements MimeTypeGuesserInterface
 {
-	private $magicFile;
+    private $magicFile;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $magicFile A magic file to use with the finfo instance
-	 *
-	 * @link http://www.php.net/manual/en/function.finfo-open.php
-	 */
-	public function __construct($magicFile = null)
-	{
-		$this->magicFile = $magicFile;
-	}
+    /**
+     * Constructor.
+     *
+     * @param string $magicFile A magic file to use with the finfo instance
+     *
+     * @link http://www.php.net/manual/en/function.finfo-open.php
+     */
+    public function __construct($magicFile = null)
+    {
+        $this->magicFile = $magicFile;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function guess($path)
-	{
-		if (!is_file($path)) {
-			throw new FileNotFoundException($path);
-		}
+    /**
+     * Returns whether this guesser is supported on the current OS/PHP setup.
+     *
+     * @return bool
+     */
+    public static function isSupported()
+    {
+        return function_exists('finfo_open');
+    }
 
-		if (!is_readable($path)) {
-			throw new AccessDeniedException($path);
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function guess($path)
+    {
+        if (!is_file($path)) {
+            throw new FileNotFoundException($path);
+        }
 
-		if (!self::isSupported()) {
-			return;
-		}
+        if (!is_readable($path)) {
+            throw new AccessDeniedException($path);
+        }
 
-		if (!$finfo = new \finfo(FILEINFO_MIME_TYPE, $this->magicFile)) {
-			return;
-		}
+        if (!self::isSupported()) {
+            return;
+        }
 
-		return $finfo->file($path);
-	}
+        if (!$finfo = new \finfo(FILEINFO_MIME_TYPE, $this->magicFile)) {
+            return;
+        }
 
-	/**
-	 * Returns whether this guesser is supported on the current OS/PHP setup
-	 *
-	 * @return bool
-	 */
-	public static function isSupported()
-	{
-		return function_exists('finfo_open');
-	}
+        return $finfo->file($path);
+    }
 }

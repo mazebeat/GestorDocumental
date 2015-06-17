@@ -5,8 +5,7 @@ use Swift_Events_EventListener;
 use Swift_Mime_Message;
 use Swift_Transport;
 
-class MandrillTransport implements Swift_Transport
-{
+class MandrillTransport implements Swift_Transport {
 
 	/**
 	 * The Mandrill API key.
@@ -18,8 +17,7 @@ class MandrillTransport implements Swift_Transport
 	/**
 	 * Create a new Mandrill transport instance.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function __construct($key)
@@ -33,6 +31,30 @@ class MandrillTransport implements Swift_Transport
 	public function isStarted()
 	{
 		return true;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function registerPlugin(Swift_Events_EventListener $plugin)
+	{
+		//
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
+	{
+		$client = $this->getHttpClient();
+
+		$client->post('https://mandrillapp.com/api/1.0/messages/send-raw.json', [
+			'body' => [
+				'key' => $this->key,
+				'raw_message' => (string) $message,
+				'async' => false,
+			],
+		]);
 	}
 
 	/**
@@ -52,18 +74,6 @@ class MandrillTransport implements Swift_Transport
 	}
 
 	/**
-	 * {@inheritdoc}
-	 */
-	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
-	{
-		$client = $this->getHttpClient();
-
-		$client->post('https://mandrillapp.com/api/1.0/messages/send-raw.json', ['body' => ['key'         => $this->key,
-		                                                                                    'raw_message' => (string)$message,
-		                                                                                    'async'       => false,],]);
-	}
-
-	/**
 	 * Get a new HTTP client instance.
 	 *
 	 * @return \GuzzleHttp\Client
@@ -71,14 +81,6 @@ class MandrillTransport implements Swift_Transport
 	protected function getHttpClient()
 	{
 		return new Client;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function registerPlugin(Swift_Events_EventListener $plugin)
-	{
-		//
 	}
 
 	/**
@@ -94,8 +96,7 @@ class MandrillTransport implements Swift_Transport
 	/**
 	 * Set the API key being used by the transport.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function setKey($key)

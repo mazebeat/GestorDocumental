@@ -10,7 +10,7 @@ class CacheManager extends Manager
 	 *
 	 * @param  string $name
 	 *
-	 * @return void
+*@return void
 	 */
 	public function setPrefix($name)
 	{
@@ -32,7 +32,7 @@ class CacheManager extends Manager
 	 *
 	 * @param  string $name
 	 *
-	 * @return void
+*@return void
 	 */
 	public function setDefaultDriver($name)
 	{
@@ -54,7 +54,7 @@ class CacheManager extends Manager
 	 *
 	 * @param  \Illuminate\Cache\StoreInterface $store
 	 *
-	 * @return \Illuminate\Cache\Repository
+*@return \Illuminate\Cache\Repository
 	 */
 	protected function repository(StoreInterface $store)
 	{

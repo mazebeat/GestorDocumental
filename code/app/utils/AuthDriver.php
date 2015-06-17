@@ -7,96 +7,75 @@ use Illuminate\Support\Facades\Session;
 
 /**
  * Class DummyAuthProvider
- *
  * @package App\Util
  */
-class DummyAuthProvider implements UserProviderInterface
-{
+class DummyAuthProvider implements UserProviderInterface{
 	/**
 	 * @var
 	 */
 	private $credentials;
 
+	/**
+	 * @param array $credentials
+	 * @return \Illuminate\Auth\GenericUser
+	 */
+	public function retrieveByCredentials(array $credentials){
+		if(count($credentials)&&Session::has('credentials')){
+			Session::flash('credentials',$credentials);
+
+			return $this->dummyUser();
+		}
+
+		if(count($credentials)){
+			Session::put('credentials',$credentials);
+
+			return $this->dummyUser();
+		}
+	}
 
 	/**
 	 * @param mixed $identifier
-	 *
 	 * @return \Illuminate\Auth\GenericUser
 	 */
-	public function retrieveById($identifier)
-	{
+	public function retrieveById($identifier){
 		return $this->dummyUser();
 	}
 
 	/**
-	 * @return \Illuminate\Auth\GenericUser
+	 * @param mixed $identifier
+	 * @param string $token
+	 * @return \Exception
 	 */
-	protected function dummyUser()
-	{
-		$this->credentials = Session::get('credentials');
-
-		$attributes = array('id'          => $this->credentials['id'],
-		                    'username'    => $this->credentials['username'],
-		                    'password'    => $this->credentials['password'],
-		                    'name'        => $this->credentials['name'],
-		                    'idNegocio'   => $this->credentials['idNegocio'],
-		                    'vigenciaIni' => $this->credentials['vigenciaIni'],
-		                    'vigenciaFin' => $this->credentials['vigenciaFin'],
-		                    'estado'      => $this->credentials['estado']);
-
-		return new GenericUser($attributes);
-	}
-
-	/**
-	 * @param array $credentials
-	 *
-	 * @return \Illuminate\Auth\GenericUser
-	 */
-	public function retrieveByCredentials(array $credentials)
-	{
-		if (count($credentials) && Session::has('credentials')) {
-			Session::flash('credentials', $credentials);
-
-			return $this->dummyUser();
-		}
-
-		if (count($credentials)) {
-			Session::put('credentials', $credentials);
-
-			return $this->dummyUser();
-		}
+	public function retrieveByToken($identifier,$token){
+		return new \Exception('not implemented');
 	}
 
 	/**
 	 * @param \Illuminate\Auth\UserInterface $user
-	 * @param array                          $credentials
-	 *
+	 * @param string $token
+	 * @return \Exception
+	 */
+	public function updateRememberToken(UserInterface $user,$token){
+		return new \Exception('not implemented');
+	}
+
+	/**
+	 * @param \Illuminate\Auth\UserInterface $user
+	 * @param array $credentials
 	 * @return bool
 	 */
-	public function validateCredentials(UserInterface $user, array $credentials)
-	{
+	public function validateCredentials(UserInterface $user,array $credentials){
 		return true;
 	}
 
 	/**
-	 * @param mixed  $identifier
-	 * @param string $token
-	 *
-	 * @return \Exception
+	 * @return \Illuminate\Auth\GenericUser
 	 */
-	public function retrieveByToken($identifier, $token)
-	{
-		return new \Exception('not implemented');
-	}
+	protected function dummyUser(){
+		$this->credentials=Session::get('credentials');
 
-	/**
-	 * @param \Illuminate\Auth\UserInterface $user
-	 * @param string                         $token
-	 *
-	 * @return \Exception
-	 */
-	public function updateRememberToken(UserInterface $user, $token)
-	{
-		return new \Exception('not implemented');
+		$attributes=array('id'=>$this->credentials['id'],'username'=>$this->credentials['username'],'password'=>$this->credentials['password'],'name'=>$this->credentials['name'],'idNegocio'=>$this->credentials['idNegocio'],'vigenciaIni'=>$this->credentials['vigenciaIni'],'vigenciaFin'=>$this->credentials['vigenciaFin'],'estado'=>$this->credentials['estado']);
+
+		return new GenericUser($attributes);
 	}
 }

@@ -11,12 +11,12 @@
 
 namespace Symfony\Component\HttpKernel\Event;
 
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
- * Allows to filter a Response object
+ * Allows to filter a Response object.
  *
  * You can call getResponse() to retrieve the current response. With
  * setResponse() you can set a new response that will be returned to the
@@ -28,41 +28,41 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class FilterResponseEvent extends KernelEvent
 {
-	/**
-	 * The current response object
-	 *
-	 * @var Response
-	 */
-	private $response;
+    /**
+     * The current response object.
+     *
+     * @var Response
+     */
+    private $response;
 
-	public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, Response $response)
-	{
-		parent::__construct($kernel, $request, $requestType);
+    public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, Response $response)
+    {
+        parent::__construct($kernel, $request, $requestType);
 
-		$this->setResponse($response);
-	}
+        $this->setResponse($response);
+    }
 
-	/**
-	 * Returns the current response object
-	 *
-	 * @return Response
-	 *
-	 * @api
-	 */
-	public function getResponse()
-	{
-		return $this->response;
-	}
+    /**
+     * Returns the current response object.
+     *
+     * @return Response
+     *
+     * @api
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
 
-	/**
-	 * Sets a new response object
-	 *
-	 * @param Response $response
-	 *
-	 * @api
-	 */
-	public function setResponse(Response $response)
-	{
-		$this->response = $response;
-	}
+    /**
+     * Sets a new response object.
+     *
+     * @param Response $response
+     *
+     * @api
+     */
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
+    }
 }

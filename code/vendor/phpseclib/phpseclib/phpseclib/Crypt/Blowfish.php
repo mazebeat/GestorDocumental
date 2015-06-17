@@ -48,7 +48,7 @@
  * @package   Crypt_Blowfish
  * @author    Jim Wigginton <terrafrost@php.net>
  * @author    Hans-Juergen Petrich <petrich@tronic-media.com>
- * @copyright MMVII Jim Wigginton
+ * @copyright 2007 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -368,87 +368,35 @@ class Crypt_Blowfish extends Crypt_Base
     var $kl;
 
     /**
-     * Sets the key.
+     * Decrypts a block
      *
-     * Keys can be of any length.  Blowfish, itself, requires the use of a key between 32 and max. 448-bits long.
-     * If the key is less than 32-bits we NOT fill the key to 32bit but let the key as it is to be compatible
-     * with mcrypt because mcrypt act this way with blowfish key's < 32 bits.
-     *
-     * If the key is more than 448-bits, we trim the excess bits.
-     *
-     * If the key is not explicitly set, or empty, it'll be assumed a 128 bits key to be all null bytes.
-     *
-     * @access public
-     * @see Crypt_Base::setKey()
-     * @param String $key
-     */
-    function setKey($key)
-    {
-        $keylength = strlen($key);
-
-        if (!$keylength) {
-            $key = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
-        } elseif ($keylength > 56) {
-            $key = substr($key, 0, 56);
-        }
-
-        parent::setKey($key);
-    }
-
-    /**
-     * Setup the key (expansion)
-     *
-     * @see Crypt_Base::_setupKey()
      * @access private
+     *
+     * @param String $in
+     *
+     * @return String
      */
-    function _setupKey()
-    {
-        if (isset($this->kl['key']) && $this->key === $this->kl['key']) {
-            // already expanded
-            return;
-        }
-        $this->kl = array('key' => $this->key);
+	function _decryptBlock($in)
+	{
+		$p    = $this->bctx["p"];
+		$sb_0 = $this->bctx["sb"][0];
+		$sb_1 = $this->bctx["sb"][1];
+		$sb_2 = $this->bctx["sb"][2];
+		$sb_3 = $this->bctx["sb"][3];
 
-        /* key-expanding p[] and S-Box building sb[] */
-        $this->bctx = array(
-            'p'  => array(),
-            'sb' => array(
-                $this->sbox0,
-                $this->sbox1,
-                $this->sbox2,
-                $this->sbox3
-            )
-        );
+		$in = unpack("N*", $in);
+		$l  = $in[1];
+		$r  = $in[2];
 
-        // unpack binary string in unsigned chars
-        $key  = array_values(unpack('C*', $this->key));
-        $keyl = count($key);
-        for ($j = 0, $i = 0; $i < 18; ++$i) {
-            // xor P1 with the first 32-bits of the key, xor P2 with the second 32-bits ...
-            for ($data = 0, $k = 0; $k < 4; ++$k) {
-                $data = ($data << 8) | $key[$j];
-                if (++$j >= $keyl) {
-                    $j = 0;
-                }
-            }
-            $this->bctx['p'][] = $this->parray[$i] ^ $data;
-        }
+		for ($i = 17; $i > 2; $i -= 2) {
+			$l ^= $p[$i];
+			$r ^= ($sb_0[$l >> 24 & 0xff] + $sb_1[$l >> 16 & 0xff] ^ $sb_2[$l >> 8 & 0xff]) + $sb_3[$l & 0xff];
 
-        // encrypt the zero-string, replace P1 and P2 with the encrypted data,
-        // encrypt P3 and P4 with the new P1 and P2, do it with all P-array and subkeys
-        $data = "\0\0\0\0\0\0\0\0";
-        for ($i = 0; $i < 18; $i += 2) {
-            list($l, $r) = array_values(unpack('N*', $data = $this->_encryptBlock($data)));
-            $this->bctx['p'][$i    ] = $l;
-            $this->bctx['p'][$i + 1] = $r;
-        }
-        for ($i = 0; $i < 4; ++$i) {
-            for ($j = 0; $j < 256; $j += 2) {
-                list($l, $r) = array_values(unpack('N*', $data = $this->_encryptBlock($data)));
-                $this->bctx['sb'][$i][$j    ] = $l;
-                $this->bctx['sb'][$i][$j + 1] = $r;
-            }
-        }
+			$r ^= $p[$i - 1];
+			$l ^= ($sb_0[$r >> 24 & 0xff] + $sb_1[$r >> 16 & 0xff] ^ $sb_2[$r >> 8 & 0xff]) + $sb_3[$r & 0xff];
+		}
+
+		return pack("N*", $r ^ $p[0], $l ^ $p[1]);
     }
 
     /**
@@ -485,42 +433,6 @@ class Crypt_Blowfish extends Crypt_Base
                       $sb_3[$r       & 0xff];
         }
         return pack("N*", $r ^ $p[17], $l ^ $p[16]);
-    }
-
-    /**
-     * Decrypts a block
-     *
-     * @access private
-     * @param String $in
-     * @return String
-     */
-    function _decryptBlock($in)
-    {
-        $p = $this->bctx["p"];
-        $sb_0 = $this->bctx["sb"][0];
-        $sb_1 = $this->bctx["sb"][1];
-        $sb_2 = $this->bctx["sb"][2];
-        $sb_3 = $this->bctx["sb"][3];
-
-        $in = unpack("N*", $in);
-        $l = $in[1];
-        $r = $in[2];
-
-        for ($i = 17; $i > 2; $i-= 2) {
-            $l^= $p[$i];
-            $r^= ($sb_0[$l >> 24 & 0xff]  +
-                  $sb_1[$l >> 16 & 0xff]  ^
-                  $sb_2[$l >>  8 & 0xff]) +
-                  $sb_3[$l       & 0xff];
-
-            $r^= $p[$i - 1];
-            $l^= ($sb_0[$r >> 24 & 0xff]  +
-                  $sb_1[$r >> 16 & 0xff]  ^
-                  $sb_2[$r >>  8 & 0xff]) +
-                  $sb_3[$r       & 0xff];
-        }
-
-        return pack("N*", $r ^ $p[0], $l ^ $p[1]);
     }
 
     /**
@@ -640,5 +552,83 @@ class Crypt_Blowfish extends Crypt_Base
             );
         }
         $this->inline_crypt = $lambda_functions[$code_hash];
+    }
+
+	/**
+	 * Setup the key (expansion)
+	 *
+	 * @see    Crypt_Base::_setupKey()
+	 * @access private
+	 */
+	function _setupKey()
+	{
+		if (isset($this->kl['key']) && $this->key === $this->kl['key']) {
+			// already expanded
+			return;
+		}
+		$this->kl = array('key' => $this->key);
+
+		/* key-expanding p[] and S-Box building sb[] */
+		$this->bctx = array('p' => array(), 'sb' => array($this->sbox0, $this->sbox1, $this->sbox2, $this->sbox3));
+
+		// unpack binary string in unsigned chars
+		$key  = array_values(unpack('C*', $this->key));
+		$keyl = count($key);
+		for ($j = 0, $i = 0; $i < 18; ++$i) {
+			// xor P1 with the first 32-bits of the key, xor P2 with the second 32-bits ...
+			for ($data = 0, $k = 0; $k < 4; ++$k) {
+				$data = ($data << 8) | $key[$j];
+				if (++$j >= $keyl) {
+					$j = 0;
+				}
+			}
+			$this->bctx['p'][] = $this->parray[$i] ^ $data;
+		}
+
+		// encrypt the zero-string, replace P1 and P2 with the encrypted data,
+		// encrypt P3 and P4 with the new P1 and P2, do it with all P-array and subkeys
+		$data = "\0\0\0\0\0\0\0\0";
+		for ($i = 0; $i < 18; $i += 2) {
+			list($l, $r) = array_values(unpack('N*', $data = $this->_encryptBlock($data)));
+			$this->bctx['p'][$i]     = $l;
+			$this->bctx['p'][$i + 1] = $r;
+		}
+		for ($i = 0; $i < 4; ++$i) {
+			for ($j = 0; $j < 256; $j += 2) {
+				list($l, $r) = array_values(unpack('N*', $data = $this->_encryptBlock($data)));
+				$this->bctx['sb'][$i][$j]     = $l;
+				$this->bctx['sb'][$i][$j + 1] = $r;
+			}
+		}
+	}
+
+	/**
+	 * Sets the key.
+	 *
+	 * Keys can be of any length.  Blowfish, itself, requires the use of a key between 32 and max. 448-bits long.
+	 * If the key is less than 32-bits we NOT fill the key to 32bit but let the key as it is to be compatible
+	 * with mcrypt because mcrypt act this way with blowfish key's < 32 bits.
+	 *
+	 * If the key is more than 448-bits, we trim the excess bits.
+	 *
+	 * If the key is not explicitly set, or empty, it'll be assumed a 128 bits key to be all null bytes.
+	 *
+	 * @access public
+	 * @see    Crypt_Base::setKey()
+	 *
+	 * @param String $key
+	 */
+	function setKey($key)
+	{
+		$keylength = strlen($key);
+
+		if (!$keylength) {
+			$key = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+		}
+		elseif ($keylength > 56) {
+			$key = substr($key, 0, 56);
+		}
+
+		parent::setKey($key);
     }
 }

@@ -6,8 +6,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Finder\Finder;
 
-class AssetPublishCommand extends Command
-{
+class AssetPublishCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -33,8 +32,7 @@ class AssetPublishCommand extends Command
 	/**
 	 * Create a new asset publish command instance.
 	 *
-	 * @param  \Illuminate\Foundation\AssetPublisher $assets
-	 *
+	 * @param  \Illuminate\Foundation\AssetPublisher  $assets
 	 * @return void
 	 */
 	public function __construct(AssetPublisher $assets)
@@ -51,7 +49,8 @@ class AssetPublishCommand extends Command
 	 */
 	public function fire()
 	{
-		foreach ($this->getPackages() as $package) {
+		foreach ($this->getPackages() as $package)
+		{
 			$this->publishAssets($package);
 		}
 	}
@@ -63,9 +62,12 @@ class AssetPublishCommand extends Command
 	 */
 	protected function getPackages()
 	{
-		if (!is_null($package = $this->input->getArgument('package'))) {
+		if ( ! is_null($package = $this->input->getArgument('package')))
+		{
 			return array($package);
-		} elseif (!is_null($bench = $this->input->getOption('bench'))) {
+		}
+		elseif ( ! is_null($bench = $this->input->getOption('bench')))
+		{
 			return array($bench);
 		}
 
@@ -79,11 +81,12 @@ class AssetPublishCommand extends Command
 	 */
 	protected function findAllAssetPackages()
 	{
-		$vendor = $this->laravel['path.base'] . '/vendor';
+		$vendor = $this->laravel['path.base'].'/vendor';
 
 		$packages = array();
 
-		foreach (Finder::create()->directories()->in($vendor)->name('public')->depth('< 3') as $package) {
+		foreach (Finder::create()->directories()->in($vendor)->name('public')->depth('< 3') as $package)
+		{
 			$packages[] = $package->getRelativePath();
 		}
 
@@ -93,19 +96,21 @@ class AssetPublishCommand extends Command
 	/**
 	 * Publish the assets for a given package name.
 	 *
-	 * @param  string $package
-	 *
+	 * @param  string  $package
 	 * @return void
 	 */
 	protected function publishAssets($package)
 	{
-		if (!is_null($path = $this->getPath())) {
+		if ( ! is_null($path = $this->getPath()))
+		{
 			$this->assets->publish($package, $path);
-		} else {
+		}
+		else
+		{
 			$this->assets->publishPackage($package);
 		}
 
-		$this->output->writeln('<info>Assets published for package:</info> ' . $package);
+		$this->output->writeln('<info>Assets published for package:</info> '.$package);
 	}
 
 	/**
@@ -120,8 +125,9 @@ class AssetPublishCommand extends Command
 		// First we will check for an explicitly specified path from the user. If one
 		// exists we will use that as the path to the assets. This allows the free
 		// storage of assets wherever is best for this developer's web projects.
-		if (!is_null($path)) {
-			return $this->laravel['path.base'] . '/' . $path;
+		if ( ! is_null($path))
+		{
+			return $this->laravel['path.base'].'/'.$path;
 		}
 
 		// If a "bench" option was specified, we will publish from a workbench as the
@@ -129,8 +135,9 @@ class AssetPublishCommand extends Command
 		// specify the full workbench path using the --path command line option.
 		$bench = $this->input->getOption('bench');
 
-		if (!is_null($bench)) {
-			return $this->laravel['path.base'] . "/workbench/{$bench}/public";
+		if ( ! is_null($bench))
+		{
+			return $this->laravel['path.base']."/workbench/{$bench}/public";
 		}
 	}
 
@@ -141,7 +148,9 @@ class AssetPublishCommand extends Command
 	 */
 	protected function getArguments()
 	{
-		return array(array('package', InputArgument::OPTIONAL, 'The name of package being published.'),);
+		return array(
+			array('package', InputArgument::OPTIONAL, 'The name of package being published.'),
+		);
 	}
 
 	/**
@@ -151,8 +160,11 @@ class AssetPublishCommand extends Command
 	 */
 	protected function getOptions()
 	{
-		return array(array('bench', null, InputOption::VALUE_OPTIONAL, 'The name of the workbench to publish.', null),
-			array('path', null, InputOption::VALUE_OPTIONAL, 'The path to the asset files.', null),);
+		return array(
+			array('bench', null, InputOption::VALUE_OPTIONAL, 'The name of the workbench to publish.', null),
+
+			array('path', null, InputOption::VALUE_OPTIONAL, 'The path to the asset files.', null),
+		);
 	}
 
 }

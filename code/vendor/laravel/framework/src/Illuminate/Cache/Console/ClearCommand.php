@@ -4,8 +4,7 @@ use Illuminate\Cache\CacheManager;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-class ClearCommand extends Command
-{
+class ClearCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -38,9 +37,8 @@ class ClearCommand extends Command
 	/**
 	 * Create a new cache clear command instance.
 	 *
-	 * @param  \Illuminate\Cache\CacheManager    $cache
-	 * @param  \Illuminate\Filesystem\Filesystem $files
-	 *
+	 * @param  \Illuminate\Cache\CacheManager  $cache
+	 * @param  \Illuminate\Filesystem\Filesystem  $files
 	 * @return void
 	 */
 	public function __construct(CacheManager $cache, Filesystem $files)
@@ -58,9 +56,11 @@ class ClearCommand extends Command
 	 */
 	public function fire()
 	{
+		$this->laravel['events']->fire('cache:clearing');
+
 		$this->cache->flush();
 
-		$this->files->delete($this->laravel['config']['app.manifest'] . '/services.json');
+		$this->files->delete($this->laravel['config']['app.manifest'].'/services.json');
 
 		$this->laravel['events']->fire('cache:cleared');
 

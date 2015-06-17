@@ -16,296 +16,306 @@ namespace Symfony\Component\Finder\Expression;
  */
 class Regex implements ValueInterface
 {
-	const START_FLAG = '^';
-	const END_FLAG   = '$';
-	const BOUNDARY   = '~';
-	const JOKER      = '.*';
-	const ESCAPING   = '\\';
+    const START_FLAG = '^';
+    const END_FLAG = '$';
+    const BOUNDARY = '~';
+    const JOKER = '.*';
+    const ESCAPING = '\\';
 
-	/**
-	 * @var string
-	 */
-	private $pattern;
+    /**
+     * @var string
+     */
+    private $pattern;
 
-	/**
-	 * @var array
-	 */
-	private $options;
+    /**
+     * @var array
+     */
+    private $options;
 
-	/**
-	 * @var bool
-	 */
-	private $startFlag;
+    /**
+     * @var bool
+     */
+    private $startFlag;
 
-	/**
-	 * @var bool
-	 */
-	private $endFlag;
+    /**
+     * @var bool
+     */
+    private $endFlag;
 
-	/**
-	 * @var bool
-	 */
-	private $startJoker;
+    /**
+     * @var bool
+     */
+    private $startJoker;
 
-	/**
-	 * @var bool
-	 */
-	private $endJoker;
+    /**
+     * @var bool
+     */
+    private $endJoker;
 
-	/**
-	 * @param string $pattern
-	 * @param string $options
-	 * @param string $delimiter
-	 */
-	public function __construct($pattern, $options = '', $delimiter = null)
-	{
-		if (null !== $delimiter) {
-			// removes delimiter escaping
-			$pattern = str_replace('\\' . $delimiter, $delimiter, $pattern);
-		}
+    /**
+     * @param string $expr
+     *
+     * @return Regex
+     *
+     * @throws \InvalidArgumentException
+     */
+    public static function create($expr)
+    {
+        if (preg_match('/^(.{3,}?)([imsxuADU]*)$/', $expr, $m)) {
+            $start = substr($m[1], 0, 1);
+            $end = substr($m[1], -1);
 
-		$this->parsePattern($pattern);
-		$this->options = $options;
-	}
+            if (
+                ($start === $end && !preg_match('/[*?[:alnum:] \\\\]/', $start))
+                || ($start === '{' && $end === '}')
+                || ($start === '(' && $end === ')')
+            ) {
+                return new self(substr($m[1], 1, -1), $m[2], $end);
+            }
+        }
 
-	/**
-	 * @param string $pattern
-	 */
-	private function parsePattern($pattern)
-	{
-		if ($this->startFlag = self::START_FLAG === substr($pattern, 0, 1)) {
-			$pattern = substr($pattern, 1);
-		}
+        throw new \InvalidArgumentException('Given expression is not a regex.');
+    }
 
-		if ($this->startJoker = self::JOKER === substr($pattern, 0, 2)) {
-			$pattern = substr($pattern, 2);
-		}
+    /**
+     * @param string $pattern
+     * @param string $options
+     * @param string $delimiter
+     */
+    public function __construct($pattern, $options = '', $delimiter = null)
+    {
+        if (null !== $delimiter) {
+            // removes delimiter escaping
+            $pattern = str_replace('\\'.$delimiter, $delimiter, $pattern);
+        }
 
-		if ($this->endFlag = (self::END_FLAG === substr($pattern, -1) && self::ESCAPING !== substr($pattern, -2, -1))) {
-			$pattern = substr($pattern, 0, -1);
-		}
+        $this->parsePattern($pattern);
+        $this->options = $options;
+    }
 
-		if ($this->endJoker = (self::JOKER === substr($pattern, -2) && self::ESCAPING !== substr($pattern, -3, -2))) {
-			$pattern = substr($pattern, 0, -2);
-		}
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->render();
+    }
 
-		$this->pattern = $pattern;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function render()
+    {
+        return self::BOUNDARY
+            .$this->renderPattern()
+            .self::BOUNDARY
+            .$this->options;
+    }
 
-	/**
-	 * @param string $expr
-	 *
-	 * @return Regex
-	 *
-	 * @throws \InvalidArgumentException
-	 */
-	public static function create($expr)
-	{
-		if (preg_match('/^(.{3,}?)([imsxuADU]*)$/', $expr, $m)) {
-			$start = substr($m[1], 0, 1);
-			$end   = substr($m[1], -1);
+    /**
+     * {@inheritdoc}
+     */
+    public function renderPattern()
+    {
+        return ($this->startFlag ? self::START_FLAG : '')
+            .($this->startJoker ? self::JOKER : '')
+            .str_replace(self::BOUNDARY, '\\'.self::BOUNDARY, $this->pattern)
+            .($this->endJoker ? self::JOKER : '')
+            .($this->endFlag ? self::END_FLAG : '');
+    }
 
-			if (($start === $end && !preg_match('/[*?[:alnum:] \\\\]/', $start)) || ($start === '{' && $end === '}') || ($start === '(' && $end === ')')
-			) {
-				return new self(substr($m[1], 1, -1), $m[2], $end);
-			}
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function isCaseSensitive()
+    {
+        return !$this->hasOption('i');
+    }
 
-		throw new \InvalidArgumentException('Given expression is not a regex.');
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getType()
+    {
+        return Expression::TYPE_REGEX;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function __toString()
-	{
-		return $this->render();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function prepend($expr)
+    {
+        $this->pattern = $expr.$this->pattern;
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function render()
-	{
-		return self::BOUNDARY . $this->renderPattern() . self::BOUNDARY . $this->options;
-	}
+        return $this;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function renderPattern()
-	{
-		return ($this->startFlag ? self::START_FLAG : '') . ($this->startJoker ? self::JOKER : '') . str_replace(self::BOUNDARY, '\\' . self::BOUNDARY, $this->pattern) . ($this->endJoker ? self::JOKER : '') . ($this->endFlag ? self::END_FLAG : '');
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function append($expr)
+    {
+        $this->pattern .= $expr;
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function isCaseSensitive()
-	{
-		return !$this->hasOption('i');
-	}
+        return $this;
+    }
 
-	/**
-	 * @param string $option
-	 *
-	 * @return bool
-	 */
-	public function hasOption($option)
-	{
-		return false !== strpos($this->options, $option);
-	}
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function hasOption($option)
+    {
+        return false !== strpos($this->options, $option);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getType()
-	{
-		return Expression::TYPE_REGEX;
-	}
+    /**
+     * @param string $option
+     *
+     * @return Regex
+     */
+    public function addOption($option)
+    {
+        if (!$this->hasOption($option)) {
+            $this->options .= $option;
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function prepend($expr)
-	{
-		$this->pattern = $expr . $this->pattern;
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * @param string $option
+     *
+     * @return Regex
+     */
+    public function removeOption($option)
+    {
+        $this->options = str_replace($option, '', $this->options);
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function append($expr)
-	{
-		$this->pattern .= $expr;
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * @param bool $startFlag
+     *
+     * @return Regex
+     */
+    public function setStartFlag($startFlag)
+    {
+        $this->startFlag = $startFlag;
 
-	/**
-	 * @param string $option
-	 *
-	 * @return Regex
-	 */
-	public function addOption($option)
-	{
-		if (!$this->hasOption($option)) {
-			$this->options .= $option;
-		}
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * @return bool
+     */
+    public function hasStartFlag()
+    {
+        return $this->startFlag;
+    }
 
-	/**
-	 * @param string $option
-	 *
-	 * @return Regex
-	 */
-	public function removeOption($option)
-	{
-		$this->options = str_replace($option, '', $this->options);
+    /**
+     * @param bool $endFlag
+     *
+     * @return Regex
+     */
+    public function setEndFlag($endFlag)
+    {
+        $this->endFlag = (bool) $endFlag;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param bool $startFlag
-	 *
-	 * @return Regex
-	 */
-	public function setStartFlag($startFlag)
-	{
-		$this->startFlag = $startFlag;
+    /**
+     * @return bool
+     */
+    public function hasEndFlag()
+    {
+        return $this->endFlag;
+    }
 
-		return $this;
-	}
+    /**
+     * @param bool $startJoker
+     *
+     * @return Regex
+     */
+    public function setStartJoker($startJoker)
+    {
+        $this->startJoker = $startJoker;
 
-	/**
-	 * @return bool
-	 */
-	public function hasStartFlag()
-	{
-		return $this->startFlag;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param bool $endFlag
-	 *
-	 * @return Regex
-	 */
-	public function setEndFlag($endFlag)
-	{
-		$this->endFlag = (bool)$endFlag;
+    /**
+     * @return bool
+     */
+    public function hasStartJoker()
+    {
+        return $this->startJoker;
+    }
 
-		return $this;
-	}
+    /**
+     * @param bool $endJoker
+     *
+     * @return Regex
+     */
+    public function setEndJoker($endJoker)
+    {
+        $this->endJoker = (bool) $endJoker;
 
-	/**
-	 * @return bool
-	 */
-	public function hasEndFlag()
-	{
-		return $this->endFlag;
-	}
+        return $this;
+    }
 
-	/**
-	 * @param bool $startJoker
-	 *
-	 * @return Regex
-	 */
-	public function setStartJoker($startJoker)
-	{
-		$this->startJoker = $startJoker;
+    /**
+     * @return bool
+     */
+    public function hasEndJoker()
+    {
+        return $this->endJoker;
+    }
 
-		return $this;
-	}
+    /**
+     * @param array $replacement
+     *
+     * @return Regex
+     */
+    public function replaceJokers($replacement)
+    {
+        $replace = function ($subject) use ($replacement) {
+            $subject = $subject[0];
+            $replace = 0 === substr_count($subject, '\\') % 2;
 
-	/**
-	 * @return bool
-	 */
-	public function hasStartJoker()
-	{
-		return $this->startJoker;
-	}
+            return $replace ? str_replace('.', $replacement, $subject) : $subject;
+        };
 
-	/**
-	 * @param bool $endJoker
-	 *
-	 * @return Regex
-	 */
-	public function setEndJoker($endJoker)
-	{
-		$this->endJoker = (bool)$endJoker;
+        $this->pattern = preg_replace_callback('~[\\\\]*\\.~', $replace, $this->pattern);
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function hasEndJoker()
-	{
-		return $this->endJoker;
-	}
+    /**
+     * @param string $pattern
+     */
+    private function parsePattern($pattern)
+    {
+        if ($this->startFlag = self::START_FLAG === substr($pattern, 0, 1)) {
+            $pattern = substr($pattern, 1);
+        }
 
-	/**
-	 * @param array $replacement
-	 *
-	 * @return Regex
-	 */
-	public function replaceJokers($replacement)
-	{
-		$replace = function ($subject) use ($replacement) {
-			$subject = $subject[0];
-			$replace = 0 === substr_count($subject, '\\') % 2;
+        if ($this->startJoker = self::JOKER === substr($pattern, 0, 2)) {
+            $pattern = substr($pattern, 2);
+        }
 
-			return $replace ? str_replace('.', $replacement, $subject) : $subject;
-		};
+        if ($this->endFlag = (self::END_FLAG === substr($pattern, -1) && self::ESCAPING !== substr($pattern, -2, -1))) {
+            $pattern = substr($pattern, 0, -1);
+        }
 
-		$this->pattern = preg_replace_callback('~[\\\\]*\\.~', $replace, $this->pattern);
+        if ($this->endJoker = (self::JOKER === substr($pattern, -2) && self::ESCAPING !== substr($pattern, -3, -2))) {
+            $pattern = substr($pattern, 0, -2);
+        }
 
-		return $this;
-	}
+        $this->pattern = $pattern;
+    }
 }

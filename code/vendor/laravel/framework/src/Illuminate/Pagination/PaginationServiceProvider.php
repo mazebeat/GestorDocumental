@@ -13,6 +13,16 @@ class PaginationServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('paginator');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -28,16 +38,6 @@ class PaginationServiceProvider extends ServiceProvider
 
 			return $paginator;
 		});
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('paginator');
 	}
 
 }

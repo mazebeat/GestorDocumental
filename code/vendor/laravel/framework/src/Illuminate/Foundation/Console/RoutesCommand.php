@@ -6,8 +6,7 @@ use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Symfony\Component\Console\Input\InputOption;
 
-class RoutesCommand extends Command
-{
+class RoutesCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -42,18 +41,14 @@ class RoutesCommand extends Command
 	 *
 	 * @var array
 	 */
-	protected $headers = array('Domain',
-		'URI',
-		'Name',
-		'Action',
-		'Before Filters',
-		'After Filters');
+	protected $headers = array(
+		'Domain', 'URI', 'Name', 'Action', 'Before Filters', 'After Filters'
+	);
 
 	/**
 	 * Create a new route command instance.
 	 *
-	 * @param  \Illuminate\Routing\Router $router
-	 *
+	 * @param  \Illuminate\Routing\Router  $router
 	 * @return void
 	 */
 	public function __construct(Router $router)
@@ -71,7 +66,8 @@ class RoutesCommand extends Command
 	 */
 	public function fire()
 	{
-		if (count($this->routes) == 0) {
+		if (count($this->routes) == 0)
+		{
 			return $this->error("Your application doesn't have any routes.");
 		}
 
@@ -81,8 +77,7 @@ class RoutesCommand extends Command
 	/**
 	 * Display the route information on the console.
 	 *
-	 * @param  array $routes
-	 *
+	 * @param  array  $routes
 	 * @return void
 	 */
 	protected function displayRoutes(array $routes)
@@ -99,7 +94,8 @@ class RoutesCommand extends Command
 	{
 		$results = array();
 
-		foreach ($this->routes as $route) {
+		foreach ($this->routes as $route)
+		{
 			$results[] = $this->getRouteInformation($route);
 		}
 
@@ -109,34 +105,34 @@ class RoutesCommand extends Command
 	/**
 	 * Get the route information for a given route.
 	 *
-	 * @param  string                    $name
-	 * @param  \Illuminate\Routing\Route $route
-	 *
+	 * @param  \Illuminate\Routing\Route  $route
 	 * @return array
 	 */
 	protected function getRouteInformation(Route $route)
 	{
-		$uri = implode('|', $route->methods()) . ' ' . $route->uri();
+		$uri = implode('|', $route->methods()).' '.$route->uri();
 
-		return $this->filterRoute(array('host'   => $route->domain(),
-		                                'uri'    => $uri,
-		                                'name'   => $route->getName(),
-		                                'action' => $route->getActionName(),
-		                                'before' => $this->getBeforeFilters($route),
-		                                'after'  => $this->getAfterFilters($route)));
+		return $this->filterRoute(array(
+			'host'   => $route->domain(),
+			'uri'    => $uri,
+			'name'   => $route->getName(),
+			'action' => $route->getActionName(),
+			'before' => $this->getBeforeFilters($route),
+			'after'  => $this->getAfterFilters($route)
+		));
 	}
 
 	/**
 	 * Filter the route by URI and / or name.
 	 *
-	 * @param  array $route
-	 *
+	 * @param  array  $route
 	 * @return array|null
 	 */
 	protected function filterRoute(array $route)
 	{
-		if (($this->option('name') && !str_contains($route['name'], $this->option('name'))) || $this->option('path') && !str_contains($route['uri'], $this->option('path'))
-		) {
+		if (($this->option('name') && ! str_contains($route['name'], $this->option('name'))) ||
+			 $this->option('path') && ! str_contains($route['uri'], $this->option('path')))
+		{
 			return null;
 		}
 
@@ -146,8 +142,7 @@ class RoutesCommand extends Command
 	/**
 	 * Get before filters
 	 *
-	 * @param  \Illuminate\Routing\Route $route
-	 *
+	 * @param  \Illuminate\Routing\Route  $route
 	 * @return string
 	 */
 	protected function getBeforeFilters($route)
@@ -162,15 +157,15 @@ class RoutesCommand extends Command
 	/**
 	 * Get all of the pattern filters matching the route.
 	 *
-	 * @param  \Illuminate\Routing\Route $route
-	 *
+	 * @param  \Illuminate\Routing\Route  $route
 	 * @return array
 	 */
 	protected function getPatternFilters($route)
 	{
 		$patterns = array();
 
-		foreach ($route->methods() as $method) {
+		foreach ($route->methods() as $method)
+		{
 			// For each method supported by the route we will need to gather up the patterned
 			// filters for that method. We will then merge these in with the other filters
 			// we have already gathered up then return them back out to these consumers.
@@ -185,9 +180,8 @@ class RoutesCommand extends Command
 	/**
 	 * Get the pattern filters for a given URI and method.
 	 *
-	 * @param  string $uri
-	 * @param  string $method
-	 *
+	 * @param  string  $uri
+	 * @param  string  $method
 	 * @return array
 	 */
 	protected function getMethodPatterns($uri, $method)
@@ -198,8 +192,7 @@ class RoutesCommand extends Command
 	/**
 	 * Get after filters
 	 *
-	 * @param  \Illuminate\Routing\Route $route
-	 *
+	 * @param  \Illuminate\Routing\Route  $route
 	 * @return string
 	 */
 	protected function getAfterFilters($route)
@@ -214,8 +207,11 @@ class RoutesCommand extends Command
 	 */
 	protected function getOptions()
 	{
-		return array(array('name', null, InputOption::VALUE_OPTIONAL, 'Filter the routes by name.'),
-			array('path', null, InputOption::VALUE_OPTIONAL, 'Filter the routes by path.'),);
+		return array(
+			array('name', null, InputOption::VALUE_OPTIONAL, 'Filter the routes by name.'),
+
+			array('path', null, InputOption::VALUE_OPTIONAL, 'Filter the routes by path.'),
+		);
 	}
 
 }

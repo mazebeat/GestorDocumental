@@ -28,11 +28,11 @@ class IronConnector implements ConnectorInterface
 	 * @param  \Illuminate\Encryption\Encrypter $crypt
 	 * @param  \Illuminate\Http\Request         $request
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Encrypter $crypt, Request $request)
 	{
-		$this->crypt   = $crypt;
+		$this->crypt = $crypt;
 		$this->request = $request;
 	}
 
@@ -41,7 +41,7 @@ class IronConnector implements ConnectorInterface
 	 *
 	 * @param  array $config
 	 *
-	 * @return \Illuminate\Queue\QueueInterface
+*@return \Illuminate\Queue\QueueInterface
 	 */
 	public function connect(array $config)
 	{
@@ -52,7 +52,8 @@ class IronConnector implements ConnectorInterface
 
 		$iron = new IronMQ($ironConfig);
 
-		if (isset($config['ssl_verifypeer'])) {
+		if (isset($config['ssl_verifypeer']))
+		{
 			$iron->ssl_verifypeer = $config['ssl_verifypeer'];
 		}
 

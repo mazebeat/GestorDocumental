@@ -30,11 +30,11 @@ class Guard implements HttpKernelInterface
 	 * @param  \Symfony\Component\HttpKernel\HttpKernelInterface $app
 	 * @param  \Illuminate\Encryption\Encrypter                  $encrypter
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(HttpKernelInterface $app, Encrypter $encrypter)
 	{
-		$this->app       = $app;
+		$this->app = $app;
 		$this->encrypter = $encrypter;
 	}
 
@@ -47,7 +47,7 @@ class Guard implements HttpKernelInterface
 	 * @param  int                                       $type
 	 * @param  bool                                      $catch
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Response
+*@return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
 	{
@@ -59,11 +59,12 @@ class Guard implements HttpKernelInterface
 	 *
 	 * @param  \Symfony\Component\HttpFoundation\Response $response
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Response
+*@return \Symfony\Component\HttpFoundation\Response
 	 */
 	protected function encrypt(Response $response)
 	{
-		foreach ($response->headers->getCookies() as $key => $c) {
+		foreach ($response->headers->getCookies() as $key => $c)
+		{
 			$encrypted = $this->encrypter->encrypt($c->getValue());
 
 			$response->headers->setCookie($this->duplicate($c, $encrypted));
@@ -75,14 +76,15 @@ class Guard implements HttpKernelInterface
 	/**
 	 * Duplicate a cookie with a new value.
 	 *
-	 * @param  \Symfony\Component\HttpFoundation\Cookie $cookie
+	 * @param  \Symfony\Component\HttpFoundation\Cookie $c
 	 * @param  mixed                                    $value
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Cookie
+*@return \Symfony\Component\HttpFoundation\Cookie
 	 */
 	protected function duplicate(Cookie $c, $value)
 	{
-		return new Cookie($c->getName(), $value, $c->getExpiresTime(), $c->getPath(), $c->getDomain(), $c->isSecure(), $c->isHttpOnly());
+		return new Cookie($c->getName(), $value, $c->getExpiresTime(), $c->getPath(), $c->getDomain(), $c->isSecure(), $c->isHttpOnly()
+		);
 	}
 
 	/**
@@ -90,14 +92,16 @@ class Guard implements HttpKernelInterface
 	 *
 	 * @param  \Symfony\Component\HttpFoundation\Request $request
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Request
+*@return \Symfony\Component\HttpFoundation\Request
 	 */
 	protected function decrypt(Request $request)
 	{
 		foreach ($request->cookies as $key => $c) {
-			try {
+			try
+			{
 				$request->cookies->set($key, $this->decryptCookie($c));
-			} catch (DecryptException $e) {
+			} catch (DecryptException $e)
+			{
 				$request->cookies->set($key, null);
 			}
 		}
@@ -110,7 +114,7 @@ class Guard implements HttpKernelInterface
 	 *
 	 * @param  string|array $cookie
 	 *
-	 * @return string|array
+*@return string|array
 	 */
 	protected function decryptCookie($cookie)
 	{
@@ -120,15 +124,16 @@ class Guard implements HttpKernelInterface
 	/**
 	 * Decrypt an array based cookie.
 	 *
-	 * @param  array $cookie
+	 * @param  array  $cookie
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function decryptArray(array $cookie)
 	{
 		$decrypted = array();
 
-		foreach ($cookie as $key => $value) {
+		foreach ($cookie as $key => $value)
+		{
 			$decrypted[$key] = $this->encrypter->decrypt($value);
 		}
 

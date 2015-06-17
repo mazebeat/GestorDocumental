@@ -12,16 +12,14 @@
 9 Versionar Documentos
 */
 
-class ProfileController extends BaseController
+class ProfileController extends ApiController
 {
 	public function __construct()
 	{
-		$this->beforeFilter('auth');
+		//		$this->beforeFilter('auth');
 
-		if ( Session::token() !== Input::get( '_token' ) ) {
-			return Response::json( array(
-				'msg' => 'Unauthorized mfk!'
-			) );
+		if (Session::token() !== Input::get('_token')) {
+			return Response::json(array('msg' => 'Unauthorized mfk!'));
 		}
 	}
 

@@ -3,8 +3,7 @@
 use Carbon\Carbon;
 use Illuminate\Database\Connection;
 
-class DatabaseReminderRepository implements ReminderRepositoryInterface
-{
+class DatabaseReminderRepository implements ReminderRepositoryInterface {
 
 	/**
 	 * The database connection instance.
@@ -37,26 +36,24 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	/**
 	 * Create a new reminder repository instance.
 	 *
-	 * @param  \Illuminate\Database\Connection $connection
-	 * @param  string                          $table
-	 * @param  string                          $hashKey
-	 * @param  int                             $expires
-	 *
+	 * @param  \Illuminate\Database\Connection  $connection
+	 * @param  string  $table
+	 * @param  string  $hashKey
+	 * @param  int  $expires
 	 * @return void
 	 */
 	public function __construct(Connection $connection, $table, $hashKey, $expires = 60)
 	{
-		$this->table      = $table;
-		$this->hashKey    = $hashKey;
-		$this->expires    = $expires * 60;
+		$this->table = $table;
+		$this->hashKey = $hashKey;
+		$this->expires = $expires * 60;
 		$this->connection = $connection;
 	}
 
 	/**
 	 * Create a new reminder record and token.
 	 *
-	 * @param  \Illuminate\Auth\Reminders\RemindableInterface $user
-	 *
+	 * @param  \Illuminate\Auth\Reminders\RemindableInterface  $user
 	 * @return string
 	 */
 	public function create(RemindableInterface $user)
@@ -76,10 +73,48 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	}
 
 	/**
+	 * Delete a reminder record by token.
+	 *
+	 * @param  string  $token
+	 * @return void
+	 */
+	public function delete($token)
+	{
+		$this->getTable()->where('token', $token)->delete();
+	}
+
+	/**
+	 * Delete expired reminders.
+	 *
+	 * @return void
+	 */
+	public function deleteExpired()
+	{
+		$expired = Carbon::now()->subSeconds($this->expires);
+
+		$this->getTable()->where('created_at', '<', $expired)->delete();
+	}
+
+	/**
+	 * Determine if a reminder record exists and is valid.
+	 *
+	 * @param  \Illuminate\Auth\Reminders\RemindableInterface  $user
+	 * @param  string  $token
+	 * @return bool
+	 */
+	public function exists(RemindableInterface $user, $token)
+	{
+		$email = $user->getReminderEmail();
+
+		$reminder = (array) $this->getTable()->where('email', $email)->where('token', $token)->first();
+
+		return $reminder && ! $this->reminderExpired($reminder);
+	}
+
+	/**
 	 * Delete all existing reset tokens from the database.
 	 *
-	 * @param  \Illuminate\Auth\Reminders\RemindableInterface $user
-	 *
+	 * @param  \Illuminate\Auth\Reminders\RemindableInterface  $user
 	 * @return int
 	 */
 	protected function deleteExisting(RemindableInterface $user)
@@ -100,15 +135,14 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	/**
 	 * Create a new token for the user.
 	 *
-	 * @param  \Illuminate\Auth\Reminders\RemindableInterface $user
-	 *
+	 * @param  \Illuminate\Auth\Reminders\RemindableInterface  $user
 	 * @return string
 	 */
 	public function createNewToken(RemindableInterface $user)
 	{
 		$email = $user->getReminderEmail();
 
-		$value = str_shuffle(sha1($email . spl_object_hash($this) . microtime(true)));
+		$value = str_shuffle(sha1($email.spl_object_hash($this).microtime(true)));
 
 		return hash_hmac('sha1', $value, $this->hashKey);
 	}
@@ -116,9 +150,8 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	/**
 	 * Build the record payload for the table.
 	 *
-	 * @param  string $email
-	 * @param  string $token
-	 *
+	 * @param  string  $email
+	 * @param  string  $token
 	 * @return array
 	 */
 	protected function getPayload($email, $token)
@@ -127,27 +160,9 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	}
 
 	/**
-	 * Determine if a reminder record exists and is valid.
-	 *
-	 * @param  \Illuminate\Auth\Reminders\RemindableInterface $user
-	 * @param  string                                         $token
-	 *
-	 * @return bool
-	 */
-	public function exists(RemindableInterface $user, $token)
-	{
-		$email = $user->getReminderEmail();
-
-		$reminder = (array)$this->getTable()->where('email', $email)->where('token', $token)->first();
-
-		return $reminder && !$this->reminderExpired($reminder);
-	}
-
-	/**
 	 * Determine if the reminder has expired.
 	 *
-	 * @param  array $reminder
-	 *
+	 * @param  array  $reminder
 	 * @return bool
 	 */
 	protected function reminderExpired($reminder)
@@ -165,30 +180,6 @@ class DatabaseReminderRepository implements ReminderRepositoryInterface
 	protected function getCurrentTime()
 	{
 		return time();
-	}
-
-	/**
-	 * Delete a reminder record by token.
-	 *
-	 * @param  string $token
-	 *
-	 * @return void
-	 */
-	public function delete($token)
-	{
-		$this->getTable()->where('token', $token)->delete();
-	}
-
-	/**
-	 * Delete expired reminders.
-	 *
-	 * @return void
-	 */
-	public function deleteExpired()
-	{
-		$expired = Carbon::now()->subSeconds($this->expires);
-
-		$this->getTable()->where('created_at', '<', $expired)->delete();
 	}
 
 	/**

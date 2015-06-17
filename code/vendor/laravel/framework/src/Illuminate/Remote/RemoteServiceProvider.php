@@ -2,8 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 
-class RemoteServiceProvider extends ServiceProvider
-{
+class RemoteServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -13,18 +12,6 @@ class RemoteServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('remote', function ($app) {
-			return new RemoteManager($app);
-		});
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -32,6 +19,19 @@ class RemoteServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('remote');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('remote', function($app)
+		{
+			return new RemoteManager($app);
+		});
 	}
 
 }

@@ -10,8 +10,7 @@ use Illuminate\Foundation\MigrationPublisher;
 use Illuminate\Foundation\ViewPublisher;
 use Illuminate\Support\ServiceProvider;
 
-class PublisherServiceProvider extends ServiceProvider
-{
+class PublisherServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -19,6 +18,25 @@ class PublisherServiceProvider extends ServiceProvider
 	 * @var bool
 	 */
 	protected $defer = true;
+
+	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array(
+			'asset.publisher',
+			'command.asset.publish',
+			'config.publisher',
+			'command.config.publish',
+			'view.publisher',
+			'command.view.publish',
+			'migration.publisher',
+			'command.migrate.publish',
+		);
+	}
 
 	/**
 	 * Register the service provider.
@@ -35,7 +53,10 @@ class PublisherServiceProvider extends ServiceProvider
 
 		$this->registerMigrationPublisher();
 
-		$this->commands('command.asset.publish', 'command.config.publish', 'command.view.publish', 'command.migrate.publish');
+		$this->commands(
+			'command.asset.publish', 'command.config.publish',
+			'command.view.publish', 'command.migrate.publish'
+		);
 	}
 
 	/**
@@ -47,7 +68,8 @@ class PublisherServiceProvider extends ServiceProvider
 	{
 		$this->registerAssetPublishCommand();
 
-		$this->app->bindShared('asset.publisher', function ($app) {
+		$this->app->bindShared('asset.publisher', function($app)
+		{
 			$publicPath = $app['path.public'];
 
 			// The asset "publisher" is responsible for moving package's assets into the
@@ -55,7 +77,7 @@ class PublisherServiceProvider extends ServiceProvider
 			// be served to the browser. Otherwise, they would be locked in vendor.
 			$publisher = new AssetPublisher($app['files'], $publicPath);
 
-			$publisher->setPackagePath($app['path.base'] . '/vendor');
+			$publisher->setPackagePath($app['path.base'].'/vendor');
 
 			return $publisher;
 		});
@@ -68,7 +90,8 @@ class PublisherServiceProvider extends ServiceProvider
 	 */
 	protected function registerAssetPublishCommand()
 	{
-		$this->app->bindShared('command.asset.publish', function ($app) {
+		$this->app->bindShared('command.asset.publish', function($app)
+		{
 			return new AssetPublishCommand($app['asset.publisher']);
 		});
 	}
@@ -82,15 +105,16 @@ class PublisherServiceProvider extends ServiceProvider
 	{
 		$this->registerConfigPublishCommand();
 
-		$this->app->bindShared('config.publisher', function ($app) {
-			$path = $app['path'] . '/config';
+		$this->app->bindShared('config.publisher', function($app)
+		{
+			$path = $app['path'].'/config';
 
 			// Once we have created the configuration publisher, we will set the default
 			// package path on the object so that it knows where to find the packages
 			// that are installed for the application and can move them to the app.
 			$publisher = new ConfigPublisher($app['files'], $path);
 
-			$publisher->setPackagePath($app['path.base'] . '/vendor');
+			$publisher->setPackagePath($app['path.base'].'/vendor');
 
 			return $publisher;
 		});
@@ -103,7 +127,8 @@ class PublisherServiceProvider extends ServiceProvider
 	 */
 	protected function registerConfigPublishCommand()
 	{
-		$this->app->bindShared('command.config.publish', function ($app) {
+		$this->app->bindShared('command.config.publish', function($app)
+		{
 			return new ConfigPublishCommand($app['config.publisher']);
 		});
 	}
@@ -117,15 +142,16 @@ class PublisherServiceProvider extends ServiceProvider
 	{
 		$this->registerViewPublishCommand();
 
-		$this->app->bindShared('view.publisher', function ($app) {
-			$viewPath = $app['path'] . '/views';
+		$this->app->bindShared('view.publisher', function($app)
+		{
+			$viewPath = $app['path'].'/views';
 
 			// Once we have created the view publisher, we will set the default packages
 			// path on this object so that it knows where to find all of the packages
 			// that are installed for the application and can move them to the app.
 			$publisher = new ViewPublisher($app['files'], $viewPath);
 
-			$publisher->setPackagePath($app['path.base'] . '/vendor');
+			$publisher->setPackagePath($app['path.base'].'/vendor');
 
 			return $publisher;
 		});
@@ -138,7 +164,8 @@ class PublisherServiceProvider extends ServiceProvider
 	 */
 	protected function registerViewPublishCommand()
 	{
-		$this->app->bindShared('command.view.publish', function ($app) {
+		$this->app->bindShared('command.view.publish', function($app)
+		{
 			return new ViewPublishCommand($app['view.publisher']);
 		});
 	}
@@ -152,7 +179,8 @@ class PublisherServiceProvider extends ServiceProvider
 	{
 		$this->registerMigratePublishCommand();
 
-		$this->app->bindShared('migration.publisher', function ($app) {
+		$this->app->bindShared('migration.publisher', function($app)
+		{
 			return new MigrationPublisher($app['files']);
 		});
 	}
@@ -164,26 +192,10 @@ class PublisherServiceProvider extends ServiceProvider
 	 */
 	protected function registerMigratePublishCommand()
 	{
-		$this->app->bindShared('command.migrate.publish', function () {
+		$this->app->bindShared('command.migrate.publish', function()
+		{
 			return new MigratePublishCommand;
 		});
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('asset.publisher',
-			'command.asset.publish',
-			'config.publisher',
-			'command.config.publish',
-			'view.publisher',
-			'command.view.publish',
-			'migration.publisher',
-			'command.migrate.publish',);
 	}
 
 }

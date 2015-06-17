@@ -13,6 +13,16 @@ class HtmlServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('html', 'form');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -48,16 +58,6 @@ class HtmlServiceProvider extends ServiceProvider
 
 			return $form->setSessionStore($app['session.store']);
 		});
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('html', 'form');
 	}
 
 }

@@ -27,68 +27,77 @@ use Monolog\Logger;
  */
 class MonologCollector extends AbstractProcessingHandler implements DataCollectorInterface, Renderable, MessagesAggregateInterface
 {
-	protected $name;
+    protected $name;
 
-	protected $records = array();
+    protected $records = array();
 
-	/**
-	 * @param Logger  $logger
-	 * @param int     $level
-	 * @param boolean $bubble
-	 * @param string  $name
-	 */
-	public function __construct(Logger $logger = null, $level = Logger::DEBUG, $bubble = true, $name = 'monolog')
-	{
-		parent::__construct($level, $bubble);
-		$this->name = $name;
-		if ($logger !== null) {
-			$this->addLogger($logger);
-		}
-	}
+    /**
+     * @param Logger $logger
+     * @param int $level
+     * @param boolean $bubble
+     * @param string $name
+     */
+    public function __construct(Logger $logger = null, $level = Logger::DEBUG, $bubble = true, $name = 'monolog')
+    {
+        parent::__construct($level, $bubble);
+        $this->name = $name;
+        if ($logger !== null) {
+            $this->addLogger($logger);
+        }
+    }
 
-	/**
-	 * Adds logger which messages you want to log
-	 *
-	 * @param Logger $logger
-	 */
-	public function addLogger(Logger $logger)
-	{
-		$logger->pushHandler($this);
-	}
+    /**
+     * Adds logger which messages you want to log
+     *
+     * @param Logger $logger
+     */
+    public function addLogger(Logger $logger)
+    {
+        $logger->pushHandler($this);
+    }
 
-	public function getMessages()
-	{
-		return $this->records;
-	}
+    public function getMessages()
+    {
+        return $this->records;
+    }
 
-	public function collect()
-	{
-		return array('count'   => count($this->records),
-		             'records' => $this->records);
-	}
+    public function collect()
+    {
+        return array(
+            'count' => count($this->records),
+            'records' => $this->records
+        );
+    }
 
-	public function getWidgets()
-	{
-		$name = $this->getName();
+    public function getName()
+    {
+        return $this->name;
+    }
 
-		return array($name         => array("icon"    => "suitcase",
-		                                    "widget"  => "PhpDebugBar.Widgets.MessagesWidget",
-		                                    "map"     => "$name.records",
-		                                    "default" => "[]"),
-		             "$name:badge" => array("map"     => "$name.count",
-		                                    "default" => "null"));
-	}
+    public function getWidgets()
+    {
+        $name = $this->getName();
+        return array(
+            $name => array(
+                "icon" => "suitcase",
+                "widget" => "PhpDebugBar.Widgets.MessagesWidget",
+                "map" => "$name.records",
+                "default" => "[]"
+            ),
+            "$name:badge" => array(
+                "map" => "$name.count",
+                "default" => "null"
+            )
+        );
+    }
 
-	public function getName()
-	{
-		return $this->name;
-	}
-
-	protected function write(array $record)
-	{
-		$this->records[] = array('message'   => $record['formatted'],
-		                         'is_string' => true,
-		                         'label'     => strtolower($record['level_name']),
-		                         'time'      => $record['datetime']->format('U'));
-	}
+    protected function write(array $record)
+    {
+        $this->records[] = array(
+            'message' => $record['formatted'],
+            'is_string' => true,
+            'label' => strtolower($record['level_name']),
+            'time' => $record['datetime']->format('U')
+        );
+    }
 }

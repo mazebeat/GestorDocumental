@@ -27,75 +27,94 @@ namespace Doctrine\Common\Cache;
  */
 class PhpFileCache extends FileCache
 {
-	const EXTENSION = '.doctrinecache.php';
+    const EXTENSION = '.doctrinecache.php';
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected $extension = self::EXTENSION;
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($directory, $extension = self::EXTENSION)
+    {
+        parent::__construct($directory, $extension);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function doFetch($id)
-	{
-		$filename = $this->getFilename($id);
+    /**
+     * {@inheritdoc}
+     */
+    protected function doContains($id)
+    {
+        $value = $this->includeFileForId($id);
 
-		if (!is_file($filename)) {
-			return false;
-		}
+        if (! $value) {
+            return false;
+        }
 
-		$value = include $filename;
+        return $value['lifetime'] === 0 || $value['lifetime'] > time();
+    }
 
-		if ($value['lifetime'] !== 0 && $value['lifetime'] < time()) {
-			return false;
-		}
+    /**
+     * {@inheritdoc}
+     */
+    protected function doFetch($id)
+    {
+        $value = $this->includeFileForId($id);
 
-		return $value['data'];
-	}
+        if (! $value) {
+            return false;
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function doContains($id)
-	{
-		$filename = $this->getFilename($id);
+        if ($value['lifetime'] !== 0 && $value['lifetime'] < time()) {
+            return false;
+        }
 
-		if (!is_file($filename)) {
-			return false;
-		}
+        return $value['data'];
+    }
 
-		$value = include $filename;
+    /**
+     * {@inheritdoc}
+     */
+    protected function doSave($id, $data, $lifeTime = 0)
+    {
+        if ($lifeTime > 0) {
+            $lifeTime = time() + $lifeTime;
+        }
 
-		return $value['lifetime'] === 0 || $value['lifetime'] > time();
-	}
+        if (is_object($data) && ! method_exists($data, '__set_state')) {
+            throw new \InvalidArgumentException(
+                "Invalid argument given, PhpFileCache only allows objects that implement __set_state() " .
+                "and fully support var_export(). You can use the FilesystemCache to save arbitrary object " .
+                "graphs using serialize()/deserialize()."
+            );
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	protected function doSave($id, $data, $lifeTime = 0)
-	{
-		if ($lifeTime > 0) {
-			$lifeTime = time() + $lifeTime;
-		}
+        $filename  = $this->getFilename($id);
 
-		if (is_object($data) && !method_exists($data, '__set_state')) {
-			throw new \InvalidArgumentException("Invalid argument given, PhpFileCache only allows objects that implement __set_state() " . "and fully support var_export(). You can use the FilesystemCache to save arbitrary object " . "graphs using serialize()/deserialize().");
-		}
+        $value = array(
+            'lifetime'  => $lifeTime,
+            'data'      => $data
+        );
 
-		$filename = $this->getFilename($id);
-		$filepath = pathinfo($filename, PATHINFO_DIRNAME);
+        $value  = var_export($value, true);
+        $code   = sprintf('<?php return %s;', $value);
 
-		if (!is_dir($filepath)) {
-			mkdir($filepath, 0777, true);
-		}
+        return $this->writeFile($filename, $code);
+    }
 
-		$value = array('lifetime' => $lifeTime,
-		               'data'     => $data);
+    /**
+     * @param string $id
+     *
+     * @return array|false
+     */
+    private function includeFileForId($id)
+    {
+        $fileName = $this->getFilename($id);
 
-		$value = var_export($value, true);
-		$code  = sprintf('<?php return %s;', $value);
+        // note: error suppression is still faster than `file_exists`, `is_file` and `is_readable`
+        $value = @include $fileName;
 
-		return file_put_contents($filename, $code) !== false;
-	}
+        if (! isset($value['lifetime'])) {
+            return false;
+        }
+
+        return $value;
+    }
 }

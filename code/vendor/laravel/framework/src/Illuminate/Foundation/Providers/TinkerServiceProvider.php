@@ -14,6 +14,16 @@ class TinkerServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('command.tinker');
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -25,16 +35,6 @@ class TinkerServiceProvider extends ServiceProvider
 		});
 
 		$this->commands('command.tinker');
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('command.tinker');
 	}
 
 }

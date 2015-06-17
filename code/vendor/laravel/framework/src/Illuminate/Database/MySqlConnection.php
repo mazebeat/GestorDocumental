@@ -5,21 +5,16 @@ use Illuminate\Database\Query\Grammars\MySqlGrammar as QueryGrammar;
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Illuminate\Database\Schema\MySqlBuilder;
 
-class MySqlConnection extends Connection
-{
+class MySqlConnection extends Connection {
 
 	/**
-	 * Get a schema builder instance for the connection.
+	 * Get the default post processor instance.
 	 *
-	 * @return \Illuminate\Database\Schema\MySqlBuilder
+	 * @return \Illuminate\Database\Query\Processors\Processor
 	 */
-	public function getSchemaBuilder()
+	protected function getDefaultPostProcessor()
 	{
-		if (is_null($this->schemaGrammar)) {
-			$this->useDefaultSchemaGrammar();
-		}
-
-		return new MySqlBuilder($this);
+		return new Query\Processors\MySqlProcessor;
 	}
 
 	/**
@@ -43,13 +38,15 @@ class MySqlConnection extends Connection
 	}
 
 	/**
-	 * Get the default post processor instance.
+	 * Get a schema builder instance for the connection.
 	 *
-	 * @return \Illuminate\Database\Query\Processors\Processor
+	 * @return \Illuminate\Database\Schema\MySqlBuilder
 	 */
-	protected function getDefaultPostProcessor()
+	public function getSchemaBuilder()
 	{
-		return new Query\Processors\MySqlProcessor;
+		if (is_null($this->schemaGrammar)) { $this->useDefaultSchemaGrammar(); }
+
+		return new MySqlBuilder($this);
 	}
 
 	/**

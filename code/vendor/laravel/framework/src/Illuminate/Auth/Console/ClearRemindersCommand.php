@@ -2,8 +2,7 @@
 
 use Illuminate\Console\Command;
 
-class ClearRemindersCommand extends Command
-{
+class ClearRemindersCommand extends Command {
 
 	/**
 	 * The console command name.

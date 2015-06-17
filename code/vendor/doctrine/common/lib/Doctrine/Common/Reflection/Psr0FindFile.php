@@ -56,7 +56,8 @@ class Psr0FindFile implements ClassFinderInterface
 			// namespaced class name
 			$classPath = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $lastNsPos)) . DIRECTORY_SEPARATOR;
 			$className = substr($class, $lastNsPos + 1);
-		} else {
+		}
+		else {
 			// PEAR-like class name
 			$classPath = null;
 			$className = $class;

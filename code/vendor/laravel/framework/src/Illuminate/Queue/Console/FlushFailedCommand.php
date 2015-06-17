@@ -2,8 +2,7 @@
 
 use Illuminate\Console\Command;
 
-class FlushFailedCommand extends Command
-{
+class FlushFailedCommand extends Command {
 
 	/**
 	 * The console command name.

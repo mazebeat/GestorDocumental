@@ -24,7 +24,7 @@ abstract class Facade
 	 *
 	 * @param  mixed $instance
 	 *
-	 * @return void
+*@return void
 	 */
 	public static function swap($instance)
 	{
@@ -49,7 +49,6 @@ abstract class Facade
 	 * Initiate a mock expectation on the facade.
 	 *
 	 * @param  mixed
-	 *
 	 * @return \Mockery\Expectation
 	 */
 	public static function shouldReceive()
@@ -58,7 +57,8 @@ abstract class Facade
 
 		if (static::isMock()) {
 			$mock = static::$resolvedInstance[$name];
-		} else {
+		}
+		else {
 			$mock = static::createFreshMockInstance($name);
 		}
 
@@ -82,13 +82,14 @@ abstract class Facade
 	 *
 	 * @param  string $name
 	 *
-	 * @return \Mockery\Expectation
+*@return \Mockery\Expectation
 	 */
 	protected static function createFreshMockInstance($name)
 	{
 		static::$resolvedInstance[$name] = $mock = static::createMockByName($name);
 
-		if (isset(static::$app)) {
+		if (isset(static::$app))
+		{
 			static::$app->instance($name, $mock);
 		}
 
@@ -100,7 +101,7 @@ abstract class Facade
 	 *
 	 * @param  string $name
 	 *
-	 * @return \Mockery\Expectation
+*@return \Mockery\Expectation
 	 */
 	protected static function createMockByName($name)
 	{
@@ -135,14 +136,15 @@ abstract class Facade
 	 *
 	 * @param  string $name
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected static function resolveFacadeInstance($name)
 	{
 		if (is_object($name))
 			return $name;
 
-		if (isset(static::$resolvedInstance[$name])) {
+		if (isset(static::$resolvedInstance[$name]))
+		{
 			return static::$resolvedInstance[$name];
 		}
 
@@ -154,7 +156,7 @@ abstract class Facade
 	 *
 	 * @param  string $name
 	 *
-	 * @return void
+*@return void
 	 */
 	public static function clearResolvedInstance($name)
 	{
@@ -184,9 +186,9 @@ abstract class Facade
 	/**
 	 * Set the application instance.
 	 *
-	 * @param  \Illuminate\Foundation\Application $app
+	 * @param  \Illuminate\Foundation\Application  $app
 	 *
-	 * @return void
+*@return void
 	 */
 	public static function setFacadeApplication($app)
 	{
@@ -196,16 +198,17 @@ abstract class Facade
 	/**
 	 * Handle dynamic, static calls to the object.
 	 *
-	 * @param  string $method
-	 * @param  array  $args
+	 * @param  string  $method
+	 * @param  array   $args
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	public static function __callStatic($method, $args)
 	{
 		$instance = static::getFacadeRoot();
 
-		switch (count($args)) {
+		switch (count($args))
+		{
 			case 0:
 				return $instance->$method();
 

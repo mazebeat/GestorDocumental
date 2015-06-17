@@ -28,11 +28,11 @@ class WhoopsDisplayer implements ExceptionDisplayerInterface
 	 * @param  \Whoops\Run $whoops
 	 * @param  bool        $runningInConsole
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Run $whoops, $runningInConsole)
 	{
-		$this->whoops           = $whoops;
+		$this->whoops = $whoops;
 		$this->runningInConsole = $runningInConsole;
 	}
 
@@ -41,7 +41,7 @@ class WhoopsDisplayer implements ExceptionDisplayerInterface
 	 *
 	 * @param  \Exception $exception
 	 *
-	 * @return \Symfony\Component\HttpFoundation\Response
+*@return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function display(Exception $exception)
 	{

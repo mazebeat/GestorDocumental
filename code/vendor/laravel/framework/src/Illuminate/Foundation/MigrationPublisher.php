@@ -18,7 +18,7 @@ class MigrationPublisher
 	 *
 	 * @param  \Illuminate\Filesystem\Filesystem $files
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Filesystem $files)
 	{
@@ -31,7 +31,7 @@ class MigrationPublisher
 	 * @param  string $source
 	 * @param  string $destination
 	 *
-	 * @return array
+*@return array
 	 */
 	public function publish($source, $destination)
 	{
@@ -39,7 +39,8 @@ class MigrationPublisher
 
 		$published = array();
 
-		foreach ($this->getFreshMigrations($source, $destination) as $file) {
+		foreach ($this->getFreshMigrations($source, $destination) as $file)
+		{
 			$add++;
 
 			$newName = $this->getNewMigrationName($file, $add);
@@ -58,7 +59,7 @@ class MigrationPublisher
 	 * @param  string $source
 	 * @param  string $destination
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function getFreshMigrations($source, $destination)
 	{
@@ -72,7 +73,7 @@ class MigrationPublisher
 	 *
 	 * @param  string $source
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function getPackageMigrations($source)
 	{
@@ -91,7 +92,7 @@ class MigrationPublisher
 	 * @param  string $migration
 	 * @param  string $destination
 	 *
-	 * @return bool
+*@return bool
 	 */
 	public function migrationExists($migration, $destination)
 	{
@@ -105,14 +106,15 @@ class MigrationPublisher
 	 *
 	 * @param  string $destination
 	 *
-	 * @return array
+*@return array
 	 */
 	public function getExistingMigrationNames($destination)
 	{
 		if (isset($this->existing[$destination]))
 			return $this->existing[$destination];
 
-		return $this->existing[$destination] = array_map(function ($file) {
+		return $this->existing[$destination] = array_map(function($file)
+		{
 			return substr(basename($file), 18);
 
 		}, $this->files->files($destination));
@@ -122,9 +124,9 @@ class MigrationPublisher
 	 * Get the new migration name.
 	 *
 	 * @param  string $file
-	 * @param  int    $add
+	 * @param  int  $add
 	 *
-	 * @return string
+*@return string
 	 */
 	protected function getNewMigrationName($file, $add)
 	{

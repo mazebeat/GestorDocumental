@@ -3,8 +3,7 @@
 use Illuminate\Cookie\CookieJar;
 use Symfony\Component\HttpFoundation\Request;
 
-class CookieSessionHandler implements \SessionHandlerInterface
-{
+class CookieSessionHandler implements \SessionHandlerInterface {
 
 	/**
 	 * The cookie jar instance.
@@ -23,21 +22,20 @@ class CookieSessionHandler implements \SessionHandlerInterface
 	/**
 	 * Create a new cookie driven handler instance.
 	 *
-	 * @param  \Illuminate\Cookie\CookieJar $cookie
-	 * @param  int                          $minutes
-	 *
+	 * @param  \Illuminate\Cookie\CookieJar  $cookie
+	 * @param  int  $minutes
 	 * @return void
 	 */
 	public function __construct(CookieJar $cookie, $minutes)
 	{
-		$this->cookie  = $cookie;
+		$this->cookie = $cookie;
 		$this->minutes = $minutes;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public function open($savePath, $sessionName)
+	public function close()
 	{
 		return true;
 	}
@@ -45,7 +43,23 @@ class CookieSessionHandler implements \SessionHandlerInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function close()
+	public function destroy($sessionId)
+	{
+		$this->cookie->queue($this->cookie->forget($sessionId));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function gc($lifetime)
+	{
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function open($savePath, $sessionName)
 	{
 		return true;
 	}
@@ -67,26 +81,9 @@ class CookieSessionHandler implements \SessionHandlerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	public function destroy($sessionId)
-	{
-		$this->cookie->queue($this->cookie->forget($sessionId));
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function gc($lifetime)
-	{
-		return true;
-	}
-
-	/**
 	 * Set the request instance.
 	 *
-	 * @param  \Symfony\Component\HttpFoundation\Request $request
-	 *
+	 * @param  \Symfony\Component\HttpFoundation\Request  $request
 	 * @return void
 	 */
 	public function setRequest(Request $request)

@@ -3,8 +3,7 @@
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Support\ServiceProvider;
 
-class ServerServiceProvider extends ServiceProvider
-{
+class ServerServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -14,20 +13,6 @@ class ServerServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('command.serve', function () {
-			return new ServeCommand;
-		});
-
-		$this->commands('command.serve');
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -35,6 +20,21 @@ class ServerServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('command.serve');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('command.serve', function()
+		{
+			return new ServeCommand;
+		});
+
+		$this->commands('command.serve');
 	}
 
 }

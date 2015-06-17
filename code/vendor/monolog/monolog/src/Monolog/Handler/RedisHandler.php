@@ -27,32 +27,32 @@ use Monolog\Logger;
  */
 class RedisHandler extends AbstractProcessingHandler
 {
-	private $redisClient;
-	private $redisKey;
+    private $redisClient;
+    private $redisKey;
 
-	# redis instance, key to use
-	public function __construct($redis, $key, $level = Logger::DEBUG, $bubble = true)
-	{
-		if (!(($redis instanceof \Predis\Client) || ($redis instanceof \Redis))) {
-			throw new \InvalidArgumentException('Predis\Client or Redis instance required');
-		}
+    # redis instance, key to use
+    public function __construct($redis, $key, $level = Logger::DEBUG, $bubble = true)
+    {
+        if (!(($redis instanceof \Predis\Client) || ($redis instanceof \Redis))) {
+            throw new \InvalidArgumentException('Predis\Client or Redis instance required');
+        }
 
-		$this->redisClient = $redis;
-		$this->redisKey    = $key;
+        $this->redisClient = $redis;
+        $this->redisKey = $key;
 
-		parent::__construct($level, $bubble);
-	}
+        parent::__construct($level, $bubble);
+    }
 
-	protected function write(array $record)
-	{
-		$this->redisClient->rpush($this->redisKey, $record["formatted"]);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDefaultFormatter()
+    {
+        return new LineFormatter();
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	protected function getDefaultFormatter()
-	{
-		return new LineFormatter();
-	}
+    protected function write(array $record)
+    {
+        $this->redisClient->rpush($this->redisKey, $record["formatted"]);
+    }
 }

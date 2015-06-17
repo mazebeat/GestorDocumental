@@ -4,8 +4,7 @@ use Closure;
 use Illuminate\Auth\UserProviderInterface;
 use Illuminate\Mail\Mailer;
 
-class PasswordBroker
-{
+class PasswordBroker {
 
 	/**
 	 * Constant representing a successfully sent reminder.
@@ -45,7 +44,7 @@ class PasswordBroker
 	/**
 	 * The password reminder repository.
 	 *
-	 * @var \Illuminate\Auth\Reminders\ReminderRepositoryInterface $reminders
+	 * @var \Illuminate\Auth\Reminders\ReminderRepositoryInterface  $reminders
 	 */
 	protected $reminders;
 
@@ -80,27 +79,28 @@ class PasswordBroker
 	/**
 	 * Create a new password broker instance.
 	 *
-	 * @param  \Illuminate\Auth\Reminders\ReminderRepositoryInterface $reminders
-	 * @param  \Illuminate\Auth\UserProviderInterface                 $users
-	 * @param  \Illuminate\Mail\Mailer                                $mailer
-	 * @param  string                                                 $reminderView
-	 *
+	 * @param  \Illuminate\Auth\Reminders\ReminderRepositoryInterface  $reminders
+	 * @param  \Illuminate\Auth\UserProviderInterface  $users
+	 * @param  \Illuminate\Mail\Mailer  $mailer
+	 * @param  string  $reminderView
 	 * @return void
 	 */
-	public function __construct(ReminderRepositoryInterface $reminders, UserProviderInterface $users, Mailer $mailer, $reminderView)
+	public function __construct(ReminderRepositoryInterface $reminders,
+                                UserProviderInterface $users,
+                                Mailer $mailer,
+                                $reminderView)
 	{
-		$this->users        = $users;
-		$this->mailer       = $mailer;
-		$this->reminders    = $reminders;
+		$this->users = $users;
+		$this->mailer = $mailer;
+		$this->reminders = $reminders;
 		$this->reminderView = $reminderView;
 	}
 
 	/**
 	 * Send a password reminder to a user.
 	 *
-	 * @param  array    $credentials
-	 * @param  \Closure $callback
-	 *
+	 * @param  array     $credentials
+	 * @param  \Closure  $callback
 	 * @return string
 	 */
 	public function remind(array $credentials, Closure $callback = null)
@@ -110,7 +110,8 @@ class PasswordBroker
 		// "flash" data in the session to indicate to the developers the errors.
 		$user = $this->getUser($credentials);
 
-		if (is_null($user)) {
+		if (is_null($user))
+		{
 			return self::INVALID_USER;
 		}
 
@@ -127,8 +128,7 @@ class PasswordBroker
 	/**
 	 * Get the user for the given credentials.
 	 *
-	 * @param  array $credentials
-	 *
+	 * @param  array  $credentials
 	 * @return \Illuminate\Auth\Reminders\RemindableInterface
 	 *
 	 * @throws \UnexpectedValueException
@@ -139,7 +139,8 @@ class PasswordBroker
 
 		$user = $this->users->retrieveByCredentials($credentials);
 
-		if ($user && !$user instanceof RemindableInterface) {
+		if ($user && ! $user instanceof RemindableInterface)
+		{
 			throw new \UnexpectedValueException("User must implement Remindable interface.");
 		}
 
@@ -149,10 +150,9 @@ class PasswordBroker
 	/**
 	 * Send the password reminder e-mail.
 	 *
-	 * @param  \Illuminate\Auth\Reminders\RemindableInterface $user
-	 * @param  string                                         $token
-	 * @param  \Closure                                       $callback
-	 *
+	 * @param  \Illuminate\Auth\Reminders\RemindableInterface  $user
+	 * @param  string    $token
+	 * @param  \Closure  $callback
 	 * @return int
 	 */
 	public function sendReminder(RemindableInterface $user, $token, Closure $callback = null)
@@ -162,20 +162,19 @@ class PasswordBroker
 		// so that it may be displayed for an user to click for password reset.
 		$view = $this->reminderView;
 
-		return $this->mailer->send($view, compact('token', 'user'), function ($m) use ($user, $token, $callback) {
+		return $this->mailer->send($view, compact('token', 'user'), function($m) use ($user, $token, $callback)
+		{
 			$m->to($user->getReminderEmail());
 
-			if (!is_null($callback))
-				call_user_func($callback, $m, $user, $token);
+			if ( ! is_null($callback)) call_user_func($callback, $m, $user, $token);
 		});
 	}
 
 	/**
 	 * Reset the password for the given token.
 	 *
-	 * @param  array    $credentials
-	 * @param  \Closure $callback
-	 *
+	 * @param  array     $credentials
+	 * @param  \Closure  $callback
 	 * @return mixed
 	 */
 	public function reset(array $credentials, Closure $callback)
@@ -185,7 +184,8 @@ class PasswordBroker
 		// the user is properly redirected having an error message on the post.
 		$user = $this->validateReset($credentials);
 
-		if (!$user instanceof RemindableInterface) {
+		if ( ! $user instanceof RemindableInterface)
+		{
 			return $user;
 		}
 
@@ -204,21 +204,23 @@ class PasswordBroker
 	/**
 	 * Validate a password reset for the given credentials.
 	 *
-	 * @param  array $credentials
-	 *
+	 * @param  array  $credentials
 	 * @return \Illuminate\Auth\Reminders\RemindableInterface
 	 */
 	protected function validateReset(array $credentials)
 	{
-		if (is_null($user = $this->getUser($credentials))) {
+		if (is_null($user = $this->getUser($credentials)))
+		{
 			return self::INVALID_USER;
 		}
 
-		if (!$this->validNewPasswords($credentials)) {
+		if ( ! $this->validNewPasswords($credentials))
+		{
 			return self::INVALID_PASSWORD;
 		}
 
-		if (!$this->reminders->exists($user, $credentials['token'])) {
+		if ( ! $this->reminders->exists($user, $credentials['token']))
+		{
 			return self::INVALID_TOKEN;
 		}
 
@@ -228,15 +230,15 @@ class PasswordBroker
 	/**
 	 * Determine if the passwords match for the request.
 	 *
-	 * @param  array $credentials
-	 *
+	 * @param  array  $credentials
 	 * @return bool
 	 */
 	protected function validNewPasswords(array $credentials)
 	{
 		list($password, $confirm) = array($credentials['password'], $credentials['password_confirmation']);
 
-		if (isset($this->passwordValidator)) {
+		if (isset($this->passwordValidator))
+		{
 			return call_user_func($this->passwordValidator, $credentials) && $password === $confirm;
 		}
 
@@ -246,8 +248,7 @@ class PasswordBroker
 	/**
 	 * Determine if the passwords are valid for the request.
 	 *
-	 * @param  array $credentials
-	 *
+	 * @param  array  $credentials
 	 * @return bool
 	 */
 	protected function validatePasswordWithDefaults(array $credentials)
@@ -260,8 +261,7 @@ class PasswordBroker
 	/**
 	 * Set a custom password validator.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function validator(Closure $callback)

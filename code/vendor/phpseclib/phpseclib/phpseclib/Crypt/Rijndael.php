@@ -65,7 +65,7 @@
  * @category  Crypt
  * @package   Crypt_Rijndael
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMVIII Jim Wigginton
+ * @copyright 2008 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -676,49 +676,6 @@ class Crypt_Rijndael extends Crypt_Base
     );
 
     /**
-     * Sets the key.
-     *
-     * Keys can be of any length.  Rijndael, itself, requires the use of a key that's between 128-bits and 256-bits long and
-     * whose length is a multiple of 32.  If the key is less than 256-bits and the key length isn't set, we round the length
-     * up to the closest valid key length, padding $key with null bytes.  If the key is more than 256-bits, we trim the
-     * excess bits.
-     *
-     * If the key is not explicitly set, it'll be assumed to be all null bytes.
-     *
-     * Note: 160/224-bit keys must explicitly set by setKeyLength(), otherwise they will be round/pad up to 192/256 bits.
-     *
-     * @see Crypt_Base:setKey()
-     * @see setKeyLength()
-     * @access public
-     * @param String $key
-     */
-    function setKey($key)
-    {
-        parent::setKey($key);
-
-        if (!$this->explicit_key_length) {
-            $length = strlen($key);
-            switch (true) {
-                case $length <= 16:
-                    $this->key_size = 16;
-                    break;
-                case $length <= 20:
-                    $this->key_size = 20;
-                    break;
-                case $length <= 24:
-                    $this->key_size = 24;
-                    break;
-                case $length <= 28:
-                    $this->key_size = 28;
-                    break;
-                default:
-                    $this->key_size = 32;
-            }
-            $this->_setupEngine();
-        }
-    }
-
-    /**
      * Sets the key length
      *
      * Valid key lengths are 128, 160, 192, 224, and 256.  If the length is less than 128, it will be rounded up to
@@ -786,72 +743,94 @@ class Crypt_Rijndael extends Crypt_Base
     }
 
     /**
-     * Setup the fastest possible $engine
+     * Decrypts a block
      *
-     * Determines if the mcrypt (MODE_MCRYPT) $engine available
-     * and usable for the current $block_size and $key_size.
-     *
-     * If not, the slower MODE_INTERNAL $engine will be set.
-     *
-     * @see setKey()
-     * @see setKeyLength()
-     * @see setBlockLength()
      * @access private
+     * @param String $in
+     * @return String
      */
-    function _setupEngine()
+    function _decryptBlock($in)
     {
-        if (constant('CRYPT_' . $this->const_namespace . '_MODE') == CRYPT_MODE_INTERNAL) {
-            // No mcrypt support at all for rijndael
-            return;
-        }
-
-        // The required mcrypt module name for the current $block_size of rijndael
-        $cipher_name_mcrypt = 'rijndael-' . ($this->block_size << 3);
-
-        // Determining the availibility/usability of $cipher_name_mcrypt
-        switch (true) {
-            case $this->key_size % 8: // mcrypt is not usable for 160/224-bit keys, only for 128/192/256-bit keys
-            case !in_array($cipher_name_mcrypt, mcrypt_list_algorithms()): // $cipher_name_mcrypt is not available for the current $block_size
-                $engine = CRYPT_MODE_INTERNAL;
-                break;
-            default:
-                $engine = CRYPT_MODE_MCRYPT;
-        }
-
-        if ($this->engine == $engine && $this->cipher_name_mcrypt == $cipher_name_mcrypt) {
-            // allready set, so we not unnecessary close $this->enmcrypt/demcrypt/ecb
-            return;
-        }
-
-        // Set the $engine
-        $this->engine = $engine;
-        $this->cipher_name_mcrypt = $cipher_name_mcrypt;
-
-        if ($this->enmcrypt) {
-            // Closing the current mcrypt resource(s). _mcryptSetup() will, if needed,
-            // (re)open them with the module named in $this->cipher_name_mcrypt
-            mcrypt_module_close($this->enmcrypt);
-            mcrypt_module_close($this->demcrypt);
-            $this->enmcrypt = null;
-            $this->demcrypt = null;
-
-            if ($this->ecb) {
-                mcrypt_module_close($this->ecb);
-                $this->ecb = null;
+        static $dt0, $dt1, $dt2, $dt3, $isbox;
+        if (!$dt0) {
+            for ($i = 0; $i < 256; ++$i) {
+                $dt0[] = (int)$this->dt0[$i];
+                $dt1[] = (int)$this->dt1[$i];
+                $dt2[] = (int)$this->dt2[$i];
+                $dt3[] = (int)$this->dt3[$i];
+                $isbox[] = (int)$this->isbox[$i];
             }
         }
-    }
 
-    /**
-     * Setup the CRYPT_MODE_MCRYPT $engine
-     *
-     * @see Crypt_Base::_setupMcrypt()
-     * @access private
-     */
-    function _setupMcrypt()
-    {
-        $this->key = str_pad(substr($this->key, 0, $this->key_size), $this->key_size, "\0");
-        parent::_setupMcrypt();
+        $state = array();
+        $words = unpack('N*', $in);
+
+        $c  = $this->c;
+        $dw = $this->dw;
+        $Nb = $this->Nb;
+        $Nr = $this->Nr;
+
+        // addRoundKey
+        $i = -1;
+        foreach ($words as $word) {
+            $state[] = $word ^ $dw[$Nr][++$i];
+        }
+
+        $temp = array();
+        for ($round = $Nr - 1; $round > 0; --$round) {
+            $i = 0; // $c[0] == 0
+            $j = $Nb - $c[1];
+            $k = $Nb - $c[2];
+            $l = $Nb - $c[3];
+
+            while ($i < $Nb) {
+                $temp[$i] = $dt0[$state[$i] >> 24 & 0x000000FF] ^
+                            $dt1[$state[$j] >> 16 & 0x000000FF] ^
+                            $dt2[$state[$k] >>  8 & 0x000000FF] ^
+                            $dt3[$state[$l]       & 0x000000FF] ^
+                            $dw[$round][$i];
+                ++$i;
+                $j = ($j + 1) % $Nb;
+                $k = ($k + 1) % $Nb;
+                $l = ($l + 1) % $Nb;
+            }
+            $state = $temp;
+        }
+
+        // invShiftRows + invSubWord + addRoundKey
+        $i = 0; // $c[0] == 0
+        $j = $Nb - $c[1];
+        $k = $Nb - $c[2];
+        $l = $Nb - $c[3];
+
+        while ($i < $Nb) {
+            $word = ($state[$i] & 0xFF000000) |
+                    ($state[$j] & 0x00FF0000) |
+                    ($state[$k] & 0x0000FF00) |
+                    ($state[$l] & 0x000000FF);
+
+            $temp[$i] = $dw[0][$i] ^ ($isbox[$word       & 0x000000FF]        |
+                                     ($isbox[$word >>  8 & 0x000000FF] <<  8) |
+                                     ($isbox[$word >> 16 & 0x000000FF] << 16) |
+                                     ($isbox[$word >> 24 & 0x000000FF] << 24));
+            ++$i;
+            $j = ($j + 1) % $Nb;
+            $k = ($k + 1) % $Nb;
+            $l = ($l + 1) % $Nb;
+        }
+
+        switch ($Nb) {
+            case 8:
+                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5], $temp[6], $temp[7]);
+            case 7:
+                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5], $temp[6]);
+            case 6:
+                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5]);
+            case 5:
+                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4]);
+            default:
+                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3]);
+        }
     }
 
     /**
@@ -954,229 +933,6 @@ class Crypt_Rijndael extends Crypt_Base
             default:
                 return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3]);
         }
-    }
-
-    /**
-     * Decrypts a block
-     *
-     * @access private
-     * @param String $in
-     * @return String
-     */
-    function _decryptBlock($in)
-    {
-        static $dt0, $dt1, $dt2, $dt3, $isbox;
-        if (!$dt0) {
-            for ($i = 0; $i < 256; ++$i) {
-                $dt0[] = (int)$this->dt0[$i];
-                $dt1[] = (int)$this->dt1[$i];
-                $dt2[] = (int)$this->dt2[$i];
-                $dt3[] = (int)$this->dt3[$i];
-                $isbox[] = (int)$this->isbox[$i];
-            }
-        }
-
-        $state = array();
-        $words = unpack('N*', $in);
-
-        $c  = $this->c;
-        $dw = $this->dw;
-        $Nb = $this->Nb;
-        $Nr = $this->Nr;
-
-        // addRoundKey
-        $i = -1;
-        foreach ($words as $word) {
-            $state[] = $word ^ $dw[$Nr][++$i];
-        }
-
-        $temp = array();
-        for ($round = $Nr - 1; $round > 0; --$round) {
-            $i = 0; // $c[0] == 0
-            $j = $Nb - $c[1];
-            $k = $Nb - $c[2];
-            $l = $Nb - $c[3];
-
-            while ($i < $Nb) {
-                $temp[$i] = $dt0[$state[$i] >> 24 & 0x000000FF] ^
-                            $dt1[$state[$j] >> 16 & 0x000000FF] ^
-                            $dt2[$state[$k] >>  8 & 0x000000FF] ^
-                            $dt3[$state[$l]       & 0x000000FF] ^
-                            $dw[$round][$i];
-                ++$i;
-                $j = ($j + 1) % $Nb;
-                $k = ($k + 1) % $Nb;
-                $l = ($l + 1) % $Nb;
-            }
-            $state = $temp;
-        }
-
-        // invShiftRows + invSubWord + addRoundKey
-        $i = 0; // $c[0] == 0
-        $j = $Nb - $c[1];
-        $k = $Nb - $c[2];
-        $l = $Nb - $c[3];
-
-        while ($i < $Nb) {
-            $word = ($state[$i] & 0xFF000000) |
-                    ($state[$j] & 0x00FF0000) |
-                    ($state[$k] & 0x0000FF00) |
-                    ($state[$l] & 0x000000FF);
-
-            $temp[$i] = $dw[0][$i] ^ ($isbox[$word       & 0x000000FF]        |
-                                     ($isbox[$word >>  8 & 0x000000FF] <<  8) |
-                                     ($isbox[$word >> 16 & 0x000000FF] << 16) |
-                                     ($isbox[$word >> 24 & 0x000000FF] << 24));
-            ++$i;
-            $j = ($j + 1) % $Nb;
-            $k = ($k + 1) % $Nb;
-            $l = ($l + 1) % $Nb;
-        }
-
-        switch ($Nb) {
-            case 8:
-                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5], $temp[6], $temp[7]);
-            case 7:
-                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5], $temp[6]);
-            case 6:
-                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4], $temp[5]);
-            case 5:
-                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3], $temp[4]);
-            default:
-                return pack('N*', $temp[0], $temp[1], $temp[2], $temp[3]);
-        }
-    }
-
-    /**
-     * Setup the key (expansion)
-     *
-     * @see Crypt_Base::_setupKey()
-     * @access private
-     */
-    function _setupKey()
-    {
-        // Each number in $rcon is equal to the previous number multiplied by two in Rijndael's finite field.
-        // See http://en.wikipedia.org/wiki/Finite_field_arithmetic#Multiplicative_inverse
-        static $rcon = array(0,
-            0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
-            0x20000000, 0x40000000, 0x80000000, 0x1B000000, 0x36000000,
-            0x6C000000, 0xD8000000, 0xAB000000, 0x4D000000, 0x9A000000,
-            0x2F000000, 0x5E000000, 0xBC000000, 0x63000000, 0xC6000000,
-            0x97000000, 0x35000000, 0x6A000000, 0xD4000000, 0xB3000000,
-            0x7D000000, 0xFA000000, 0xEF000000, 0xC5000000, 0x91000000
-        );
-
-        $this->key = str_pad(substr($this->key, 0, $this->key_size), $this->key_size, "\0");
-
-        if (isset($this->kl['key']) && $this->key === $this->kl['key'] && $this->key_size === $this->kl['key_size'] && $this->block_size === $this->kl['block_size']) {
-            // already expanded
-            return;
-        }
-        $this->kl = array('key' => $this->key, 'key_size' => $this->key_size, 'block_size' => $this->block_size);
-
-        $this->Nk = $this->key_size >> 2;
-        // see Rijndael-ammended.pdf#page=44
-        $this->Nr = max($this->Nk, $this->Nb) + 6;
-
-        // shift offsets for Nb = 5, 7 are defined in Rijndael-ammended.pdf#page=44,
-        //     "Table 8: Shift offsets in Shiftrow for the alternative block lengths"
-        // shift offsets for Nb = 4, 6, 8 are defined in Rijndael-ammended.pdf#page=14,
-        //     "Table 2: Shift offsets for different block lengths"
-        switch ($this->Nb) {
-            case 4:
-            case 5:
-            case 6:
-                $this->c = array(0, 1, 2, 3);
-                break;
-            case 7:
-                $this->c = array(0, 1, 2, 4);
-                break;
-            case 8:
-                $this->c = array(0, 1, 3, 4);
-        }
-
-        $w = array_values(unpack('N*words', $this->key));
-
-        $length = $this->Nb * ($this->Nr + 1);
-        for ($i = $this->Nk; $i < $length; $i++) {
-            $temp = $w[$i - 1];
-            if ($i % $this->Nk == 0) {
-                // according to <http://php.net/language.types.integer>, "the size of an integer is platform-dependent".
-                // on a 32-bit machine, it's 32-bits, and on a 64-bit machine, it's 64-bits. on a 32-bit machine,
-                // 0xFFFFFFFF << 8 == 0xFFFFFF00, but on a 64-bit machine, it equals 0xFFFFFFFF00. as such, doing 'and'
-                // with 0xFFFFFFFF (or 0xFFFFFF00) on a 32-bit machine is unnecessary, but on a 64-bit machine, it is.
-                $temp = (($temp << 8) & 0xFFFFFF00) | (($temp >> 24) & 0x000000FF); // rotWord
-                $temp = $this->_subWord($temp) ^ $rcon[$i / $this->Nk];
-            } else if ($this->Nk > 6 && $i % $this->Nk == 4) {
-                $temp = $this->_subWord($temp);
-            }
-            $w[$i] = $w[$i - $this->Nk] ^ $temp;
-        }
-
-        // convert the key schedule from a vector of $Nb * ($Nr + 1) length to a matrix with $Nr + 1 rows and $Nb columns
-        // and generate the inverse key schedule.  more specifically,
-        // according to <http://csrc.nist.gov/archive/aes/rijndael/Rijndael-ammended.pdf#page=23> (section 5.3.3),
-        // "The key expansion for the Inverse Cipher is defined as follows:
-        //        1. Apply the Key Expansion.
-        //        2. Apply InvMixColumn to all Round Keys except the first and the last one."
-        // also, see fips-197.pdf#page=27, "5.3.5 Equivalent Inverse Cipher"
-        $temp = $this->w = $this->dw = array();
-        for ($i = $row = $col = 0; $i < $length; $i++, $col++) {
-            if ($col == $this->Nb) {
-                if ($row == 0) {
-                    $this->dw[0] = $this->w[0];
-                } else {
-                    // subWord + invMixColumn + invSubWord = invMixColumn
-                    $j = 0;
-                    while ($j < $this->Nb) {
-                        $dw = $this->_subWord($this->w[$row][$j]);
-                        $temp[$j] = $this->dt0[$dw >> 24 & 0x000000FF] ^
-                                    $this->dt1[$dw >> 16 & 0x000000FF] ^
-                                    $this->dt2[$dw >>  8 & 0x000000FF] ^
-                                    $this->dt3[$dw       & 0x000000FF];
-                        $j++;
-                    }
-                    $this->dw[$row] = $temp;
-                }
-
-                $col = 0;
-                $row++;
-            }
-            $this->w[$row][$col] = $w[$i];
-        }
-
-        $this->dw[$row] = $this->w[$row];
-
-        // In case of $this->use_inline_crypt === true we have to use 1-dim key arrays (both ascending)
-        if ($this->use_inline_crypt) {
-            $this->dw = array_reverse($this->dw);
-            $w  = array_pop($this->w);
-            $dw = array_pop($this->dw);
-            foreach ($this->w as $r => $wr) {
-                foreach ($wr as $c => $wc) {
-                    $w[]  = $wc;
-                    $dw[] = $this->dw[$r][$c];
-                }
-            }
-            $this->w  = $w;
-            $this->dw = $dw;
-        }
-    }
-
-    /**
-     * Performs S-Box substitutions
-     *
-     * @access private
-     * @param Integer $word
-     */
-    function _subWord($word)
-    {
-        $sbox = $this->sbox;
-
-        return  $sbox[$word       & 0x000000FF]        |
-               ($sbox[$word >>  8 & 0x000000FF] <<  8) |
-               ($sbox[$word >> 16 & 0x000000FF] << 16) |
-               ($sbox[$word >> 24 & 0x000000FF] << 24);
     }
 
     /**
@@ -1344,5 +1100,249 @@ class Crypt_Rijndael extends Crypt_Base
             );
         }
         $this->inline_crypt = $lambda_functions[$code_hash];
+    }
+
+    /**
+     * Setup the key (expansion)
+     *
+     * @see Crypt_Base::_setupKey()
+     * @access private
+     */
+    function _setupKey()
+    {
+        // Each number in $rcon is equal to the previous number multiplied by two in Rijndael's finite field.
+        // See http://en.wikipedia.org/wiki/Finite_field_arithmetic#Multiplicative_inverse
+        static $rcon = array(0,
+            0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
+            0x20000000, 0x40000000, 0x80000000, 0x1B000000, 0x36000000,
+            0x6C000000, 0xD8000000, 0xAB000000, 0x4D000000, 0x9A000000,
+            0x2F000000, 0x5E000000, 0xBC000000, 0x63000000, 0xC6000000,
+            0x97000000, 0x35000000, 0x6A000000, 0xD4000000, 0xB3000000,
+            0x7D000000, 0xFA000000, 0xEF000000, 0xC5000000, 0x91000000
+        );
+
+        $this->key = str_pad(substr($this->key, 0, $this->key_size), $this->key_size, "\0");
+
+        if (isset($this->kl['key']) && $this->key === $this->kl['key'] && $this->key_size === $this->kl['key_size'] && $this->block_size === $this->kl['block_size']) {
+            // already expanded
+            return;
+        }
+        $this->kl = array('key' => $this->key, 'key_size' => $this->key_size, 'block_size' => $this->block_size);
+
+        $this->Nk = $this->key_size >> 2;
+        // see Rijndael-ammended.pdf#page=44
+        $this->Nr = max($this->Nk, $this->Nb) + 6;
+
+        // shift offsets for Nb = 5, 7 are defined in Rijndael-ammended.pdf#page=44,
+        //     "Table 8: Shift offsets in Shiftrow for the alternative block lengths"
+        // shift offsets for Nb = 4, 6, 8 are defined in Rijndael-ammended.pdf#page=14,
+        //     "Table 2: Shift offsets for different block lengths"
+        switch ($this->Nb) {
+            case 4:
+            case 5:
+            case 6:
+                $this->c = array(0, 1, 2, 3);
+                break;
+            case 7:
+                $this->c = array(0, 1, 2, 4);
+                break;
+            case 8:
+                $this->c = array(0, 1, 3, 4);
+        }
+
+        $w = array_values(unpack('N*words', $this->key));
+
+        $length = $this->Nb * ($this->Nr + 1);
+        for ($i = $this->Nk; $i < $length; $i++) {
+            $temp = $w[$i - 1];
+            if ($i % $this->Nk == 0) {
+                // according to <http://php.net/language.types.integer>, "the size of an integer is platform-dependent".
+                // on a 32-bit machine, it's 32-bits, and on a 64-bit machine, it's 64-bits. on a 32-bit machine,
+                // 0xFFFFFFFF << 8 == 0xFFFFFF00, but on a 64-bit machine, it equals 0xFFFFFFFF00. as such, doing 'and'
+                // with 0xFFFFFFFF (or 0xFFFFFF00) on a 32-bit machine is unnecessary, but on a 64-bit machine, it is.
+                $temp = (($temp << 8) & 0xFFFFFF00) | (($temp >> 24) & 0x000000FF); // rotWord
+                $temp = $this->_subWord($temp) ^ $rcon[$i / $this->Nk];
+            } else if ($this->Nk > 6 && $i % $this->Nk == 4) {
+                $temp = $this->_subWord($temp);
+            }
+            $w[$i] = $w[$i - $this->Nk] ^ $temp;
+        }
+
+        // convert the key schedule from a vector of $Nb * ($Nr + 1) length to a matrix with $Nr + 1 rows and $Nb columns
+        // and generate the inverse key schedule.  more specifically,
+        // according to <http://csrc.nist.gov/archive/aes/rijndael/Rijndael-ammended.pdf#page=23> (section 5.3.3),
+        // "The key expansion for the Inverse Cipher is defined as follows:
+        //        1. Apply the Key Expansion.
+        //        2. Apply InvMixColumn to all Round Keys except the first and the last one."
+        // also, see fips-197.pdf#page=27, "5.3.5 Equivalent Inverse Cipher"
+        $temp = $this->w = $this->dw = array();
+        for ($i = $row = $col = 0; $i < $length; $i++, $col++) {
+            if ($col == $this->Nb) {
+                if ($row == 0) {
+                    $this->dw[0] = $this->w[0];
+                } else {
+                    // subWord + invMixColumn + invSubWord = invMixColumn
+                    $j = 0;
+                    while ($j < $this->Nb) {
+                        $dw = $this->_subWord($this->w[$row][$j]);
+                        $temp[$j] = $this->dt0[$dw >> 24 & 0x000000FF] ^
+                                    $this->dt1[$dw >> 16 & 0x000000FF] ^
+                                    $this->dt2[$dw >>  8 & 0x000000FF] ^
+                                    $this->dt3[$dw       & 0x000000FF];
+                        $j++;
+                    }
+                    $this->dw[$row] = $temp;
+                }
+
+                $col = 0;
+                $row++;
+            }
+            $this->w[$row][$col] = $w[$i];
+        }
+
+        $this->dw[$row] = $this->w[$row];
+
+        // In case of $this->use_inline_crypt === true we have to use 1-dim key arrays (both ascending)
+        if ($this->use_inline_crypt) {
+            $this->dw = array_reverse($this->dw);
+            $w  = array_pop($this->w);
+            $dw = array_pop($this->dw);
+            foreach ($this->w as $r => $wr) {
+                foreach ($wr as $c => $wc) {
+                    $w[]  = $wc;
+                    $dw[] = $this->dw[$r][$c];
+                }
+            }
+            $this->w  = $w;
+            $this->dw = $dw;
+        }
+    }
+
+    /**
+     * Setup the CRYPT_MODE_MCRYPT $engine
+     *
+     * @see Crypt_Base::_setupMcrypt()
+     * @access private
+     */
+    function _setupMcrypt()
+    {
+        $this->key = str_pad(substr($this->key, 0, $this->key_size), $this->key_size, "\0");
+        parent::_setupMcrypt();
+    }
+
+    /**
+     * Sets the key.
+     *
+     * Keys can be of any length.  Rijndael, itself, requires the use of a key that's between 128-bits and 256-bits long and
+     * whose length is a multiple of 32.  If the key is less than 256-bits and the key length isn't set, we round the length
+     * up to the closest valid key length, padding $key with null bytes.  If the key is more than 256-bits, we trim the
+     * excess bits.
+     *
+     * If the key is not explicitly set, it'll be assumed to be all null bytes.
+     *
+     * Note: 160/224-bit keys must explicitly set by setKeyLength(), otherwise they will be round/pad up to 192/256 bits.
+     *
+     * @see Crypt_Base:setKey()
+     * @see setKeyLength()
+     * @access public
+     * @param String $key
+     */
+    function setKey($key)
+    {
+        parent::setKey($key);
+
+        if (!$this->explicit_key_length) {
+            $length = strlen($key);
+            switch (true) {
+                case $length <= 16:
+                    $this->key_size = 16;
+                    break;
+                case $length <= 20:
+                    $this->key_size = 20;
+                    break;
+                case $length <= 24:
+                    $this->key_size = 24;
+                    break;
+                case $length <= 28:
+                    $this->key_size = 28;
+                    break;
+                default:
+                    $this->key_size = 32;
+            }
+            $this->_setupEngine();
+        }
+    }
+
+    /**
+     * Setup the fastest possible $engine
+     *
+     * Determines if the mcrypt (MODE_MCRYPT) $engine available
+     * and usable for the current $block_size and $key_size.
+     *
+     * If not, the slower MODE_INTERNAL $engine will be set.
+     *
+     * @see setKey()
+     * @see setKeyLength()
+     * @see setBlockLength()
+     * @access private
+     */
+    function _setupEngine()
+    {
+        if (constant('CRYPT_' . $this->const_namespace . '_MODE') == CRYPT_MODE_INTERNAL) {
+            // No mcrypt support at all for rijndael
+            return;
+        }
+
+        // The required mcrypt module name for the current $block_size of rijndael
+        $cipher_name_mcrypt = 'rijndael-' . ($this->block_size << 3);
+
+        // Determining the availibility/usability of $cipher_name_mcrypt
+        switch (true) {
+            case $this->key_size % 8: // mcrypt is not usable for 160/224-bit keys, only for 128/192/256-bit keys
+            case !in_array($cipher_name_mcrypt, mcrypt_list_algorithms()): // $cipher_name_mcrypt is not available for the current $block_size
+                $engine = CRYPT_MODE_INTERNAL;
+                break;
+            default:
+                $engine = CRYPT_MODE_MCRYPT;
+        }
+
+        if ($this->engine == $engine && $this->cipher_name_mcrypt == $cipher_name_mcrypt) {
+            // allready set, so we not unnecessary close $this->enmcrypt/demcrypt/ecb
+            return;
+        }
+
+        // Set the $engine
+        $this->engine = $engine;
+        $this->cipher_name_mcrypt = $cipher_name_mcrypt;
+
+        if ($this->enmcrypt) {
+            // Closing the current mcrypt resource(s). _mcryptSetup() will, if needed,
+            // (re)open them with the module named in $this->cipher_name_mcrypt
+            mcrypt_module_close($this->enmcrypt);
+            mcrypt_module_close($this->demcrypt);
+            $this->enmcrypt = null;
+            $this->demcrypt = null;
+
+            if ($this->ecb) {
+                mcrypt_module_close($this->ecb);
+                $this->ecb = null;
+            }
+        }
+    }
+
+    /**
+     * Performs S-Box substitutions
+     *
+     * @access private
+     * @param Integer $word
+     */
+    function _subWord($word)
+    {
+        $sbox = $this->sbox;
+
+        return  $sbox[$word       & 0x000000FF]        |
+               ($sbox[$word >>  8 & 0x000000FF] <<  8) |
+               ($sbox[$word >> 16 & 0x000000FF] << 16) |
+               ($sbox[$word >> 24 & 0x000000FF] << 24);
     }
 }

@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Contracts\JsonableInterface;
 
-class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse
-{
+class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse {
 
 	use ResponseTrait;
 
@@ -17,11 +16,11 @@ class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse
 	/**
 	 * Constructor.
 	 *
-	 * @param  mixed $data
-	 * @param  int   $status
-	 * @param  array $headers
-	 * @param  int   $options
-	 */
+	 * @param  mixed  $data
+	 * @param  int    $status
+	 * @param  array  $headers
+	 * @param  int    $options
+	*/
 	public function __construct($data = null, $status = 200, $headers = array(), $options = 0)
 	{
 		$this->jsonOptions = $options;
@@ -42,8 +41,7 @@ class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse
 	/**
 	 * Set the JSON encoding options.
 	 *
-	 * @param  int $options
-	 *
+	 * @param  int  $options
 	 * @return mixed
 	 */
 	public function setJsonOptions($options)
@@ -58,7 +56,9 @@ class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse
 	 */
 	public function setData($data = array())
 	{
-		$this->data = $data instanceof JsonableInterface ? $data->toJson($this->jsonOptions) : json_encode($data, $this->jsonOptions);
+		$this->data = $data instanceof JsonableInterface
+								   ? $data->toJson($this->jsonOptions)
+								   : json_encode($data, $this->jsonOptions);
 
 		return $this->update();
 	}
@@ -66,9 +66,8 @@ class JsonResponse extends \Symfony\Component\HttpFoundation\JsonResponse
 	/**
 	 * Get the json_decoded data from the response
 	 *
-	 * @param  bool $assoc
-	 * @param  int  $depth
-	 *
+	 * @param  bool  $assoc
+	 * @param  int   $depth
 	 * @return mixed
 	 */
 	public function getData($assoc = false, $depth = 512)

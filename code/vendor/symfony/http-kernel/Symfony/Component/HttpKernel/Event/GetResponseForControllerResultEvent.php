@@ -11,11 +11,11 @@
 
 namespace Symfony\Component\HttpKernel\Event;
 
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Allows to create a response for the return value of a controller
+ * Allows to create a response for the return value of a controller.
  *
  * Call setResponse() to set the response that will be returned for the
  * current request. The propagation of this event is stopped as soon as a
@@ -27,41 +27,41 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class GetResponseForControllerResultEvent extends GetResponseEvent
 {
-	/**
-	 * The return value of the controller
-	 *
-	 * @var mixed
-	 */
-	private $controllerResult;
+    /**
+     * The return value of the controller.
+     *
+     * @var mixed
+     */
+    private $controllerResult;
 
-	public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $controllerResult)
-	{
-		parent::__construct($kernel, $request, $requestType);
+    public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $controllerResult)
+    {
+        parent::__construct($kernel, $request, $requestType);
 
-		$this->controllerResult = $controllerResult;
-	}
+        $this->controllerResult = $controllerResult;
+    }
 
-	/**
-	 * Returns the return value of the controller.
-	 *
-	 * @return mixed The controller return value
-	 *
-	 * @api
-	 */
-	public function getControllerResult()
-	{
-		return $this->controllerResult;
-	}
+    /**
+     * Returns the return value of the controller.
+     *
+     * @return mixed The controller return value
+     *
+     * @api
+     */
+    public function getControllerResult()
+    {
+        return $this->controllerResult;
+    }
 
-	/**
-	 * Assigns the return value of the controller.
-	 *
-	 * @param mixed $controllerResult The controller return value
-	 *
-	 * @api
-	 */
-	public function setControllerResult($controllerResult)
-	{
-		$this->controllerResult = $controllerResult;
-	}
+    /**
+     * Assigns the return value of the controller.
+     *
+     * @param mixed $controllerResult The controller return value
+     *
+     * @api
+     */
+    public function setControllerResult($controllerResult)
+    {
+        $this->controllerResult = $controllerResult;
+    }
 }

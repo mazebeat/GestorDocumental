@@ -1,11 +1,10 @@
 <?php
 
-class AdminController extends BaseController
+class AdminController extends ApiController
 {
 	private $data;
-	private $status = 200;
-	private $headers = array('ContentType' => 'application/json',
-	                         'charset'     => 'utf-8');
+	private $status  = 200;
+	private $headers = array('ContentType' => 'application/json', 'charset' => 'utf-8');
 
 	public function __construct()
 	{
@@ -23,8 +22,7 @@ class AdminController extends BaseController
 
 	public function fastSearch()
 	{
-		$response = array('status' => 'success',
-		                  'msg'    => 'Setting created successfully',);
+		$response = array('status' => 'success', 'msg' => 'Setting created successfully',);
 
 		return \Response::json($response, $this->status, $this->headers);
 	}
@@ -65,6 +63,12 @@ class AdminController extends BaseController
 
 	public function searchFolder()
 	{
+		$ses = \Input::get('session');
+
+		//		if (\Session::has($ses)) {
+		//			$this->data = \Session::get($ses);
+		//		}
+		//		else {
 		$folder = array();
 		$ws     = new \WebServiceController();
 		$ws->setCodUtils('10');
@@ -77,21 +81,24 @@ class AdminController extends BaseController
 					$number = explode("m_", trim($value->strcarpeta));
 					$name   = App\Util\Functions::convNumberToMonth((int)$number[1]);
 
-					array_push($folder, array('id'     => (string)$value->stridcarpeta,
-					                          'name'   => (string)$name,
-					                          'number' => (int)$number[1],
-					                          'root'   => (string)$value->strrutacarpeta));
+					array_push($folder, array('id' => (string)$value->stridcarpeta, 'name' => (string)$name, 'number' => (int)$number[1], 'root' => (string)$value->strrutacarpeta));
 				}
 				$this->data['ok']     = true;
 				$this->data['folder'] = \App\Util\Functions::array_orderby($folder, 'number', SORT_ASC);
+				$this->data['year']   = \Input::get('year');
+
+				Session::put($ses, $this->data);
 			} catch (Exception $e) {
 				$this->data['ok']      = false;
 				$this->data['message'] = $e->getMessage();
 			}
-		} else {
+		}
+		else {
 			$this->data['ok']      = false;
 			$this->data['message'] = 'No existe carpeta';
 		}
+
+		//		}
 
 		return \Response::json($this->data, $this->status, $this->headers);
 	}
@@ -108,13 +115,11 @@ class AdminController extends BaseController
 			try {
 				foreach ($result->lista as $key => $value) {
 					if (is_object($value)) {
-						array_push($folders, array('name' => (string)$value->strcarpeta,
-						                           'id'   => (string)$value->stridcarpeta,
-						                           'root' => base64_encode((string)$value->strrutacarpeta)));
-					} else {
-						$folders = array('name' => (string)$result->lista->strcarpeta,
-						                 'id'   => (string)$result->lista->stridcarpeta,
-						                 'root' => base64_encode((string)$value->strrutacarpeta));
+						array_push($folders, array('name' => (string)$value->strcarpeta, 'id' => (string)$value->stridcarpeta, 'root' => base64_encode((string)$value->strrutacarpeta)));
+					}
+					else {
+						$folders = array('name' => (string)$result->lista->strcarpeta, 'id' => (string)$result->lista->stridcarpeta, 'root' => base64_encode((string)$result->lista->strrutacarpeta));
+						$folders = array($folders);
 					}
 				}
 				$this->data['ok']     = true;
@@ -123,7 +128,8 @@ class AdminController extends BaseController
 				$this->data['ok']      = false;
 				$this->data['message'] = $e->getMessage();
 			}
-		} else {
+		}
+		else {
 			$this->data['ok']      = false;
 			$this->data['message'] = 'No existe carpeta';
 		}
@@ -131,9 +137,12 @@ class AdminController extends BaseController
 		return \Response::json($this->data, $this->status, $this->headers);
 	}
 
-
-	public function viewer()
+	public function viewer($crypto)
 	{
+		$decode = \Crypt::decrypt($crypto);
+		$data   = array();
+		$data   = explode('||', $decode);
+
 		return \View::make('dashboard.documento');
 	}
 

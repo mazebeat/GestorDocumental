@@ -1,7 +1,6 @@
 <?php namespace Illuminate\View\Engines;
 
-abstract class Engine
-{
+abstract class Engine {
 
 	/**
 	 * The view that was last to be rendered.

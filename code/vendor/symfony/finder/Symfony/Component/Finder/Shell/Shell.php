@@ -16,82 +16,82 @@ namespace Symfony\Component\Finder\Shell;
  */
 class Shell
 {
-	const TYPE_UNIX    = 1;
-	const TYPE_DARWIN  = 2;
-	const TYPE_CYGWIN  = 3;
-	const TYPE_WINDOWS = 4;
-	const TYPE_BSD     = 5;
+    const TYPE_UNIX = 1;
+    const TYPE_DARWIN = 2;
+    const TYPE_CYGWIN = 3;
+    const TYPE_WINDOWS = 4;
+    const TYPE_BSD = 5;
 
-	/**
-	 * @var string|null
-	 */
-	private $type;
+    /**
+     * @var string|null
+     */
+    private $type;
 
-	/**
-	 * Returns guessed OS type.
-	 *
-	 * @return int
-	 */
-	public function getType()
-	{
-		if (null === $this->type) {
-			$this->type = $this->guessType();
-		}
+    /**
+     * Returns guessed OS type.
+     *
+     * @return int
+     */
+    public function getType()
+    {
+        if (null === $this->type) {
+            $this->type = $this->guessType();
+        }
 
-		return $this->type;
-	}
+        return $this->type;
+    }
 
-	/**
-	 * Guesses OS type.
-	 *
-	 * @return int
-	 */
-	private function guessType()
-	{
-		$os = strtolower(PHP_OS);
+    /**
+     * Tests if a command is available.
+     *
+     * @param string $command
+     *
+     * @return bool
+     */
+    public function testCommand($command)
+    {
+        if (!function_exists('exec')) {
+            return false;
+        }
 
-		if (false !== strpos($os, 'cygwin')) {
-			return self::TYPE_CYGWIN;
-		}
+        // todo: find a better way (command could not be available)
+        $testCommand = 'which ';
+        if (self::TYPE_WINDOWS === $this->type) {
+            $testCommand = 'where ';
+        }
 
-		if (false !== strpos($os, 'darwin')) {
-			return self::TYPE_DARWIN;
-		}
+        $command = escapeshellcmd($command);
 
-		if (false !== strpos($os, 'bsd')) {
-			return self::TYPE_BSD;
-		}
+        exec($testCommand.$command, $output, $code);
 
-		if (0 === strpos($os, 'win')) {
-			return self::TYPE_WINDOWS;
-		}
+        return 0 === $code && count($output) > 0;
+    }
 
-		return self::TYPE_UNIX;
-	}
+    /**
+     * Guesses OS type.
+     *
+     * @return int
+     */
+    private function guessType()
+    {
+        $os = strtolower(PHP_OS);
 
-	/**
-	 * Tests if a command is available.
-	 *
-	 * @param string $command
-	 *
-	 * @return bool
-	 */
-	public function testCommand($command)
-	{
-		if (!function_exists('exec')) {
-			return false;
-		}
+        if (false !== strpos($os, 'cygwin')) {
+            return self::TYPE_CYGWIN;
+        }
 
-		// todo: find a better way (command could not be available)
-		$testCommand = 'which ';
-		if (self::TYPE_WINDOWS === $this->type) {
-			$testCommand = 'where ';
-		}
+        if (false !== strpos($os, 'darwin')) {
+            return self::TYPE_DARWIN;
+        }
 
-		$command = escapeshellcmd($command);
+        if (false !== strpos($os, 'bsd')) {
+            return self::TYPE_BSD;
+        }
 
-		exec($testCommand . $command, $output, $code);
+        if (0 === strpos($os, 'win')) {
+            return self::TYPE_WINDOWS;
+        }
 
-		return 0 === $code && count($output) > 0;
-	}
+        return self::TYPE_UNIX;
+    }
 }

@@ -8,8 +8,7 @@ use Illuminate\Support\Contracts\ArrayableInterface;
 use Illuminate\Support\Contracts\JsonableInterface;
 use IteratorAggregate;
 
-class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorAggregate, JsonableInterface
-{
+class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorAggregate, JsonableInterface {
 
 	/**
 	 * The pagination factory.
@@ -91,25 +90,27 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Create a new Paginator instance.
 	 *
-	 * @param  \Illuminate\Pagination\Factory $factory
-	 * @param  array                          $items
-	 * @param  int                            $total
-	 * @param  int|null                       $perPage
-	 *
+	 * @param  \Illuminate\Pagination\Factory  $factory
+	 * @param  array     $items
+	 * @param  int       $total
+	 * @param  int|null  $perPage
 	 * @return void
 	 */
 	public function __construct(Factory $factory, array $items, $total, $perPage = null)
 	{
 		$this->factory = $factory;
 
-		if (is_null($perPage)) {
-			$this->perPage = (int)$total;
+		if (is_null($perPage))
+		{
+			$this->perPage = (int) $total;
 			$this->hasMore = count($items) > $this->perPage;
-			$this->items   = array_slice($items, 0, $this->perPage);
-		} else {
-			$this->items   = $items;
-			$this->total   = (int)$total;
-			$this->perPage = (int)$perPage;
+			$this->items = array_slice($items, 0, $this->perPage);
+		}
+		else
+		{
+			$this->items = $items;
+			$this->total = (int) $total;
+			$this->perPage = (int) $perPage;
 		}
 	}
 
@@ -134,12 +135,15 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	 */
 	protected function calculateCurrentAndLastPages()
 	{
-		if ($this->isQuickPaginating()) {
+		if ($this->isQuickPaginating())
+		{
 			$this->currentPage = $this->factory->getCurrentPage();
 
 			$this->lastPage = $this->hasMore ? $this->currentPage + 1 : $this->currentPage;
-		} else {
-			$this->lastPage = (int)ceil($this->total / $this->perPage);
+		}
+		else
+		{
+			$this->lastPage = max((int) ceil($this->total / $this->perPage), 1);
 
 			$this->currentPage = $this->calculateCurrentPage($this->lastPage);
 		}
@@ -158,8 +162,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Get the current page for the request.
 	 *
-	 * @param  int $lastPage
-	 *
+	 * @param  int  $lastPage
 	 * @return int
 	 */
 	protected function calculateCurrentPage($lastPage)
@@ -169,18 +172,18 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 		// The page number will get validated and adjusted if it either less than one
 		// or greater than the last page available based on the count of the given
 		// items array. If it's greater than the last, we'll give back the last.
-		if (is_numeric($page) && $page > $lastPage) {
+		if (is_numeric($page) && $page > $lastPage)
+		{
 			return $lastPage > 0 ? $lastPage : 1;
 		}
 
-		return $this->isValidPageNumber($page) ? (int)$page : 1;
+		return $this->isValidPageNumber($page) ? (int) $page : 1;
 	}
 
 	/**
 	 * Determine if the given value is a valid page number.
 	 *
-	 * @param  int $page
-	 *
+	 * @param  int  $page
 	 * @return bool
 	 */
 	protected function isValidPageNumber($page)
@@ -203,8 +206,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Get the pagination links view.
 	 *
-	 * @param  string $view
-	 *
+	 * @param  string  $view
 	 * @return \Illuminate\View\View
 	 */
 	public function links($view = null)
@@ -215,24 +217,26 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Get a URL for a given page number.
 	 *
-	 * @param  int $page
-	 *
+	 * @param  int  $page
 	 * @return string
 	 */
 	public function getUrl($page)
 	{
-		$parameters = array($this->factory->getPageName() => $page,);
+		$parameters = array(
+			$this->factory->getPageName() => $page,
+		);
 
 		// If we have any extra query string key / value pairs that need to be added
 		// onto the URL, we will put them in query string form and then attach it
 		// to the URL. This allows for extra information like sortings storage.
-		if (count($this->query) > 0) {
+		if (count($this->query) > 0)
+		{
 			$parameters = array_merge($this->query, $parameters);
 		}
 
 		$fragment = $this->buildFragment();
 
-		return $this->factory->getCurrentUrl() . '?' . http_build_query($parameters, null, '&') . $fragment;
+		return $this->factory->getCurrentUrl().'?'.http_build_query($parameters, null, '&').$fragment;
 	}
 
 	/**
@@ -242,20 +246,18 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	 */
 	protected function buildFragment()
 	{
-		return $this->fragment ? '#' . $this->fragment : '';
+		return $this->fragment ? '#'.$this->fragment : '';
 	}
 
 	/**
 	 * Get / set the URL fragment to be appended to URLs.
 	 *
-	 * @param  string|null $fragment
-	 *
+	 * @param  string|null  $fragment
 	 * @return $this|string
 	 */
 	public function fragment($fragment = null)
 	{
-		if (is_null($fragment))
-			return $this->fragment;
+		if (is_null($fragment)) return $this->fragment;
 
 		$this->fragment = $fragment;
 
@@ -265,15 +267,13 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Add a query string value to the paginator.
 	 *
-	 * @param  string $key
-	 * @param  string $value
-	 *
+	 * @param  string  $key
+	 * @param  string  $value
 	 * @return $this
 	 */
 	public function appends($key, $value = null)
 	{
-		if (is_array($key))
-			return $this->appendArray($key);
+		if (is_array($key)) return $this->appendArray($key);
 
 		return $this->addQuery($key, $value);
 	}
@@ -281,13 +281,13 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Add an array of query string values.
 	 *
-	 * @param  array $keys
-	 *
+	 * @param  array  $keys
 	 * @return $this
 	 */
 	protected function appendArray(array $keys)
 	{
-		foreach ($keys as $key => $value) {
+		foreach ($keys as $key => $value)
+		{
 			$this->addQuery($key, $value);
 		}
 
@@ -297,14 +297,14 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Add a query string value to the paginator.
 	 *
-	 * @param  string $key
-	 * @param  string $value
-	 *
+	 * @param  string  $key
+	 * @param  string  $value
 	 * @return $this
 	 */
 	public function addQuery($key, $value)
 	{
-		if ($key !== $this->factory->getPageName()) {
+		if ($key !== $this->factory->getPageName())
+		{
 			$this->query[$key] = $value;
 		}
 
@@ -314,17 +314,17 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Get the current page for the request.
 	 *
-	 * @param  int|null $total
-	 *
+	 * @param  int|null  $total
 	 * @return int
 	 */
 	public function getCurrentPage($total = null)
 	{
-		if (is_null($total)) {
+		if (is_null($total))
+		{
 			return $this->currentPage;
 		}
 
-		return min($this->currentPage, (int)ceil($total / $this->perPage));
+		return min($this->currentPage, (int) ceil($total / $this->perPage));
 	}
 
 	/**
@@ -380,8 +380,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Set the items being paginated.
 	 *
-	 * @param  mixed $items
-	 *
+	 * @param  mixed  $items
 	 * @return void
 	 */
 	public function setItems($items)
@@ -400,12 +399,11 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	}
 
 	/**
-	 * Set the base URL in use by the paginator.
-	 *
-	 * @param  string $baseUrl
-	 *
-	 * @return void
-	 */
+	* Set the base URL in use by the paginator.
+	*
+	* @param  string  $baseUrl
+	* @return void
+	*/
 	public function setBaseUrl($baseUrl)
 	{
 		$this->factory->setBaseUrl($baseUrl);
@@ -454,8 +452,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Determine if the given item exists.
 	 *
-	 * @param  mixed $key
-	 *
+	 * @param  mixed  $key
 	 * @return bool
 	 */
 	public function offsetExists($key)
@@ -466,8 +463,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Get the item at the given offset.
 	 *
-	 * @param  mixed $key
-	 *
+	 * @param  mixed  $key
 	 * @return mixed
 	 */
 	public function offsetGet($key)
@@ -478,9 +474,8 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Set the item at the given offset.
 	 *
-	 * @param  mixed $key
-	 * @param  mixed $value
-	 *
+	 * @param  mixed  $key
+	 * @param  mixed  $value
 	 * @return void
 	 */
 	public function offsetSet($key, $value)
@@ -491,8 +486,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Unset the item at the given key.
 	 *
-	 * @param  mixed $key
-	 *
+	 * @param  mixed  $key
 	 * @return void
 	 */
 	public function offsetUnset($key)
@@ -503,8 +497,7 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Convert the object to its JSON representation.
 	 *
-	 * @param  int $options
-	 *
+	 * @param  int  $options
 	 * @return string
 	 */
 	public function toJson($options = 0)
@@ -519,13 +512,11 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	 */
 	public function toArray()
 	{
-		return array('total'        => $this->total,
-		             'per_page'     => $this->perPage,
-		             'current_page' => $this->currentPage,
-		             'last_page'    => $this->lastPage,
-		             'from'         => $this->from,
-		             'to'           => $this->to,
-		             'data'         => $this->getCollection()->toArray(),);
+		return array(
+			'total' => $this->total, 'per_page' => $this->perPage,
+			'current_page' => $this->currentPage, 'last_page' => $this->lastPage,
+			'from' => $this->from, 'to' => $this->to, 'data' => $this->getCollection()->toArray(),
+		);
 	}
 
 	/**
@@ -541,9 +532,8 @@ class Paginator implements ArrayableInterface, ArrayAccess, Countable, IteratorA
 	/**
 	 * Call a method on the underlying Collection
 	 *
-	 * @param  string $method
-	 * @param  array  $arguments
-	 *
+	 * @param  string  $method
+	 * @param  array   $arguments
 	 * @return mixed
 	 */
 	public function __call($method, $arguments)

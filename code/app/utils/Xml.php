@@ -16,8 +16,9 @@ class ArrayToXML
 	public static function toXml($data, $rootNodeName = 'data', &$xml = null)
 	{
 		// turn off compatibility mode as simple xml throws a wobbly if you don't.
-		if (ini_get('zend.ze1_compatibility_mode') == 1)
+		if (ini_get('zend.ze1_compatibility_mode') == 1) {
 			ini_set('zend.ze1_compatibility_mode', 0);
+		}
 		if (is_null($xml)) {
 			$xml = simplexml_load_string(stripslashes("<?xml version='1.0' encoding='utf-8'?><root xmlns:example='http://example.namespace.com' version='1.0'></root>"));
 		}
@@ -51,7 +52,7 @@ class ArrayToXML
 			// if there is another array found recursively call this function
 			if (is_array($value)) {
 
-				if (ArrayToXML::is_assoc($value) || $numeric) {
+				if (\ArrayToXML::is_assoc($value) || $numeric) {
 
 					// older SimpleXMLElement Libraries do not have the addChild Method
 					if (method_exists('SimpleXMLElement', 'addChild')) {
@@ -63,15 +64,18 @@ class ArrayToXML
 						}
 					}
 
-				} else {
+				}
+				else {
 					$node = $xml;
 				}
 
 				// recrusive call.
-				if ($numeric)
+				if ($numeric) {
 					$key = 'anon';
-				ArrayToXML::toXml($value, $key, $node);
-			} else {
+				}
+				\ArrayToXML::toXml($value, $key, $node);
+			}
+			else {
 
 				// older SimplXMLElement Libraries do not have the addChild Method
 				if (method_exists('SimpleXMLElement', 'addChild')) {
@@ -89,9 +93,9 @@ class ArrayToXML
 		//return $xml->asXML('data.xml');
 
 		// if you want the XML to be formatted, use the below instead to return the XML
-		$doc                     = new DOMDocument('1.0');
+		$doc                     = new \DOMDocument('1.0');
 		$doc->preserveWhiteSpace = false;
-		@$doc->loadXML(ArrayToXML::fixCDATA($xml->asXML()));
+		@$doc->loadXML(\ArrayToXML::fixCDATA($xml->asXML()));
 		$doc->formatOutput = true;
 
 		//return $doc->saveXML();
@@ -128,23 +132,28 @@ class ArrayToXML
 	 */
 	public static function toArray($xml)
 	{
-		if (is_string($xml))
+		if (is_string($xml)) {
 			$xml = new SimpleXMLElement($xml);
+		}
 		$children = $xml->children();
-		if (!$children)
+		if (!$children) {
 			return (string)$xml;
+		}
 		$arr = array();
 		foreach ($children as $key => $node) {
-			$node = ArrayToXML::toArray($node);
+			$node = \ArrayToXML::toArray($node);
 			// support for 'anon' non-associative arrays
-			if ($key == 'anon')
+			if ($key == 'anon') {
 				$key = count($arr);
+			}
 			// if the node is already set, put it into an array
 			if (isset($arr[$key])) {
-				if (!is_array($arr[$key]) || $arr[$key][0] == null)
+				if (!is_array($arr[$key]) || $arr[$key][0] == null) {
 					$arr[$key] = array($arr[$key]);
+				}
 				$arr[$key][] = $node;
-			} else {
+			}
+			else {
 				$arr[$key] = $node;
 			}
 		}

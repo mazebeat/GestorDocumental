@@ -3,8 +3,7 @@
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-class RemindersTableCommand extends Command
-{
+class RemindersTableCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -30,8 +29,7 @@ class RemindersTableCommand extends Command
 	/**
 	 * Create a new reminder table command instance.
 	 *
-	 * @param  \Illuminate\Filesystem\Filesystem $files
-	 *
+	 * @param  \Illuminate\Filesystem\Filesystem  $files
 	 * @return void
 	 */
 	public function __construct(Filesystem $files)
@@ -66,7 +64,7 @@ class RemindersTableCommand extends Command
 	{
 		$name = 'create_password_reminders_table';
 
-		$path = $this->laravel['path'] . '/database/migrations';
+		$path = $this->laravel['path'].'/database/migrations';
 
 		return $this->laravel['migration.creator']->create($name, $path);
 	}
@@ -78,7 +76,7 @@ class RemindersTableCommand extends Command
 	 */
 	protected function getMigrationStub()
 	{
-		$stub = $this->files->get(__DIR__ . '/stubs/reminders.stub');
+		$stub = $this->files->get(__DIR__.'/stubs/reminders.stub');
 
 		return str_replace('password_reminders', $this->getTable(), $stub);
 	}

@@ -34,7 +34,7 @@
  * @category  File
  * @package   File_ASN1
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMXII Jim Wigginton
+ * @copyright 2012 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -347,24 +347,31 @@ class File_ASN1
             case FILE_ASN1_CLASS_APPLICATION:
             case FILE_ASN1_CLASS_PRIVATE:
             case FILE_ASN1_CLASS_CONTEXT_SPECIFIC:
-                if ($constructed) {
+                if (!$constructed) {
+                    return array(
+                        'type'     => $class,
+                        'constant' => $tag,
+                        'content'  => $content,
+                        'length'   => $length + $start - $current['start']
+                    );
+                }
+
+                $newcontent = array();
+                if (strlen($content)) {
                     $newcontent = $this->_decode_ber($content, $start);
                     $length = $newcontent['length'];
                     if (substr($content, $length, 2) == "\0\0") {
                         $length+= 2;
                     }
-
-                    // the array encapsulation is for BC with the old format
-                    $content = array($newcontent);
+                    $start+= $length;
+                    $newcontent = array($newcontent);
                 }
-
-                $start+= $length;
 
                 return array(
                     'type'     => $class,
                     'constant' => $tag,
                     // the array encapsulation is for BC with the old format
-                    'content'  => $content,
+                    'content'  => $newcontent,
                     // the only time when $content['headerlength'] isn't defined is when the length is indefinite.
                     // the absence of $content['headerlength'] is how we know if something is indefinite or not.
                     // technically, it could be defined to be 2 and then another indicator could be used but whatever.
@@ -516,6 +523,72 @@ class File_ASN1
 
         // ie. length is the length of the full TLV encoding - it's not just the length of the value
         return $current + array('length' => $start - $current['start']);
+    }
+
+    /**
+     * String Shift
+     *
+     * Inspired by array_shift
+     *
+     * @param String $string
+     * @param optional Integer $index
+     * @return String
+     * @access private
+     */
+    function _string_shift(&$string, $index = 1)
+    {
+        $substr = substr($string, 0, $index);
+        $string = substr($string, $index);
+        return $substr;
+    }
+
+    /**
+     * BER-decode the time
+     *
+     * Called by _decode_ber() and in the case of implicit tags asn1map().
+     *
+     * @access private
+     * @param String $content
+     * @param Integer $tag
+     * @return String
+     */
+    function _decodeTime($content, $tag)
+    {
+        /* UTCTime:
+           http://tools.ietf.org/html/rfc5280#section-4.1.2.5.1
+           http://www.obj-sys.com/asn1tutorial/node15.html
+
+           GeneralizedTime:
+           http://tools.ietf.org/html/rfc5280#section-4.1.2.5.2
+           http://www.obj-sys.com/asn1tutorial/node14.html */
+
+        $pattern = $tag == FILE_ASN1_TYPE_UTC_TIME ?
+            '#(..)(..)(..)(..)(..)(..)(.*)#' :
+            '#(....)(..)(..)(..)(..)(..).*([Z+-].*)$#';
+
+        preg_match($pattern, $content, $matches);
+
+        list(, $year, $month, $day, $hour, $minute, $second, $timezone) = $matches;
+
+        if ($tag == FILE_ASN1_TYPE_UTC_TIME) {
+            $year = $year >= 50 ? "19$year" : "20$year";
+        }
+
+        if ($timezone == 'Z') {
+            $mktime = 'gmmktime';
+            $timezone = 0;
+        } elseif (preg_match('#([+-])(\d\d)(\d\d)#', $timezone, $matches)) {
+            $mktime = 'gmmktime';
+            $timezone = 60 * $matches[3] + 3600 * $matches[2];
+            if ($matches[1] == '-') {
+                $timezone = -$timezone;
+            }
+        } else {
+            $mktime = 'mktime';
+            $timezone = 0;
+        }
+
+        return @$mktime($hour, $minute, $second, $month, $day, $year) + $timezone;
     }
 
     /**
@@ -1146,55 +1219,6 @@ class File_ASN1
     }
 
     /**
-     * BER-decode the time
-     *
-     * Called by _decode_ber() and in the case of implicit tags asn1map().
-     *
-     * @access private
-     * @param String $content
-     * @param Integer $tag
-     * @return String
-     */
-    function _decodeTime($content, $tag)
-    {
-        /* UTCTime:
-           http://tools.ietf.org/html/rfc5280#section-4.1.2.5.1
-           http://www.obj-sys.com/asn1tutorial/node15.html
-
-           GeneralizedTime:
-           http://tools.ietf.org/html/rfc5280#section-4.1.2.5.2
-           http://www.obj-sys.com/asn1tutorial/node14.html */
-
-        $pattern = $tag == FILE_ASN1_TYPE_UTC_TIME ?
-            '#(..)(..)(..)(..)(..)(..)(.*)#' :
-            '#(....)(..)(..)(..)(..)(..).*([Z+-].*)$#';
-
-        preg_match($pattern, $content, $matches);
-
-        list(, $year, $month, $day, $hour, $minute, $second, $timezone) = $matches;
-
-        if ($tag == FILE_ASN1_TYPE_UTC_TIME) {
-            $year = $year >= 50 ? "19$year" : "20$year";
-        }
-
-        if ($timezone == 'Z') {
-            $mktime = 'gmmktime';
-            $timezone = 0;
-        } elseif (preg_match('#([+-])(\d\d)(\d\d)#', $timezone, $matches)) {
-            $mktime = 'gmmktime';
-            $timezone = 60 * $matches[3] + 3600 * $matches[2];
-            if ($matches[1] == '-') {
-                $timezone = -$timezone;
-            }
-        } else {
-            $mktime = 'mktime';
-            $timezone = 0;
-        }
-
-        return @$mktime($hour, $minute, $second, $month, $day, $year) + $timezone;
-    }
-
-    /**
      * Set the time format
      *
      * Sets the time / date format for asn1map().
@@ -1231,23 +1255,6 @@ class File_ASN1
     function loadFilters($filters)
     {
         $this->filters = $filters;
-    }
-
-    /**
-     * String Shift
-     *
-     * Inspired by array_shift
-     *
-     * @param String $string
-     * @param optional Integer $index
-     * @return String
-     * @access private
-     */
-    function _string_shift(&$string, $index = 1)
-    {
-        $substr = substr($string, 0, $index);
-        $string = substr($string, $index);
-        return $substr;
     }
 
     /**

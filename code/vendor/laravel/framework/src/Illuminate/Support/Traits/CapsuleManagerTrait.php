@@ -3,8 +3,7 @@
 use Illuminate\Container\Container;
 use Illuminate\Support\Fluent;
 
-trait CapsuleManagerTrait
-{
+trait CapsuleManagerTrait {
 
 	/**
 	 * The current globally used instance.
@@ -43,8 +42,7 @@ trait CapsuleManagerTrait
 	/**
 	 * Set the IoC container instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 *
+	 * @param  \Illuminate\Container\Container  $container
 	 * @return void
 	 */
 	public function setContainer(Container $container)
@@ -55,15 +53,15 @@ trait CapsuleManagerTrait
 	/**
 	 * Setup the IoC container instance.
 	 *
-	 * @param  \Illuminate\Container\Container|null $container
-	 *
+	 * @param  \Illuminate\Container\Container|null  $container
 	 * @return void
 	 */
 	protected function setupContainer($container)
 	{
 		$this->container = $container ?: new Container;
 
-		if (!$this->container->bound('config')) {
+		if ( ! $this->container->bound('config'))
+		{
 			$this->container->instance('config', new Fluent);
 		}
 	}

@@ -65,6 +65,23 @@ class Registry
 	}
 
 	/**
+	 * Checks if such logging channel exists by name or instance
+	 *
+	 * @param string|Logger $logger Name or logger instance
+	 */
+	public static function hasLogger($logger)
+	{
+		if ($logger instanceof Logger) {
+			$index = array_search($logger, self::$loggers, true);
+
+			return false !== $index;
+		}
+		else {
+			return isset(self::$loggers[$logger]);
+		}
+	}
+
+	/**
 	 * Removes instance from registry by name or instance
 	 *
 	 * @param string|Logger $logger Name or logger instance
@@ -75,7 +92,8 @@ class Registry
 			if (false !== ($idx = array_search($logger, self::$loggers, true))) {
 				unset(self::$loggers[$idx]);
 			}
-		} else {
+		}
+		else {
 			unset(self::$loggers[$logger]);
 		}
 	}

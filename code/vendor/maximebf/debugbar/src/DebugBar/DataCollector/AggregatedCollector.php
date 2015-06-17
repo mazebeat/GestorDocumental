@@ -114,6 +114,11 @@ class AggregatedCollector implements DataCollectorInterface, ArrayAccess
 		return $this->sort($aggregate);
 	}
 
+	public function getName()
+	{
+		return $this->name;
+	}
+
 	/**
 	 * Sorts the collected data
 	 *
@@ -132,24 +137,20 @@ class AggregatedCollector implements DataCollectorInterface, ArrayAccess
 
 				return $a[$p] < $b[$p] ? -1 : 1;
 			});
-		} elseif ($this->sort === true) {
+		}
+		elseif ($this->sort === true) {
 			sort($data);
 		}
 
 		return $data;
 	}
 
-	public function getName()
-	{
-		return $this->name;
-	}
-
 	// --------------------------------------------
 	// ArrayAccess implementation
 
-	public function offsetSet($key, $value)
+	public function offsetExists($key)
 	{
-		throw new DebugBarException("AggregatedCollector[] is read-only");
+		return isset($this->collectors[$key]);
 	}
 
 	public function offsetGet($key)
@@ -157,9 +158,9 @@ class AggregatedCollector implements DataCollectorInterface, ArrayAccess
 		return $this->collectors[$key];
 	}
 
-	public function offsetExists($key)
+	public function offsetSet($key, $value)
 	{
-		return isset($this->collectors[$key]);
+		throw new DebugBarException("AggregatedCollector[] is read-only");
 	}
 
 	public function offsetUnset($key)

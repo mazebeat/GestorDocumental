@@ -5,8 +5,7 @@ use Illuminate\Queue\Listener;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-class ListenCommand extends Command
-{
+class ListenCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -32,8 +31,7 @@ class ListenCommand extends Command
 	/**
 	 * Create a new queue listen command.
 	 *
-	 * @param  \Illuminate\Queue\Listener $listener
-	 *
+	 * @param  \Illuminate\Queue\Listener  $listener
 	 * @return void
 	 */
 	public function __construct(Listener $listener)
@@ -68,7 +66,9 @@ class ListenCommand extends Command
 		// connection being run for the queue operation currently being executed.
 		$queue = $this->getQueue($connection);
 
-		$this->listener->listen($connection, $queue, $delay, $memory, $timeout);
+		$this->listener->listen(
+			$connection, $queue, $delay, $memory, $timeout
+		);
 	}
 
 	/**
@@ -84,7 +84,8 @@ class ListenCommand extends Command
 
 		$this->listener->setMaxTries($this->option('tries'));
 
-		$this->listener->setOutputHandler(function ($type, $line) {
+		$this->listener->setOutputHandler(function($type, $line)
+		{
 			$this->output->write($line);
 		});
 	}
@@ -92,13 +93,13 @@ class ListenCommand extends Command
 	/**
 	 * Get the name of the queue connection to listen on.
 	 *
-	 * @param  string $connection
-	 *
+	 * @param  string  $connection
 	 * @return string
 	 */
 	protected function getQueue($connection)
 	{
-		if (is_null($connection)) {
+		if (is_null($connection))
+		{
 			$connection = $this->laravel['config']['queue.default'];
 		}
 
@@ -114,7 +115,9 @@ class ListenCommand extends Command
 	 */
 	protected function getArguments()
 	{
-		return array(array('connection', InputArgument::OPTIONAL, 'The name of connection'),);
+		return array(
+			array('connection', InputArgument::OPTIONAL, 'The name of connection'),
+		);
 	}
 
 	/**
@@ -124,16 +127,19 @@ class ListenCommand extends Command
 	 */
 	protected function getOptions()
 	{
-		return array(array('queue', null, InputOption::VALUE_OPTIONAL, 'The queue to listen on', null),
+		return array(
+			array('queue', null, InputOption::VALUE_OPTIONAL, 'The queue to listen on', null),
+
 			array('delay', null, InputOption::VALUE_OPTIONAL, 'Amount of time to delay failed jobs', 0),
+
 			array('memory', null, InputOption::VALUE_OPTIONAL, 'The memory limit in megabytes', 128),
+
 			array('timeout', null, InputOption::VALUE_OPTIONAL, 'Seconds a job may run before timing out', 60),
+
 			array('sleep', null, InputOption::VALUE_OPTIONAL, 'Seconds to wait before checking queue for jobs', 3),
-			array('tries',
-				null,
-				InputOption::VALUE_OPTIONAL,
-				'Number of times to attempt a job before logging it failed',
-				0),);
+
+			array('tries', null, InputOption::VALUE_OPTIONAL, 'Number of times to attempt a job before logging it failed', 0),
+		);
 	}
 
 }

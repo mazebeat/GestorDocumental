@@ -3,8 +3,7 @@
 use Closure;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-abstract class Controller
-{
+abstract class Controller {
 
 	/**
 	 * The route filterer implementation.
@@ -34,9 +33,8 @@ abstract class Controller
 	/**
 	 * Register a "before" filter on the controller.
 	 *
-	 * @param  \Closure|string $filter
-	 * @param  array           $options
-	 *
+	 * @param  \Closure|string  $filter
+	 * @param  array  $options
 	 * @return void
 	 */
 	public function beforeFilter($filter, array $options = array())
@@ -47,9 +45,8 @@ abstract class Controller
 	/**
 	 * Parse the given filter and options.
 	 *
-	 * @param  \Closure|string $filter
-	 * @param  array           $options
-	 *
+	 * @param  \Closure|string  $filter
+	 * @param  array  $options
 	 * @return array
 	 */
 	protected function parseFilter($filter, array $options)
@@ -58,11 +55,16 @@ abstract class Controller
 
 		$original = $filter;
 
-		if ($filter instanceof Closure) {
+		if ($filter instanceof Closure)
+		{
 			$filter = $this->registerClosureFilter($filter);
-		} elseif ($this->isInstanceFilter($filter)) {
+		}
+		elseif ($this->isInstanceFilter($filter))
+		{
 			$filter = $this->registerInstanceFilter($filter);
-		} else {
+		}
+		else
+		{
 			list($filter, $parameters) = Route::parseFilter($filter);
 		}
 
@@ -72,8 +74,7 @@ abstract class Controller
 	/**
 	 * Register an anonymous controller filter Closure.
 	 *
-	 * @param  \Closure $filter
-	 *
+	 * @param  \Closure  $filter
 	 * @return string
 	 */
 	protected function registerClosureFilter(Closure $filter)
@@ -96,8 +97,7 @@ abstract class Controller
 	/**
 	 * Set the route filterer implementation.
 	 *
-	 * @param  \Illuminate\Routing\RouteFiltererInterface $filterer
-	 *
+	 * @param  \Illuminate\Routing\RouteFiltererInterface  $filterer
 	 * @return void
 	 */
 	public static function setFilterer(RouteFiltererInterface $filterer)
@@ -108,17 +108,16 @@ abstract class Controller
 	/**
 	 * Determine if a filter is a local method on the controller.
 	 *
-	 * @param  mixed $filter
-	 *
+	 * @param  mixed  $filter
 	 * @return boolean
 	 *
 	 * @throws \InvalidArgumentException
 	 */
 	protected function isInstanceFilter($filter)
 	{
-		if (is_string($filter) && starts_with($filter, '@')) {
-			if (method_exists($this, substr($filter, 1)))
-				return true;
+		if (is_string($filter) && starts_with($filter, '@'))
+		{
+			if (method_exists($this, substr($filter, 1))) return true;
 
 			throw new \InvalidArgumentException("Filter method [$filter] does not exist.");
 		}
@@ -129,8 +128,7 @@ abstract class Controller
 	/**
 	 * Register a controller instance method as a filter.
 	 *
-	 * @param  string $filter
-	 *
+	 * @param  string  $filter
 	 * @return string
 	 */
 	protected function registerInstanceFilter($filter)
@@ -143,9 +141,8 @@ abstract class Controller
 	/**
 	 * Register an "after" filter on the controller.
 	 *
-	 * @param  \Closure|string $filter
-	 * @param  array           $options
-	 *
+	 * @param  \Closure|string  $filter
+	 * @param  array  $options
 	 * @return void
 	 */
 	public function afterFilter($filter, array $options = array())
@@ -156,8 +153,7 @@ abstract class Controller
 	/**
 	 * Remove the given before filter.
 	 *
-	 * @param  string $filter
-	 *
+	 * @param  string  $filter
 	 * @return void
 	 */
 	public function forgetBeforeFilter($filter)
@@ -168,14 +164,14 @@ abstract class Controller
 	/**
 	 * Remove the given controller filter from the provided filter array.
 	 *
-	 * @param  string $removing
+	 * @param  string  $removing
 	 * @param  array  $current
-	 *
 	 * @return array
 	 */
 	protected function removeFilter($removing, $current)
 	{
-		return array_filter($current, function ($filter) use ($removing) {
+		return array_filter($current, function($filter) use ($removing)
+		{
 			return $filter['original'] != $removing;
 		});
 	}
@@ -193,8 +189,7 @@ abstract class Controller
 	/**
 	 * Remove the given after filter.
 	 *
-	 * @param  string $filter
-	 *
+	 * @param  string  $filter
 	 * @return void
 	 */
 	public function forgetAfterFilter($filter)
@@ -215,9 +210,8 @@ abstract class Controller
 	/**
 	 * Execute an action on the controller.
 	 *
-	 * @param  string $method
-	 * @param  array  $parameters
-	 *
+	 * @param  string  $method
+	 * @param  array   $parameters
 	 * @return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function callAction($method, $parameters)
@@ -229,7 +223,8 @@ abstract class Controller
 		// If no response is returned from the controller action and a layout is being
 		// used we will assume we want to just return the layout view as any nested
 		// views were probably bound on this view during this controller actions.
-		if (is_null($response) && !is_null($this->layout)) {
+		if (is_null($response) && ! is_null($this->layout))
+		{
 			$response = $this->layout;
 		}
 
@@ -241,15 +236,12 @@ abstract class Controller
 	 *
 	 * @return void
 	 */
-	protected function setupLayout()
-	{
-	}
+	protected function setupLayout() {}
 
 	/**
 	 * Handle calls to missing methods on the controller.
 	 *
-	 * @param  array $parameters
-	 *
+	 * @param  array   $parameters
 	 * @return mixed
 	 *
 	 * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
@@ -262,9 +254,8 @@ abstract class Controller
 	/**
 	 * Handle calls to missing methods on the controller.
 	 *
-	 * @param  string $method
-	 * @param  array  $parameters
-	 *
+	 * @param  string  $method
+	 * @param  array   $parameters
 	 * @return mixed
 	 *
 	 * @throws \BadMethodCallException

@@ -2,8 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 
-class CommandsServiceProvider extends ServiceProvider
-{
+class CommandsServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -13,20 +12,6 @@ class CommandsServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('command.session.database', function ($app) {
-			return new Console\SessionTableCommand($app['files']);
-		});
-
-		$this->commands('command.session.database');
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -34,6 +19,21 @@ class CommandsServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('command.session.database');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('command.session.database', function($app)
+		{
+			return new Console\SessionTableCommand($app['files']);
+		});
+
+		$this->commands('command.session.database');
 	}
 
 }

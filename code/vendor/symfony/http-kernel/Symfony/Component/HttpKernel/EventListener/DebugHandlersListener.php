@@ -22,30 +22,30 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class DebugHandlersListener implements EventSubscriberInterface
 {
-	private $exceptionHandler;
+    private $exceptionHandler;
 
-	public function __construct($exceptionHandler)
-	{
-		if (is_callable($exceptionHandler)) {
-			$this->exceptionHandler = $exceptionHandler;
-		}
-	}
+    public function __construct($exceptionHandler)
+    {
+        if (is_callable($exceptionHandler)) {
+            $this->exceptionHandler = $exceptionHandler;
+        }
+    }
 
-	public static function getSubscribedEvents()
-	{
-		return array(KernelEvents::REQUEST => array('configure', 2048));
-	}
+    public function configure()
+    {
+        if ($this->exceptionHandler) {
+            $handler = set_exception_handler('var_dump');
+            $handler = is_array($handler) ? $handler[0] : null;
+            restore_exception_handler();
+            if ($handler instanceof ExceptionHandler) {
+                $handler->setHandler($this->exceptionHandler);
+            }
+            $this->exceptionHandler = null;
+        }
+    }
 
-	public function configure()
-	{
-		if ($this->exceptionHandler) {
-			$handler = set_exception_handler('var_dump');
-			$handler = is_array($handler) ? $handler[0] : null;
-			restore_exception_handler();
-			if ($handler instanceof ExceptionHandler) {
-				$handler->setHandler($this->exceptionHandler);
-			}
-			$this->exceptionHandler = null;
-		}
-	}
+    public static function getSubscribedEvents()
+    {
+        return array(KernelEvents::REQUEST => array('configure', 2048));
+    }
 }

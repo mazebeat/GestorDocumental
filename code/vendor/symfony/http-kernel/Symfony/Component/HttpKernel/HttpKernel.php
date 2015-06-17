@@ -11,11 +11,9 @@
 
 namespace Symfony\Component\HttpKernel;
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
@@ -23,8 +21,10 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * HttpKernel notifies events to convert a Request object to a Response one.
@@ -35,259 +35,257 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
-	protected $dispatcher;
-	protected $resolver;
-	protected $requestStack;
+    protected $dispatcher;
+    protected $resolver;
+    protected $requestStack;
 
-	/**
-	 * Constructor
-	 *
-	 * @param EventDispatcherInterface    $dispatcher   An EventDispatcherInterface instance
-	 * @param ControllerResolverInterface $resolver     A ControllerResolverInterface instance
-	 * @param RequestStack                $requestStack A stack for master/sub requests
-	 *
-	 * @api
-	 */
-	public function __construct(EventDispatcherInterface $dispatcher, ControllerResolverInterface $resolver, RequestStack $requestStack = null)
-	{
-		$this->dispatcher   = $dispatcher;
-		$this->resolver     = $resolver;
-		$this->requestStack = $requestStack ?: new RequestStack();
-	}
+    /**
+     * Constructor.
+     *
+     * @param EventDispatcherInterface    $dispatcher   An EventDispatcherInterface instance
+     * @param ControllerResolverInterface $resolver     A ControllerResolverInterface instance
+     * @param RequestStack                $requestStack A stack for master/sub requests
+     *
+     * @api
+     */
+    public function __construct(EventDispatcherInterface $dispatcher, ControllerResolverInterface $resolver, RequestStack $requestStack = null)
+    {
+        $this->dispatcher = $dispatcher;
+        $this->resolver = $resolver;
+        $this->requestStack = $requestStack ?: new RequestStack();
+    }
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @api
-	 */
-	public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
-	{
-		try {
-			return $this->handleRaw($request, $type);
-		} catch (\Exception $e) {
-			if (false === $catch) {
-				$this->finishRequest($request, $type);
+    /**
+     * {@inheritdoc}
+     *
+     * @api
+     */
+    public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    {
+        try {
+            return $this->handleRaw($request, $type);
+        } catch (\Exception $e) {
+            if (false === $catch) {
+                $this->finishRequest($request, $type);
 
-				throw $e;
-			}
+                throw $e;
+            }
 
-			return $this->handleException($e, $request, $type);
-		}
-	}
+            return $this->handleException($e, $request, $type);
+        }
+    }
 
-	/**
-	 * Handles a request to convert it to a response.
-	 *
-	 * Exceptions are not caught.
-	 *
-	 * @param Request $request A Request instance
-	 * @param int     $type    The type of the request (one of HttpKernelInterface::MASTER_REQUEST or
-	 *                         HttpKernelInterface::SUB_REQUEST)
-	 *
-	 * @return Response A Response instance
-	 *
-	 * @throws \LogicException If one of the listener does not behave as expected
-	 * @throws NotFoundHttpException When controller cannot be found
-	 */
-	private function handleRaw(Request $request, $type = self::MASTER_REQUEST)
-	{
-		$this->requestStack->push($request);
+    /**
+     * {@inheritdoc}
+     *
+     * @api
+     */
+    public function terminate(Request $request, Response $response)
+    {
+        $this->dispatcher->dispatch(KernelEvents::TERMINATE, new PostResponseEvent($this, $request, $response));
+    }
 
-		// request
-		$event = new GetResponseEvent($this, $request, $type);
-		$this->dispatcher->dispatch(KernelEvents::REQUEST, $event);
+    /**
+     * @throws \LogicException If the request stack is empty
+     *
+     * @internal
+     */
+    public function terminateWithException(\Exception $exception)
+    {
+        if (!$request = $this->requestStack->getMasterRequest()) {
+            throw new \LogicException('Request stack is empty', 0, $exception);
+        }
 
-		if ($event->hasResponse()) {
-			return $this->filterResponse($event->getResponse(), $request, $type);
-		}
+        $response = $this->handleException($exception, $request, self::MASTER_REQUEST);
 
-		// load controller
-		if (false === $controller = $this->resolver->getController($request)) {
-			throw new NotFoundHttpException(sprintf('Unable to find the controller for path "%s". Maybe you forgot to add the matching route in your routing configuration?', $request->getPathInfo()));
-		}
+        $response->sendHeaders();
+        $response->sendContent();
 
-		$event = new FilterControllerEvent($this, $controller, $request, $type);
-		$this->dispatcher->dispatch(KernelEvents::CONTROLLER, $event);
-		$controller = $event->getController();
+        $this->terminate($request, $response);
+    }
 
-		// controller arguments
-		$arguments = $this->resolver->getArguments($request, $controller);
+    /**
+     * Handles a request to convert it to a response.
+     *
+     * Exceptions are not caught.
+     *
+     * @param Request $request A Request instance
+     * @param int     $type    The type of the request (one of HttpKernelInterface::MASTER_REQUEST or HttpKernelInterface::SUB_REQUEST)
+     *
+     * @return Response A Response instance
+     *
+     * @throws \LogicException       If one of the listener does not behave as expected
+     * @throws NotFoundHttpException When controller cannot be found
+     */
+    private function handleRaw(Request $request, $type = self::MASTER_REQUEST)
+    {
+        $this->requestStack->push($request);
 
-		// call controller
-		$response = call_user_func_array($controller, $arguments);
+        // request
+        $event = new GetResponseEvent($this, $request, $type);
+        $this->dispatcher->dispatch(KernelEvents::REQUEST, $event);
 
-		// view
-		if (!$response instanceof Response) {
-			$event = new GetResponseForControllerResultEvent($this, $request, $type, $response);
-			$this->dispatcher->dispatch(KernelEvents::VIEW, $event);
+        if ($event->hasResponse()) {
+            return $this->filterResponse($event->getResponse(), $request, $type);
+        }
 
-			if ($event->hasResponse()) {
-				$response = $event->getResponse();
-			}
+        // load controller
+        if (false === $controller = $this->resolver->getController($request)) {
+            throw new NotFoundHttpException(sprintf('Unable to find the controller for path "%s". Maybe you forgot to add the matching route in your routing configuration?', $request->getPathInfo()));
+        }
 
-			if (!$response instanceof Response) {
-				$msg = sprintf('The controller must return a response (%s given).', $this->varToString($response));
+        $event = new FilterControllerEvent($this, $controller, $request, $type);
+        $this->dispatcher->dispatch(KernelEvents::CONTROLLER, $event);
+        $controller = $event->getController();
 
-				// the user may have forgotten to return something
-				if (null === $response) {
-					$msg .= ' Did you forget to add a return statement somewhere in your controller?';
-				}
-				throw new \LogicException($msg);
-			}
-		}
+        // controller arguments
+        $arguments = $this->resolver->getArguments($request, $controller);
 
-		return $this->filterResponse($response, $request, $type);
-	}
+        // call controller
+        $response = call_user_func_array($controller, $arguments);
 
-	/**
-	 * Filters a response object.
-	 *
-	 * @param Response $response A Response instance
-	 * @param Request  $request  An error message in case the response is not a Response object
-	 * @param int      $type     The type of the request (one of HttpKernelInterface::MASTER_REQUEST or
-	 *                           HttpKernelInterface::SUB_REQUEST)
-	 *
-	 * @return Response The filtered Response instance
-	 *
-	 * @throws \RuntimeException if the passed object is not a Response instance
-	 */
-	private function filterResponse(Response $response, Request $request, $type)
-	{
-		$event = new FilterResponseEvent($this, $request, $type, $response);
+        // view
+        if (!$response instanceof Response) {
+            $event = new GetResponseForControllerResultEvent($this, $request, $type, $response);
+            $this->dispatcher->dispatch(KernelEvents::VIEW, $event);
 
-		$this->dispatcher->dispatch(KernelEvents::RESPONSE, $event);
+            if ($event->hasResponse()) {
+                $response = $event->getResponse();
+            }
 
-		$this->finishRequest($request, $type);
+            if (!$response instanceof Response) {
+                $msg = sprintf('The controller must return a response (%s given).', $this->varToString($response));
 
-		return $event->getResponse();
-	}
+                // the user may have forgotten to return something
+                if (null === $response) {
+                    $msg .= ' Did you forget to add a return statement somewhere in your controller?';
+                }
+                throw new \LogicException($msg);
+            }
+        }
 
-	/**
-	 * Publishes the finish request event, then pop the request from the stack.
-	 *
-	 * Note that the order of the operations is important here, otherwise
-	 * operations such as {@link RequestStack::getParentRequest()} can lead to
-	 * weird results.
-	 *
-	 * @param Request $request
-	 * @param int     $type
-	 */
-	private function finishRequest(Request $request, $type)
-	{
-		$this->dispatcher->dispatch(KernelEvents::FINISH_REQUEST, new FinishRequestEvent($this, $request, $type));
-		$this->requestStack->pop();
-	}
+        return $this->filterResponse($response, $request, $type);
+    }
 
-	private function varToString($var)
-	{
-		if (is_object($var)) {
-			return sprintf('Object(%s)', get_class($var));
-		}
+    /**
+     * Filters a response object.
+     *
+     * @param Response $response A Response instance
+     * @param Request  $request  An error message in case the response is not a Response object
+     * @param int      $type     The type of the request (one of HttpKernelInterface::MASTER_REQUEST or HttpKernelInterface::SUB_REQUEST)
+     *
+     * @return Response The filtered Response instance
+     *
+     * @throws \RuntimeException if the passed object is not a Response instance
+     */
+    private function filterResponse(Response $response, Request $request, $type)
+    {
+        $event = new FilterResponseEvent($this, $request, $type, $response);
 
-		if (is_array($var)) {
-			$a = array();
-			foreach ($var as $k => $v) {
-				$a[] = sprintf('%s => %s', $k, $this->varToString($v));
-			}
+        $this->dispatcher->dispatch(KernelEvents::RESPONSE, $event);
 
-			return sprintf("Array(%s)", implode(', ', $a));
-		}
+        $this->finishRequest($request, $type);
 
-		if (is_resource($var)) {
-			return sprintf('Resource(%s)', get_resource_type($var));
-		}
+        return $event->getResponse();
+    }
 
-		if (null === $var) {
-			return 'null';
-		}
+    /**
+     * Publishes the finish request event, then pop the request from the stack.
+     *
+     * Note that the order of the operations is important here, otherwise
+     * operations such as {@link RequestStack::getParentRequest()} can lead to
+     * weird results.
+     *
+     * @param Request $request
+     * @param int     $type
+     */
+    private function finishRequest(Request $request, $type)
+    {
+        $this->dispatcher->dispatch(KernelEvents::FINISH_REQUEST, new FinishRequestEvent($this, $request, $type));
+        $this->requestStack->pop();
+    }
 
-		if (false === $var) {
-			return 'false';
-		}
+    /**
+     * Handles an exception by trying to convert it to a Response.
+     *
+     * @param \Exception $e       An \Exception instance
+     * @param Request    $request A Request instance
+     * @param int        $type    The type of the request
+     *
+     * @return Response A Response instance
+     *
+     * @throws \Exception
+     */
+    private function handleException(\Exception $e, $request, $type)
+    {
+        $event = new GetResponseForExceptionEvent($this, $request, $type, $e);
+        $this->dispatcher->dispatch(KernelEvents::EXCEPTION, $event);
 
-		if (true === $var) {
-			return 'true';
-		}
+        // a listener might have replaced the exception
+        $e = $event->getException();
 
-		return (string)$var;
-	}
+        if (!$event->hasResponse()) {
+            $this->finishRequest($request, $type);
 
-	/**
-	 * Handles an exception by trying to convert it to a Response.
-	 *
-	 * @param \Exception $e       An \Exception instance
-	 * @param Request    $request A Request instance
-	 * @param int        $type    The type of the request
-	 *
-	 * @return Response A Response instance
-	 *
-	 * @throws \Exception
-	 */
-	private function handleException(\Exception $e, $request, $type)
-	{
-		$event = new GetResponseForExceptionEvent($this, $request, $type, $e);
-		$this->dispatcher->dispatch(KernelEvents::EXCEPTION, $event);
+            throw $e;
+        }
 
-		// a listener might have replaced the exception
-		$e = $event->getException();
+        $response = $event->getResponse();
 
-		if (!$event->hasResponse()) {
-			$this->finishRequest($request, $type);
+        // the developer asked for a specific status code
+        if ($response->headers->has('X-Status-Code')) {
+            $response->setStatusCode($response->headers->get('X-Status-Code'));
 
-			throw $e;
-		}
+            $response->headers->remove('X-Status-Code');
+        } elseif (!$response->isClientError() && !$response->isServerError() && !$response->isRedirect()) {
+            // ensure that we actually have an error response
+            if ($e instanceof HttpExceptionInterface) {
+                // keep the HTTP status code and headers
+                $response->setStatusCode($e->getStatusCode());
+                $response->headers->add($e->getHeaders());
+            } else {
+                $response->setStatusCode(500);
+            }
+        }
 
-		$response = $event->getResponse();
+        try {
+            return $this->filterResponse($response, $request, $type);
+        } catch (\Exception $e) {
+            return $response;
+        }
+    }
 
-		// the developer asked for a specific status code
-		if ($response->headers->has('X-Status-Code')) {
-			$response->setStatusCode($response->headers->get('X-Status-Code'));
+    private function varToString($var)
+    {
+        if (is_object($var)) {
+            return sprintf('Object(%s)', get_class($var));
+        }
 
-			$response->headers->remove('X-Status-Code');
-		} elseif (!$response->isClientError() && !$response->isServerError() && !$response->isRedirect()) {
-			// ensure that we actually have an error response
-			if ($e instanceof HttpExceptionInterface) {
-				// keep the HTTP status code and headers
-				$response->setStatusCode($e->getStatusCode());
-				$response->headers->add($e->getHeaders());
-			} else {
-				$response->setStatusCode(500);
-			}
-		}
+        if (is_array($var)) {
+            $a = array();
+            foreach ($var as $k => $v) {
+                $a[] = sprintf('%s => %s', $k, $this->varToString($v));
+            }
 
-		try {
-			return $this->filterResponse($response, $request, $type);
-		} catch (\Exception $e) {
-			return $response;
-		}
-	}
+            return sprintf("Array(%s)", implode(', ', $a));
+        }
 
-	/**
-	 * @throws \LogicException If the request stack is empty
-	 *
-	 * @internal
-	 */
-	public function terminateWithException(\Exception $exception)
-	{
-		if (!$request = $this->requestStack->getMasterRequest()) {
-			throw new \LogicException('Request stack is empty', 0, $exception);
-		}
+        if (is_resource($var)) {
+            return sprintf('Resource(%s)', get_resource_type($var));
+        }
 
-		$response = $this->handleException($exception, $request, self::MASTER_REQUEST);
+        if (null === $var) {
+            return 'null';
+        }
 
-		$response->sendHeaders();
-		$response->sendContent();
+        if (false === $var) {
+            return 'false';
+        }
 
-		$this->terminate($request, $response);
-	}
+        if (true === $var) {
+            return 'true';
+        }
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @api
-	 */
-	public function terminate(Request $request, Response $response)
-	{
-		$this->dispatcher->dispatch(KernelEvents::TERMINATE, new PostResponseEvent($this, $request, $response));
-	}
+        return (string) $var;
+    }
 }

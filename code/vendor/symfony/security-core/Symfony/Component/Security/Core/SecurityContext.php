@@ -11,10 +11,10 @@
 
 namespace Symfony\Component\Security\Core;
 
+use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
+use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
-use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 /**
  * SecurityContext is the main entry point of the Security component.
@@ -26,60 +26,60 @@ use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundE
  */
 class SecurityContext implements SecurityContextInterface
 {
-	private $token;
-	private $accessDecisionManager;
-	private $authenticationManager;
-	private $alwaysAuthenticate;
+    private $token;
+    private $accessDecisionManager;
+    private $authenticationManager;
+    private $alwaysAuthenticate;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param AuthenticationManagerInterface      $authenticationManager An AuthenticationManager instance
-	 * @param AccessDecisionManagerInterface|null $accessDecisionManager An AccessDecisionManager instance
-	 * @param bool                                $alwaysAuthenticate
-	 */
-	public function __construct(AuthenticationManagerInterface $authenticationManager, AccessDecisionManagerInterface $accessDecisionManager, $alwaysAuthenticate = false)
-	{
-		$this->authenticationManager = $authenticationManager;
-		$this->accessDecisionManager = $accessDecisionManager;
-		$this->alwaysAuthenticate    = $alwaysAuthenticate;
-	}
+    /**
+     * Constructor.
+     *
+     * @param AuthenticationManagerInterface      $authenticationManager An AuthenticationManager instance
+     * @param AccessDecisionManagerInterface|null $accessDecisionManager An AccessDecisionManager instance
+     * @param bool                                $alwaysAuthenticate
+     */
+    public function __construct(AuthenticationManagerInterface $authenticationManager, AccessDecisionManagerInterface $accessDecisionManager, $alwaysAuthenticate = false)
+    {
+        $this->authenticationManager = $authenticationManager;
+        $this->accessDecisionManager = $accessDecisionManager;
+        $this->alwaysAuthenticate = $alwaysAuthenticate;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @throws AuthenticationCredentialsNotFoundException when the security context has no authentication token.
-	 */
-	final public function isGranted($attributes, $object = null)
-	{
-		if (null === $this->token) {
-			throw new AuthenticationCredentialsNotFoundException('The security context contains no authentication token. One possible reason may be that there is no firewall configured for this URL.');
-		}
+    /**
+     * {@inheritdoc}
+     *
+     * @throws AuthenticationCredentialsNotFoundException when the security context has no authentication token.
+     */
+    final public function isGranted($attributes, $object = null)
+    {
+        if (null === $this->token) {
+            throw new AuthenticationCredentialsNotFoundException('The security context contains no authentication token. One possible reason may be that there is no firewall configured for this URL.');
+        }
 
-		if ($this->alwaysAuthenticate || !$this->token->isAuthenticated()) {
-			$this->token = $this->authenticationManager->authenticate($this->token);
-		}
+        if ($this->alwaysAuthenticate || !$this->token->isAuthenticated()) {
+            $this->token = $this->authenticationManager->authenticate($this->token);
+        }
 
-		if (!is_array($attributes)) {
-			$attributes = array($attributes);
-		}
+        if (!is_array($attributes)) {
+            $attributes = array($attributes);
+        }
 
-		return $this->accessDecisionManager->decide($this->token, $attributes, $object);
-	}
+        return $this->accessDecisionManager->decide($this->token, $attributes, $object);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getToken()
-	{
-		return $this->token;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getToken()
+    {
+        return $this->token;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setToken(TokenInterface $token = null)
-	{
-		$this->token = $token;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function setToken(TokenInterface $token = null)
+    {
+        $this->token = $token;
+    }
 }

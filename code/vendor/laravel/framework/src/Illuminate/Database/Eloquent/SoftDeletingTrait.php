@@ -49,7 +49,7 @@ trait SoftDeletingTrait
 	 *
 	 * @param  \Closure|string $callback
 	 *
-	 * @return void
+*@return void
 	 */
 	public static function restoring($callback)
 	{
@@ -61,7 +61,7 @@ trait SoftDeletingTrait
 	 *
 	 * @param  \Closure|string $callback
 	 *
-	 * @return void
+*@return void
 	 */
 	public static function restored($callback)
 	{
@@ -92,7 +92,8 @@ trait SoftDeletingTrait
 		// If the restoring event does not return false, we will proceed with this
 		// restore operation. Otherwise, we bail out so the developer will stop
 		// the restore totally. We will clear the deleted timestamp and save.
-		if ($this->fireModelEvent('restoring') === false) {
+		if ($this->fireModelEvent('restoring') === false)
+		{
 			return false;
 		}
 
@@ -128,7 +129,7 @@ trait SoftDeletingTrait
 	protected function performDeleteOnModel()
 	{
 		if ($this->forceDeleting) {
-			$this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
+			return $this->withTrashed()->where($this->getKeyName(), $this->getKey())->forceDelete();
 		}
 
 		return $this->runSoftDelete();

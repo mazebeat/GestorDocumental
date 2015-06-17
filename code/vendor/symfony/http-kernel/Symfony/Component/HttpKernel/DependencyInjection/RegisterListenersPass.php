@@ -16,8 +16,7 @@ use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass 
 /**
  * Compiler pass to register tagged services for an event dispatcher.
  *
- * @deprecated Deprecated in 2.5, to be removed in 3.0. Use
- *             Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass instead.
+ * @deprecated Deprecated in 2.5, to be removed in 3.0. Use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass instead.
  */
 class RegisterListenersPass extends BaseRegisterListenersPass
 {

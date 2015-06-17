@@ -4,8 +4,7 @@ use Illuminate\Console\Command;
 use Illuminate\Foundation\Composer;
 use Symfony\Component\Finder\Finder;
 
-class AutoloadCommand extends Command
-{
+class AutoloadCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -31,8 +30,7 @@ class AutoloadCommand extends Command
 	/**
 	 * Create a new optimize command instance.
 	 *
-	 * @param  \Illuminate\Foundation\Composer $composer
-	 *
+	 * @param  \Illuminate\Foundation\Composer  $composer
 	 * @return void
 	 */
 	public function __construct(Composer $composer)
@@ -51,7 +49,8 @@ class AutoloadCommand extends Command
 	{
 		$this->call('optimize');
 
-		foreach ($this->findWorkbenches() as $workbench) {
+		foreach ($this->findWorkbenches() as $workbench)
+		{
 			$this->comment("Running for workbench [{$workbench['name']}]...");
 
 			$this->composer->setWorkingPath($workbench['path'])->dumpOptimized();
@@ -67,7 +66,8 @@ class AutoloadCommand extends Command
 	{
 		$results = array();
 
-		foreach ($this->getWorkbenchComposers() as $file) {
+		foreach ($this->getWorkbenchComposers() as $file)
+		{
 			$results[] = array('name' => $file->getRelativePath(), 'path' => $file->getPath());
 		}
 
@@ -81,10 +81,9 @@ class AutoloadCommand extends Command
 	 */
 	protected function getWorkbenchComposers()
 	{
-		$workbench = $this->laravel['path.base'] . '/workbench';
+		$workbench = $this->laravel['path.base'].'/workbench';
 
-		if (!is_dir($workbench))
-			return array();
+		if ( ! is_dir($workbench)) return array();
 
 		return Finder::create()->files()->followLinks()->in($workbench)->name('composer.json')->depth('< 3');
 	}

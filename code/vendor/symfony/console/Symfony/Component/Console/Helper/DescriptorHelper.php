@@ -25,65 +25,72 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DescriptorHelper extends Helper
 {
-	/**
-	 * @var DescriptorInterface[]
-	 */
-	private $descriptors = array();
+    /**
+     * @var DescriptorInterface[]
+     */
+    private $descriptors = array();
 
-	/**
-	 * Constructor.
-	 */
-	public function __construct()
-	{
-		$this->register('txt', new TextDescriptor())->register('xml', new XmlDescriptor())->register('json', new JsonDescriptor())->register('md', new MarkdownDescriptor());
-	}
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this
+            ->register('txt', new TextDescriptor())
+            ->register('xml', new XmlDescriptor())
+            ->register('json', new JsonDescriptor())
+            ->register('md', new MarkdownDescriptor())
+        ;
+    }
 
-	/**
-	 * Registers a descriptor.
-	 *
-	 * @param string              $format
-	 * @param DescriptorInterface $descriptor
-	 *
-	 * @return DescriptorHelper
-	 */
-	public function register($format, DescriptorInterface $descriptor)
-	{
-		$this->descriptors[$format] = $descriptor;
+    /**
+     * Describes an object if supported.
+     *
+     * Available options are:
+     * * format: string, the output format name
+     * * raw_text: boolean, sets output type as raw
+     *
+     * @param OutputInterface $output
+     * @param object          $object
+     * @param array           $options
+     *
+     * @throws \InvalidArgumentException when the given format is not supported
+     */
+    public function describe(OutputInterface $output, $object, array $options = array())
+    {
+        $options = array_merge(array(
+            'raw_text' => false,
+            'format' => 'txt',
+        ), $options);
 
-		return $this;
-	}
+        if (!isset($this->descriptors[$options['format']])) {
+            throw new \InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
+        }
 
-	/**
-	 * Describes an object if supported.
-	 *
-	 * Available options are:
-	 * * format: string, the output format name
-	 * * raw_text: boolean, sets output type as raw
-	 *
-	 * @param OutputInterface $output
-	 * @param object          $object
-	 * @param array           $options
-	 *
-	 * @throws \InvalidArgumentException when the given format is not supported
-	 */
-	public function describe(OutputInterface $output, $object, array $options = array())
-	{
-		$options = array_merge(array('raw_text' => false,
-		                             'format'   => 'txt',), $options);
+        $descriptor = $this->descriptors[$options['format']];
+        $descriptor->describe($output, $object, $options);
+    }
 
-		if (!isset($this->descriptors[$options['format']])) {
-			throw new \InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
-		}
+    /**
+     * Registers a descriptor.
+     *
+     * @param string              $format
+     * @param DescriptorInterface $descriptor
+     *
+     * @return DescriptorHelper
+     */
+    public function register($format, DescriptorInterface $descriptor)
+    {
+        $this->descriptors[$format] = $descriptor;
 
-		$descriptor = $this->descriptors[$options['format']];
-		$descriptor->describe($output, $object, $options);
-	}
+        return $this;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getName()
-	{
-		return 'descriptor';
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return 'descriptor';
+    }
 }

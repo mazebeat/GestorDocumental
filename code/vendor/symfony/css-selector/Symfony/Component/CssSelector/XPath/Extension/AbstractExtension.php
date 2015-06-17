@@ -14,50 +14,50 @@ namespace Symfony\Component\CssSelector\XPath\Extension;
 /**
  * XPath expression translator abstract extension.
  *
- * This component is a port of the Python cssselector library,
+ * This component is a port of the Python cssselect library,
  * which is copyright Ian Bicking, @see https://github.com/SimonSapin/cssselect.
  *
  * @author Jean-François Simon <jeanfrancois.simon@sensiolabs.com>
  */
 abstract class AbstractExtension implements ExtensionInterface
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getNodeTranslators()
-	{
-		return array();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getNodeTranslators()
+    {
+        return array();
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getCombinationTranslators()
-	{
-		return array();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getCombinationTranslators()
+    {
+        return array();
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getFunctionTranslators()
-	{
-		return array();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getFunctionTranslators()
+    {
+        return array();
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getPseudoClassTranslators()
-	{
-		return array();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getPseudoClassTranslators()
+    {
+        return array();
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getAttributeMatchingTranslators()
-	{
-		return array();
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getAttributeMatchingTranslators()
+    {
+        return array();
+    }
 }

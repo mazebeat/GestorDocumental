@@ -6,8 +6,7 @@ use Swift_Mime_Message;
 use Swift_Mime_MimeEntity;
 use Swift_Transport;
 
-class LogTransport implements Swift_Transport
-{
+class LogTransport implements Swift_Transport {
 
 	/**
 	 * The Logger instance.
@@ -19,8 +18,7 @@ class LogTransport implements Swift_Transport
 	/**
 	 * Create a new log transport instance.
 	 *
-	 * @param  \Psr\Log\LoggerInterface $logger
-	 *
+	 * @param  \Psr\Log\LoggerInterface  $logger
 	 * @return void
 	 */
 	public function __construct(LoggerInterface $logger)
@@ -34,6 +32,22 @@ class LogTransport implements Swift_Transport
 	public function isStarted()
 	{
 		return true;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function registerPlugin(Swift_Events_EventListener $plugin)
+	{
+		//
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
+	{
+		$this->logger->debug($this->getMimeEntityString($message));
 	}
 
 	/**
@@ -53,37 +67,21 @@ class LogTransport implements Swift_Transport
 	}
 
 	/**
-	 * {@inheritdoc}
-	 */
-	public function send(Swift_Mime_Message $message, &$failedRecipients = null)
-	{
-		$this->logger->debug($this->getMimeEntityString($message));
-	}
-
-	/**
 	 * Get a loggable string out of a Swiftmailer entity.
 	 *
 	 * @param  \Swift_Mime_MimeEntity $entity
-	 *
 	 * @return string
 	 */
 	protected function getMimeEntityString(Swift_Mime_MimeEntity $entity)
 	{
-		$string = (string)$entity->getHeaders() . PHP_EOL . $entity->getBody();
+		$string = (string) $entity->getHeaders().PHP_EOL.$entity->getBody();
 
-		foreach ($entity->getChildren() as $children) {
-			$string .= PHP_EOL . PHP_EOL . $this->getMimeEntityString($children);
+		foreach ($entity->getChildren() as $children)
+		{
+			$string .= PHP_EOL.PHP_EOL.$this->getMimeEntityString($children);
 		}
 
 		return $string;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function registerPlugin(Swift_Events_EventListener $plugin)
-	{
-		//
 	}
 
 }

@@ -5,14 +5,12 @@ use Illuminate\Support\Facades\Request;
 
 /**
  * Class SiteHelpers
- *
  * @package App\Util
  */
 class SiteHelpers
 {
 	/**
 	 * Returns body id made up by URI segments
-	 *
 	 * @return string
 	 */
 	public static function bodyId()
@@ -24,7 +22,6 @@ class SiteHelpers
 
 	/**
 	 * Returns body classes made up by URI segments
-	 *
 	 * @return string
 	 */
 	public static function bodyClass()
@@ -47,7 +44,6 @@ class SiteHelpers
 
 	/**
 	 * Returns the last performed database query
-	 *
 	 * @return string
 	 */
 	public static function getLastQuery()

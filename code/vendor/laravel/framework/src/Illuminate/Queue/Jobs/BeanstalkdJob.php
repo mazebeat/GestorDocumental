@@ -4,8 +4,7 @@ use Illuminate\Container\Container;
 use Pheanstalk_Job;
 use Pheanstalk_Pheanstalk as Pheanstalk;
 
-class BeanstalkdJob extends Job
-{
+class BeanstalkdJob extends Job {
 
 	/**
 	 * The Pheanstalk instance.
@@ -24,19 +23,55 @@ class BeanstalkdJob extends Job
 	/**
 	 * Create a new job instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 * @param  \Pheanstalk_Pheanstalk          $pheanstalk
-	 * @param  \Pheanstalk_Job                 $job
-	 * @param  string                          $queue
+	 * @param  \Illuminate\Container\Container  $container
+	 * @param  \Pheanstalk_Pheanstalk  $pheanstalk
+	 * @param  \Pheanstalk_Job  $job
+	 * @param  string  $queue
+	 * @return void
+	 */
+	public function __construct(Container $container,
+                                Pheanstalk $pheanstalk,
+                                Pheanstalk_Job $job,
+                                $queue)
+	{
+		$this->job = $job;
+		$this->queue = $queue;
+		$this->container = $container;
+		$this->pheanstalk = $pheanstalk;
+	}
+
+	/**
+	 * Bury the job in the queue.
 	 *
 	 * @return void
 	 */
-	public function __construct(Container $container, Pheanstalk $pheanstalk, Pheanstalk_Job $job, $queue)
+	public function bury()
 	{
-		$this->job        = $job;
-		$this->queue      = $queue;
-		$this->container  = $container;
-		$this->pheanstalk = $pheanstalk;
+		$this->pheanstalk->bury($this->job);
+	}
+
+	/**
+	 * Get the number of times the job has been attempted.
+	 *
+	 * @return int
+	 */
+	public function attempts()
+	{
+		$stats = $this->pheanstalk->statsJob($this->job);
+
+		return (int) $stats->reserves;
+	}
+
+	/**
+	 * Delete the job from the queue.
+	 *
+	 * @return void
+	 */
+	public function delete()
+	{
+		parent::delete();
+
+		$this->pheanstalk->delete($this->job);
 	}
 
 	/**
@@ -60,22 +95,9 @@ class BeanstalkdJob extends Job
 	}
 
 	/**
-	 * Delete the job from the queue.
-	 *
-	 * @return void
-	 */
-	public function delete()
-	{
-		parent::delete();
-
-		$this->pheanstalk->delete($this->job);
-	}
-
-	/**
 	 * Release the job back into the queue.
 	 *
-	 * @param  int $delay
-	 *
+	 * @param  int   $delay
 	 * @return void
 	 */
 	public function release($delay = 0)
@@ -83,28 +105,6 @@ class BeanstalkdJob extends Job
 		$priority = Pheanstalk::DEFAULT_PRIORITY;
 
 		$this->pheanstalk->release($this->job, $priority, $delay);
-	}
-
-	/**
-	 * Bury the job in the queue.
-	 *
-	 * @return void
-	 */
-	public function bury()
-	{
-		$this->pheanstalk->bury($this->job);
-	}
-
-	/**
-	 * Get the number of times the job has been attempted.
-	 *
-	 * @return int
-	 */
-	public function attempts()
-	{
-		$stats = $this->pheanstalk->statsJob($this->job);
-
-		return (int)$stats->reserves;
 	}
 
 	/**

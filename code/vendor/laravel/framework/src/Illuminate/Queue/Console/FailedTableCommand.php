@@ -3,8 +3,7 @@
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-class FailedTableCommand extends Command
-{
+class FailedTableCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -30,8 +29,7 @@ class FailedTableCommand extends Command
 	/**
 	 * Create a new session table command instance.
 	 *
-	 * @param  \Illuminate\Filesystem\Filesystem $files
-	 *
+	 * @param  \Illuminate\Filesystem\Filesystem  $files
 	 * @return void
 	 */
 	public function __construct(Filesystem $files)
@@ -50,7 +48,7 @@ class FailedTableCommand extends Command
 	{
 		$fullPath = $this->createBaseMigration();
 
-		$this->files->put($fullPath, $this->files->get(__DIR__ . '/stubs/failed_jobs.stub'));
+		$this->files->put($fullPath, $this->files->get(__DIR__.'/stubs/failed_jobs.stub'));
 
 		$this->info('Migration created successfully!');
 	}
@@ -64,7 +62,7 @@ class FailedTableCommand extends Command
 	{
 		$name = 'create_failed_jobs_table';
 
-		$path = $this->laravel['path'] . '/database/migrations';
+		$path = $this->laravel['path'].'/database/migrations';
 
 		return $this->laravel['migration.creator']->create($name, $path);
 	}

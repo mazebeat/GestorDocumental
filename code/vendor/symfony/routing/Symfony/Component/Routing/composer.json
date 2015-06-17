@@ -2,12 +2,7 @@
     "name": "symfony/routing",
     "type": "library",
     "description": "Symfony Routing Component",
-    "keywords": [
-        "routing",
-        "router",
-        "URL",
-        "URI"
-    ],
+    "keywords": ["routing", "router", "URL", "URI"],
     "homepage": "http://symfony.com",
     "license": "MIT",
     "authors": [
@@ -26,9 +21,10 @@
     "require-dev": {
         "symfony/config": "~2.2",
         "symfony/http-foundation": "~2.3",
-        "symfony/yaml": "~2.0",
+        "symfony/yaml": "~2.0,>=2.0.5",
         "symfony/expression-language": "~2.4",
         "doctrine/annotations": "~1.0",
+        "doctrine/common": "~2.2",
         "psr/log": "~1.0"
     },
     "suggest": {
@@ -38,7 +34,7 @@
         "doctrine/annotations": "For using the annotation loader"
     },
     "autoload": {
-        "psr-0": {"Symfony\\Component\\Routing\\": ""}
+        "psr-0": { "Symfony\\Component\\Routing\\": "" }
     },
     "target-dir": "Symfony/Component/Routing",
     "minimum-stability": "dev",

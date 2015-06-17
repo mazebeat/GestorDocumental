@@ -17,77 +17,95 @@ use Memcached;
  */
 class MemcachedStorage implements StorageInterface
 {
-	protected $memcached;
+    protected $memcached;
 
-	protected $keyNamespace;
+    protected $keyNamespace;
 
-	/**
-	 * @param Memcached $memcached
-	 */
-	public function __construct(Memcached $memcached, $keyNamespace = 'phpdebugbar')
-	{
-		$this->memcached    = $memcached;
-		$this->keyNamespace = $keyNamespace;
-	}
+    /**
+     * @param Memcached $memcached
+     */
+    public function __construct(Memcached $memcached, $keyNamespace = 'phpdebugbar')
+    {
+        $this->memcached = $memcached;
+        $this->keyNamespace = $keyNamespace;
+    }
 
-	public function save($id, $data)
-	{
-		$key = $this->createKey($id);
-		$this->memcached->set($key, $data);
-		if (!$this->memcached->append($this->keyNamespace, "|$key")) {
-			$this->memcached->set($this->keyNamespace, $key);
-		}
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        if (!($keys = $this->memcached->get($this->keyNamespace))) {
+            return;
+        }
+        $this->memcached->delete($this->keyNamespace);
+        $this->memcached->deleteMulti(explode('|', $keys));
+    }
 
-	protected function createKey($id)
-	{
-		return md5("{$this->keyNamespace}.$id");
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function find(array $filters = array(), $max = 20, $offset = 0)
+    {
+        if (!($keys = $this->memcached->get($this->keyNamespace))) {
+            return array();
+        }
 
-	public function get($id)
-	{
-		return $this->memcached->get($this->createKey($id));
-	}
+        $results = array();
+        foreach (explode('|', $keys) as $key) {
+            if ($data = $this->memcached->get($key)) {
+                $meta = $data['__meta'];
+                if ($this->filter($meta, $filters)) {
+                    $results[] = $meta;
+                }
+            }
+        }
+        return array_slice($results, $offset, $max);
+    }
 
-	public function find(array $filters = array(), $max = 20, $offset = 0)
-	{
-		if (!($keys = $this->memcached->get($this->keyNamespace))) {
-			return array();
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function get($id)
+    {
+        return $this->memcached->get($this->createKey($id));
+    }
 
-		$results = array();
-		foreach (explode('|', $keys) as $key) {
-			if ($data = $this->memcached->get($key)) {
-				$meta = $data['__meta'];
-				if ($this->filter($meta, $filters)) {
-					$results[] = $meta;
-				}
-			}
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function save($id, $data)
+    {
+        $key = $this->createKey($id);
+        $this->memcached->set($key, $data);
+        if (!$this->memcached->append($this->keyNamespace, "|$key")) {
+            $this->memcached->set($this->keyNamespace, $key);
+        }
+    }
 
-		return array_slice($results, $offset, $max);
-	}
+    /**
+     * @param  string $id
+     * @return string
+     */
+    protected function createKey($id)
+    {
+        return md5("{$this->keyNamespace}.$id");
+    }
 
-	/**
-	 * Filter the metadata for matches.
-	 */
-	protected function filter($meta, $filters)
-	{
-		foreach ($filters as $key => $value) {
-			if (!isset($meta[$key]) || fnmatch($value, $meta[$key]) === false) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	public function clear()
-	{
-		if (!($keys = $this->memcached->get($this->keyNamespace))) {
-			return;
-		}
-		$this->memcached->delete($this->keyNamespace);
-		$this->memcached->deleteMulti(explode('|', $keys));
-	}
+    /**
+     * Filter the metadata for matches.
+     *
+     * @param  array $meta
+     * @param  array $filters
+     * @return bool
+     */
+    protected function filter($meta, $filters)
+    {
+        foreach ($filters as $key => $value) {
+            if (!isset($meta[$key]) || fnmatch($value, $meta[$key]) === false) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

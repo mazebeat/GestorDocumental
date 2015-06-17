@@ -4,8 +4,7 @@ use Illuminate\Foundation\Console\ClearCompiledCommand;
 use Illuminate\Foundation\Console\OptimizeCommand;
 use Illuminate\Support\ServiceProvider;
 
-class OptimizeServiceProvider extends ServiceProvider
-{
+class OptimizeServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -13,6 +12,16 @@ class OptimizeServiceProvider extends ServiceProvider
 	 * @var bool
 	 */
 	protected $defer = true;
+
+	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('command.optimize', 'command.clear-compiled');
+	}
 
 	/**
 	 * Register the service provider.
@@ -35,7 +44,8 @@ class OptimizeServiceProvider extends ServiceProvider
 	 */
 	protected function registerOptimizeCommand()
 	{
-		$this->app->bindShared('command.optimize', function ($app) {
+		$this->app->bindShared('command.optimize', function($app)
+		{
 			return new OptimizeCommand($app['composer']);
 		});
 	}
@@ -47,19 +57,10 @@ class OptimizeServiceProvider extends ServiceProvider
 	 */
 	protected function registerClearCompiledCommand()
 	{
-		$this->app->bindShared('command.clear-compiled', function () {
+		$this->app->bindShared('command.clear-compiled', function()
+		{
 			return new ClearCompiledCommand;
 		});
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('command.optimize', 'command.clear-compiled');
 	}
 
 }

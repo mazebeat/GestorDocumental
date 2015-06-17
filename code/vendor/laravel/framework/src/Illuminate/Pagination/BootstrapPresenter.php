@@ -1,46 +1,42 @@
 <?php namespace Illuminate\Pagination;
 
-class BootstrapPresenter extends Presenter
-{
+class BootstrapPresenter extends Presenter {
 
 	/**
-	 * Get HTML wrapper for a page link.
+	 * Get HTML wrapper for active text.
 	 *
-	 * @param  string $url
-	 * @param  int    $page
-	 * @param  string $rel
-	 *
+	 * @param  string  $text
 	 * @return string
 	 */
-	public function getPageLinkWrapper($url, $page, $rel = null)
+	public function getActivePageWrapper($text)
 	{
-		$rel = is_null($rel) ? '' : ' rel="' . $rel . '"';
-
-		return '<li><a href="' . $url . '"' . $rel . '>' . $page . '</a></li>';
+		return '<li class="active"><span>'.$text.'</span></li>';
 	}
 
 	/**
 	 * Get HTML wrapper for disabled text.
 	 *
-	 * @param  string $text
-	 *
+	 * @param  string  $text
 	 * @return string
 	 */
 	public function getDisabledTextWrapper($text)
 	{
-		return '<li class="disabled"><span>' . $text . '</span></li>';
+		return '<li class="disabled"><span>'.$text.'</span></li>';
 	}
 
 	/**
-	 * Get HTML wrapper for active text.
+	 * Get HTML wrapper for a page link.
 	 *
-	 * @param  string $text
-	 *
+	 * @param  string  $url
+	 * @param  int  $page
+	 * @param  string  $rel
 	 * @return string
 	 */
-	public function getActivePageWrapper($text)
+	public function getPageLinkWrapper($url, $page, $rel = null)
 	{
-		return '<li class="active"><span>' . $text . '</span></li>';
+		$rel = is_null($rel) ? '' : ' rel="'.$rel.'"';
+
+		return '<li><a href="'.$url.'"'.$rel.'>'.$page.'</a></li>';
 	}
 
 }

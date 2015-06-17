@@ -4,8 +4,17 @@ use Doctrine\DBAL\Driver\PDOSqlite\Driver as DoctrineDriver;
 use Illuminate\Database\Query\Grammars\SQLiteGrammar as QueryGrammar;
 use Illuminate\Database\Schema\Grammars\SQLiteGrammar as SchemaGrammar;
 
-class SQLiteConnection extends Connection
-{
+class SQLiteConnection extends Connection {
+
+	/**
+	 * Get the default post processor instance.
+	 *
+	 * @return \Illuminate\Database\Query\Processors\Processor
+	 */
+	protected function getDefaultPostProcessor()
+	{
+		return new Query\Processors\SQLiteProcessor;
+	}
 
 	/**
 	 * Get the default query grammar instance.
@@ -25,16 +34,6 @@ class SQLiteConnection extends Connection
 	protected function getDefaultSchemaGrammar()
 	{
 		return $this->withTablePrefix(new SchemaGrammar);
-	}
-
-	/**
-	 * Get the default post processor instance.
-	 *
-	 * @return \Illuminate\Database\Query\Processors\Processor
-	 */
-	protected function getDefaultPostProcessor()
-	{
-		return new Query\Processors\SQLiteProcessor;
 	}
 
 	/**

@@ -18,6 +18,16 @@ class FailConsoleServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('command.queue.failed', 'command.queue.retry', 'command.queue.forget', 'command.queue.flush', 'command.queue.failed-table',);
+	}
+
+	/**
 	 * Register the service provider.
 	 *
 	 * @return void
@@ -45,20 +55,6 @@ class FailConsoleServiceProvider extends ServiceProvider
 		});
 
 		$this->commands('command.queue.failed', 'command.queue.retry', 'command.queue.forget', 'command.queue.flush', 'command.queue.failed-table');
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('command.queue.failed',
-			'command.queue.retry',
-			'command.queue.forget',
-			'command.queue.flush',
-			'command.queue.failed-table',);
 	}
 
 }

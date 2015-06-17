@@ -27,11 +27,11 @@ class ControllerDispatcher
 	 * @param  \Illuminate\Routing\RouteFiltererInterface $filterer
 	 * @param  \Illuminate\Container\Container            $container
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(RouteFiltererInterface $filterer, Container $container = null)
 	{
-		$this->filterer  = $filterer;
+		$this->filterer = $filterer;
 		$this->container = $container;
 	}
 
@@ -43,7 +43,7 @@ class ControllerDispatcher
 	 * @param  string                    $controller
 	 * @param  string                    $method
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	public function dispatch(Route $route, Request $request, $controller, $method)
 	{
@@ -59,7 +59,8 @@ class ControllerDispatcher
 		// If no before filters returned a response we'll call the method on the controller
 		// to get the response to be returned to the router. We will then return it back
 		// out for processing by this router and the after filters can be called then.
-		if (is_null($response)) {
+		if (is_null($response))
+		{
 			$response = $this->call($instance, $route, $method);
 		}
 
@@ -71,7 +72,7 @@ class ControllerDispatcher
 	 *
 	 * @param  string $controller
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function makeController($controller)
 	{
@@ -88,15 +89,17 @@ class ControllerDispatcher
 	 * @param  \Illuminate\Http\Request       $request
 	 * @param  string                         $method
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function assignAfter($instance, $route, $request, $method)
 	{
-		foreach ($instance->getAfterFilters() as $filter) {
+		foreach ($instance->getAfterFilters() as $filter)
+		{
 			// If the filter applies, we will add it to the route, since it has already been
 			// registered on the filterer by the controller, and will just let the normal
 			// router take care of calling these filters so we do not duplicate logics.
-			if ($this->filterApplies($filter, $request, $method)) {
+			if ($this->filterApplies($filter, $request, $method))
+			{
 				$route->after($this->getAssignableAfter($filter));
 			}
 		}
@@ -109,12 +112,13 @@ class ControllerDispatcher
 	 * @param  \Illuminate\Http\Request $request
 	 * @param  string                   $method
 	 *
-	 * @return bool
+*@return bool
 	 */
 	protected function filterApplies($filter, $request, $method)
 	{
 		foreach (array('Only', 'Except', 'On') as $type) {
-			if ($this->{"filterFails{$type}"}($filter, $request, $method)) {
+			if ($this->{"filterFails{$type}"}($filter, $request, $method))
+			{
 				return false;
 			}
 		}
@@ -127,7 +131,7 @@ class ControllerDispatcher
 	 *
 	 * @param  \Closure|string $filter
 	 *
-	 * @return string
+*@return string
 	 */
 	protected function getAssignableAfter($filter)
 	{
@@ -140,14 +144,15 @@ class ControllerDispatcher
 	 * @param  \Illuminate\Routing\Controller $instance
 	 * @param  \Illuminate\Routing\Route      $route
 	 * @param  \Illuminate\Http\Request       $request
-	 * @param  string                         $method
+	 * @param  string  $method
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function before($instance, $route, $request, $method)
 	{
 		foreach ($instance->getBeforeFilters() as $filter) {
-			if ($this->filterApplies($filter, $request, $method)) {
+			if ($this->filterApplies($filter, $request, $method))
+			{
 				// Here we will just check if the filter applies. If it does we will call the filter
 				// and return the responses if it isn't null. If it is null, we will keep hitting
 				// them until we get a response or are finished iterating through this filters.
@@ -162,11 +167,11 @@ class ControllerDispatcher
 	/**
 	 * Call the given controller filter method.
 	 *
-	 * @param  array                     $filter
-	 * @param  \Illuminate\Routing\Route $route
+	 * @param  array                      $filter
+	 * @param  \Illuminate\Routing\Route  $route
 	 * @param  \Illuminate\Http\Request  $request
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function callFilter($filter, $route, $request)
 	{
@@ -180,9 +185,9 @@ class ControllerDispatcher
 	 *
 	 * @param  \Illuminate\Routing\Controller $instance
 	 * @param  \Illuminate\Routing\Route      $route
-	 * @param  string                         $method
+	 * @param  string  $method
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function call($instance, $route, $method)
 	{
@@ -196,9 +201,9 @@ class ControllerDispatcher
 	 *
 	 * @param  array                    $filter
 	 * @param  \Illuminate\Http\Request $request
-	 * @param  string                   $method
+	 * @param  string  $method
 	 *
-	 * @return bool
+*@return bool
 	 */
 	protected function filterFailsOnly($filter, $request, $method)
 	{
@@ -213,9 +218,9 @@ class ControllerDispatcher
 	 *
 	 * @param  array                    $filter
 	 * @param  \Illuminate\Http\Request $request
-	 * @param  string                   $method
+	 * @param  string  $method
 	 *
-	 * @return bool
+*@return bool
 	 */
 	protected function filterFailsExcept($filter, $request, $method)
 	{
@@ -230,16 +235,15 @@ class ControllerDispatcher
 	 *
 	 * @param  array                    $filter
 	 * @param  \Illuminate\Http\Request $request
-	 * @param  string                   $method
+	 * @param  string  $method
 	 *
-	 * @return bool
+*@return bool
 	 */
 	protected function filterFailsOn($filter, $request, $method)
 	{
 		$on = array_get($filter, 'options.on');
 
-		if (is_null($on))
-			return false;
+		if (is_null($on)) return false;
 
 		// If the "on" is a string, we will explode it on the pipe so you can set any
 		// amount of methods on the filter constraints and it will still work like

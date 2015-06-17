@@ -5,8 +5,7 @@ use Illuminate\Support\Contracts\ArrayableInterface;
 use Illuminate\Support\Contracts\JsonableInterface;
 use JsonSerializable;
 
-class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, JsonSerializable
-{
+class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, JsonSerializable {
 
 	/**
 	 * All of the attributes set on the container.
@@ -18,13 +17,13 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Create a new fluent container instance.
 	 *
-	 * @param  array|object $attributes
-	 *
+	 * @param  array|object	$attributes
 	 * @return void
 	 */
 	public function __construct($attributes = array())
 	{
-		foreach ($attributes as $key => $value) {
+		foreach ($attributes as $key => $value)
+		{
 			$this->attributes[$key] = $value;
 		}
 	}
@@ -62,8 +61,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Convert the Fluent instance to JSON.
 	 *
-	 * @param  int $options
-	 *
+	 * @param  int  $options
 	 * @return string
 	 */
 	public function toJson($options = 0)
@@ -74,8 +72,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Determine if the given offset exists.
 	 *
-	 * @param  string $offset
-	 *
+	 * @param  string  $offset
 	 * @return bool
 	 */
 	public function offsetExists($offset)
@@ -86,8 +83,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Get the value for a given offset.
 	 *
-	 * @param  string $offset
-	 *
+	 * @param  string  $offset
 	 * @return mixed
 	 */
 	public function offsetGet($offset)
@@ -98,9 +94,8 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Set the value at the given offset.
 	 *
-	 * @param  string $offset
-	 * @param  mixed  $value
-	 *
+	 * @param  string  $offset
+	 * @param  mixed   $value
 	 * @return void
 	 */
 	public function offsetSet($offset, $value)
@@ -111,8 +106,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Unset the value at the given offset.
 	 *
-	 * @param  string $offset
-	 *
+	 * @param  string  $offset
 	 * @return void
 	 */
 	public function offsetUnset($offset)
@@ -123,9 +117,8 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Handle dynamic calls to the container to set attributes.
 	 *
-	 * @param  string $method
-	 * @param  array  $parameters
-	 *
+	 * @param  string  $method
+	 * @param  array   $parameters
 	 * @return $this
 	 */
 	public function __call($method, $parameters)
@@ -138,8 +131,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Dynamically retrieve the value of an attribute.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return mixed
 	 */
 	public function __get($key)
@@ -150,9 +142,8 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Dynamically set the value of an attribute.
 	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
 	 * @return void
 	 */
 	public function __set($key, $value)
@@ -163,14 +154,14 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Get an attribute from the container.
 	 *
-	 * @param  string $key
-	 * @param  mixed  $default
-	 *
+	 * @param  string  $key
+	 * @param  mixed   $default
 	 * @return mixed
 	 */
 	public function get($key, $default = null)
 	{
-		if (array_key_exists($key, $this->attributes)) {
+		if (array_key_exists($key, $this->attributes))
+		{
 			return $this->attributes[$key];
 		}
 
@@ -180,8 +171,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Dynamically check if an attribute is set.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function __isset($key)
@@ -192,8 +182,7 @@ class Fluent implements ArrayAccess, ArrayableInterface, JsonableInterface, Json
 	/**
 	 * Dynamically unset an attribute.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return void
 	 */
 	public function __unset($key)

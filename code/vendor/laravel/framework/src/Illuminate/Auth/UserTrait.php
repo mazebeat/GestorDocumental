@@ -48,7 +48,7 @@ trait UserTrait
 	 *
 	 * @param  string $value
 	 *
-	 * @return void
+*@return void
 	 */
 	public function setRememberToken($value)
 	{

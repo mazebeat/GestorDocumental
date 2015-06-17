@@ -2,7 +2,7 @@
 
 include(app_path() . '/libs/nusoap/nusoap.php');
 
-class WebServiceController extends BaseController
+class WebServiceController extends ApiController
 {
 	//	General vars
 	private $name;
@@ -12,6 +12,7 @@ class WebServiceController extends BaseController
 	private $server;
 	private $webservice;
 	private $wsdl;
+
 	//	Webservice vars *****************************************
 
 	//	private $apellidosUser;
@@ -38,51 +39,58 @@ class WebServiceController extends BaseController
 	//	private $vigenciaIni;
 	//	private $vigenciaFin;
 
-	public function __construct($webservice = '/GestionDocIntelidata/UtilsAlfresco?WSDL', $ip_server = '192.168.1.86', $port = '8080', $function = 'opRequestUtils', $secure = false)
+	public function __construct($webservice = '/GestionDocIntelidata/UtilsAlfresco?WSDL', $function = 'opRequestUtils', $secure = false)
 	{
 		$this->function   = $function;
-		$this->server     = $ip_server;
 		$this->webservice = $webservice;
 
 		if ($secure) {
-			$this->wsdl = 'https://' . $this->server . ':' . $port . $this->webservice;
-		} else {
-			$this->wsdl = 'http://' . $this->server . ':' . $port . $this->webservice;
+			$this->wsdl = 'https://' . Config::get('api.wsdl.ip') . ':' . Config::get('api.wsdl.port') . $this->webservice;
 		}
+		else {
+			$this->wsdl = 'http://' . Config::get('api.wsdl.ip') . ':' . Config::get('api.wsdl.port') . $this->webservice;
+		}
+
 		if (preg_match('/Utils/', $this->webservice)) {
-			$this->params = array('strTipoRespuestaUtils' => '',
-			                      'strCarpeta'            => '',
-			                      'strCodUtils'           => '',
-			                      'strUser'               => '',
-			                      'strPass'               => '',
-			                      'strNombresUser'        => '',
-			                      'strApellidosUser'      => '',
-			                      'strIdNegocio'          => '',
-			                      'strVigenciaIni'        => '',
-			                      'strVigenciaFin'        => '',
-			                      'strEstado'             => '',
-			                      'strNuevoEspacio'       => '',
-			                      'strRutaEspacio'        => '',
-			                      'trRutaCarpeta'         => '',
-			                      'strIdEspacio'          => '',
-			                      'strTipoDocumento'      => '',
-			                      'strDocumento'          => '',
-			                      'strIdProceso'          => '',
-			                      'strIdUser'             => '',
-			                      'strFechaLog'           => '',
-			                      'strCliente'            => '',
-			                      'strDescripcion'        => '',
-			                      'strBuscador'           => '',
-			                      'strIdPerfil'           => '',
-			                      'strPerfil'             => '');
+			$this->params = array(
+				'strTipoRespuestaUtils' => '',
+				'strCarpeta'            => '',
+				'strCodUtils'           => '',
+				'strUser'               => '',
+				'strPass'               => '',
+				'strNombresUser'        => '',
+				'strApellidosUser'      => '',
+				'strIdNegocio'          => '',
+				'strVigenciaIni'        => '',
+				'strVigenciaFin'        => '',
+				'strEstado'             => '',
+				'strNuevoEspacio'       => '',
+				'strRutaEspacio'        => '',
+				'trRutaCarpeta'         => '',
+				'strIdEspacio'          => '',
+				'strTipoDocumento'      => '',
+				'strDocumento'          => '',
+				'strIdProceso'          => '',
+				'strIdUser'             => '',
+				'strFechaLog'           => '',
+				'strCliente'            => '',
+				'strDescripcion'        => '',
+				'strBuscador'           => '',
+				'strIdPerfil'           => '',
+				'strPerfil'             => ''
+			);
 		}
+
 		if (preg_match('/Lista/', $this->webservice)) {
 			$this->params = array('strRutaCarpeta' => '');
 		}
+
 		if (preg_match('/Documento/', $this->webservice)) {
-			$this->params = array('strIdCliente'     => '',
-			                      'strIdDocumento'   => '',
-			                      'strTipoDocumento' => '');
+			$this->params = array(
+				'strIdCliente'     => '',
+				'strIdDocumento'   => '',
+				'strTipoDocumento' => ''
+			);
 		}
 	}
 
@@ -405,8 +413,11 @@ class WebServiceController extends BaseController
 				break;
 		}
 
+//		$soap_defencoding = 'ISO-8859-1';
+		$soap_defencoding = 'UTF-8';
+
 		$soap                   = new \nusoap_client($this->wsdl, 'wsdl');
-		$soap->soap_defencoding = 'UTF-8';
+		$soap->soap_defencoding = $soap_defencoding;
 		$soap->decode_utf8      = false;
 		$temp                   = $soap->call($this->function, array('arg0' => $this->params));
 

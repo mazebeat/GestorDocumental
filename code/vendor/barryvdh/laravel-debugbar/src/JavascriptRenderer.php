@@ -16,17 +16,12 @@ class JavascriptRenderer extends BaseJavascriptRenderer
     /** @var \Illuminate\Routing\UrlGenerator */
     protected $url;
 
-    protected $cssVendors = array(
-        // 'vendor/font-awesome/css/font-awesome.min.css',  // Removed until font is embedded
-        'vendor/highlightjs/styles/github.css'
-    );
-
     public function __construct(DebugBar $debugBar, $baseUrl = null, $basePath = null)
     {
         parent::__construct($debugBar, $baseUrl, $basePath);
 
-        $this->cssFiles[] = __DIR__ . '/Resources/laravel-debugbar.css';
-        $this->cssVendors[] = __DIR__ . '/Resources/vendor/font-awesome/style.css';
+        $this->cssFiles['laravel'] = __DIR__ . '/Resources/laravel-debugbar.css';
+        $this->cssVendors['fontawesome'] = __DIR__ . '/Resources/vendor/font-awesome/style.css';
     }
 
     /**
@@ -37,6 +32,51 @@ class JavascriptRenderer extends BaseJavascriptRenderer
     public function setUrlGenerator($url)
     {
         $this->url = $url;
+    }
+
+    /**
+     * Return assets as a string
+     *
+     * @param string $type 'js' or 'css'
+     * @return string
+     */
+    public function dumpAssetsToString($type)
+    {
+        $files = $this->getAssets($type);
+
+        $content = '';
+        foreach ($files as $file) {
+            $content .= file_get_contents($file) . "\n";
+        }
+
+        return $content;
+    }
+
+    /**
+     * Makes a URI relative to another
+     *
+     * @param string|array $uri
+     * @param string $root
+     * @return string
+     */
+    protected function makeUriRelativeTo($uri, $root)
+    {
+        if (!$root) {
+            return $uri;
+        }
+
+        if (is_array($uri)) {
+            $uris = array();
+            foreach ($uri as $u) {
+                $uris[] = $this->makeUriRelativeTo($u, $root);
+            }
+            return $uris;
+        }
+
+        if (substr($uri, 0, 1) === '/' || preg_match('/^([a-zA-Z]+:\/\/|[a-zA-Z]:\/|[a-zA-Z]:\\\)/', $uri)) {
+            return $uri;
+        }
+        return rtrim($root, '/') . "/$uri";
     }
 
     /**
@@ -88,50 +128,5 @@ class JavascriptRenderer extends BaseJavascriptRenderer
             }
         }
         return $latest;
-    }
-
-    /**
-     * Return assets as a string
-     *
-     * @param string $type 'js' or 'css'
-     * @return string
-     */
-    public function dumpAssetsToString($type)
-    {
-        $files = $this->getAssets($type);
-
-        $content = '';
-        foreach ($files as $file) {
-            $content .= file_get_contents($file) . "\n";
-        }
-
-        return $content;
-    }
-
-    /**
-     * Makes a URI relative to another
-     *
-     * @param string|array $uri
-     * @param string $root
-     * @return string
-     */
-    protected function makeUriRelativeTo($uri, $root)
-    {
-        if (!$root) {
-            return $uri;
-        }
-
-        if (is_array($uri)) {
-            $uris = array();
-            foreach ($uri as $u) {
-                $uris[] = $this->makeUriRelativeTo($u, $root);
-            }
-            return $uris;
-        }
-
-        if (substr($uri, 0, 1) === '/' || preg_match('/^([a-zA-Z]+:\/\/|[a-zA-Z]:\/|[a-zA-Z]:\\\)/', $uri)) {
-            return $uri;
-        }
-        return rtrim($root, '/') . "/$uri";
     }
 }

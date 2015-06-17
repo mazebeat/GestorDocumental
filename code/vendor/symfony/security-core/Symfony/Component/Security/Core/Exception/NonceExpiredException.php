@@ -20,11 +20,11 @@ namespace Symfony\Component\Security\Core\Exception;
  */
 class NonceExpiredException extends AuthenticationException
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMessageKey()
-	{
-		return 'Digest nonce has expired.';
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getMessageKey()
+    {
+        return 'Digest nonce has expired.';
+    }
 }

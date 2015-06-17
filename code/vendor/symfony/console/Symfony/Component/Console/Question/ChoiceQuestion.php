@@ -18,121 +18,133 @@ namespace Symfony\Component\Console\Question;
  */
 class ChoiceQuestion extends Question
 {
-	private $choices;
-	private $multiselect = false;
-	private $prompt = ' > ';
-	private $errorMessage = 'Value "%s" is invalid';
+    private $choices;
+    private $multiselect = false;
+    private $prompt = ' > ';
+    private $errorMessage = 'Value "%s" is invalid';
 
-	public function __construct($question, array $choices, $default = null)
-	{
-		parent::__construct($question, $default);
+    /**
+     * Constructor.
+     *
+     * @param string $question The question to ask to the user
+     * @param array  $choices  The list of available choices
+     * @param mixed  $default  The default answer to return
+     */
+    public function __construct($question, array $choices, $default = null)
+    {
+        parent::__construct($question, $default);
 
-		$this->choices = $choices;
-		$this->setValidator($this->getDefaultValidator());
-		$this->setAutocompleterValues(array_keys($choices));
-	}
+        $this->choices = $choices;
+        $this->setValidator($this->getDefaultValidator());
+        $this->setAutocompleterValues(array_keys($choices));
+    }
 
-	private function getDefaultValidator()
-	{
-		$choices      = $this->choices;
-		$errorMessage = $this->errorMessage;
-		$multiselect  = $this->multiselect;
+    /**
+     * Returns available choices.
+     *
+     * @return array
+     */
+    public function getChoices()
+    {
+        return $this->choices;
+    }
 
-		return function ($selected) use ($choices, $errorMessage, $multiselect) {
-			// Collapse all spaces.
-			$selectedChoices = str_replace(' ', '', $selected);
+    /**
+     * Sets multiselect option.
+     *
+     * When multiselect is set to true, multiple choices can be answered.
+     *
+     * @param bool $multiselect
+     *
+     * @return ChoiceQuestion The current instance
+     */
+    public function setMultiselect($multiselect)
+    {
+        $this->multiselect = $multiselect;
+        $this->setValidator($this->getDefaultValidator());
 
-			if ($multiselect) {
-				// Check for a separated comma values
-				if (!preg_match('/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+)*$/', $selectedChoices, $matches)) {
-					throw new \InvalidArgumentException(sprintf($errorMessage, $selected));
-				}
-				$selectedChoices = explode(',', $selectedChoices);
-			} else {
-				$selectedChoices = array($selected);
-			}
+        return $this;
+    }
 
-			$multiselectChoices = array();
-			foreach ($selectedChoices as $value) {
-				if (empty($choices[$value])) {
-					throw new \InvalidArgumentException(sprintf($errorMessage, $value));
-				}
-				array_push($multiselectChoices, $choices[$value]);
-			}
+    /**
+     * Gets the prompt for choices.
+     *
+     * @return string
+     */
+    public function getPrompt()
+    {
+        return $this->prompt;
+    }
 
-			if ($multiselect) {
-				return $multiselectChoices;
-			}
+    /**
+     * Sets the prompt for choices.
+     *
+     * @param string $prompt
+     *
+     * @return ChoiceQuestion The current instance
+     */
+    public function setPrompt($prompt)
+    {
+        $this->prompt = $prompt;
 
-			return $choices[$selected];
-		};
-	}
+        return $this;
+    }
 
-	/**
-	 * Returns available choices.
-	 *
-	 * @return array
-	 */
-	public function getChoices()
-	{
-		return $this->choices;
-	}
+    /**
+     * Sets the error message for invalid values.
+     *
+     * The error message has a string placeholder (%s) for the invalid value.
+     *
+     * @param string $errorMessage
+     *
+     * @return ChoiceQuestion The current instance
+     */
+    public function setErrorMessage($errorMessage)
+    {
+        $this->errorMessage = $errorMessage;
+        $this->setValidator($this->getDefaultValidator());
 
-	/**
-	 * Sets multiselect option.
-	 *
-	 * When multiselect is set to true, multiple choices can be answered.
-	 *
-	 * @param bool $multiselect
-	 *
-	 * @return ChoiceQuestion The current instance
-	 */
-	public function setMultiselect($multiselect)
-	{
-		$this->multiselect = $multiselect;
-		$this->setValidator($this->getDefaultValidator());
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * Returns the default answer validator.
+     *
+     * @return callable
+     */
+    private function getDefaultValidator()
+    {
+        $choices = $this->choices;
+        $errorMessage = $this->errorMessage;
+        $multiselect = $this->multiselect;
 
-	/**
-	 * Gets the prompt for choices.
-	 *
-	 * @return string
-	 */
-	public function getPrompt()
-	{
-		return $this->prompt;
-	}
+        return function ($selected) use ($choices, $errorMessage, $multiselect) {
+            // Collapse all spaces.
+            $selectedChoices = str_replace(' ', '', $selected);
 
-	/**
-	 * Sets the prompt for choices.
-	 *
-	 * @param string $prompt
-	 *
-	 * @return ChoiceQuestion The current instance
-	 */
-	public function setPrompt($prompt)
-	{
-		$this->prompt = $prompt;
+            if ($multiselect) {
+                // Check for a separated comma values
+                if (!preg_match('/^[a-zA-Z0-9_-]+(?:,[a-zA-Z0-9_-]+)*$/', $selectedChoices, $matches)) {
+                    throw new \InvalidArgumentException(sprintf($errorMessage, $selected));
+                }
+                $selectedChoices = explode(',', $selectedChoices);
+            } else {
+                $selectedChoices = array($selected);
+            }
 
-		return $this;
-	}
+            $multiselectChoices = array();
+            foreach ($selectedChoices as $value) {
+                if (empty($choices[$value])) {
+                    throw new \InvalidArgumentException(sprintf($errorMessage, $value));
+                }
+                array_push($multiselectChoices, $choices[$value]);
+            }
 
-	/**
-	 * Sets the error message for invalid values.
-	 *
-	 * The error message has a string placeholder (%s) for the invalid value.
-	 *
-	 * @param string $errorMessage
-	 *
-	 * @return ChoiceQuestion The current instance
-	 */
-	public function setErrorMessage($errorMessage)
-	{
-		$this->errorMessage = $errorMessage;
-		$this->setValidator($this->getDefaultValidator());
+            if ($multiselect) {
+                return $multiselectChoices;
+            }
 
-		return $this;
-	}
+            return $choices[$selected];
+        };
+    }
 }

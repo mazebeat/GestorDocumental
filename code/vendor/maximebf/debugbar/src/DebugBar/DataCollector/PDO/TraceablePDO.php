@@ -17,8 +17,7 @@ class TraceablePDO extends PDO
 	public function __construct(PDO $pdo)
 	{
 		$this->pdo = $pdo;
-		$this->pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('DebugBar\DataCollector\PDO\TraceablePDOStatement',
-				array($this)));
+		$this->pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('DebugBar\DataCollector\PDO\TraceablePDOStatement', array($this)));
 	}
 
 	public function beginTransaction()
@@ -44,6 +43,46 @@ class TraceablePDO extends PDO
 	public function exec($sql)
 	{
 		return $this->profileCall('exec', $sql, func_get_args());
+	}
+
+	public function getAttribute($attr)
+	{
+		return $this->pdo->getAttribute($attr);
+	}
+
+	public function inTransaction()
+	{
+		return $this->pdo->inTransaction();
+	}
+
+	public function lastInsertId($name = null)
+	{
+		return $this->pdo->lastInsertId($name);
+	}
+
+	public function prepare($sql, $driver_options = array())
+	{
+		return $this->pdo->prepare($sql, $driver_options);
+	}
+
+	public function query($sql)
+	{
+		return $this->profileCall('query', $sql, func_get_args());
+	}
+
+	public function quote($expr, $parameter_type = PDO::PARAM_STR)
+	{
+		return $this->pdo->quote($expr, $parameter_type);
+	}
+
+	public function rollBack()
+	{
+		return $this->pdo->rollBack();
+	}
+
+	public function setAttribute($attr, $value)
+	{
+		return $this->pdo->setAttribute($attr, $value);
 	}
 
 	/**
@@ -90,46 +129,6 @@ class TraceablePDO extends PDO
 	public function addExecutedStatement(TracedStatement $stmt)
 	{
 		$this->executedStatements[] = $stmt;
-	}
-
-	public function getAttribute($attr)
-	{
-		return $this->pdo->getAttribute($attr);
-	}
-
-	public function inTransaction()
-	{
-		return $this->pdo->inTransaction();
-	}
-
-	public function lastInsertId($name = null)
-	{
-		return $this->pdo->lastInsertId($name);
-	}
-
-	public function prepare($sql, $driver_options = array())
-	{
-		return $this->pdo->prepare($sql, $driver_options);
-	}
-
-	public function query($sql)
-	{
-		return $this->profileCall('query', $sql, func_get_args());
-	}
-
-	public function quote($expr, $parameter_type = PDO::PARAM_STR)
-	{
-		return $this->pdo->quote($expr, $parameter_type);
-	}
-
-	public function rollBack()
-	{
-		return $this->pdo->rollBack();
-	}
-
-	public function setAttribute($attr, $value)
-	{
-		return $this->pdo->setAttribute($attr, $value);
 	}
 
 	/**

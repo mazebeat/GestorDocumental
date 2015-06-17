@@ -4,8 +4,7 @@ use Illuminate\Foundation\Composer;
 use Illuminate\Foundation\Console\AutoloadCommand;
 use Illuminate\Support\ServiceProvider;
 
-class ComposerServiceProvider extends ServiceProvider
-{
+class ComposerServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -15,24 +14,6 @@ class ComposerServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('composer', function ($app) {
-			return new Composer($app['files'], $app['path.base']);
-		});
-
-		$this->app->bindShared('command.dump-autoload', function ($app) {
-			return new AutoloadCommand($app['composer']);
-		});
-
-		$this->commands('command.dump-autoload');
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -40,6 +21,26 @@ class ComposerServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('composer', 'command.dump-autoload');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('composer', function($app)
+		{
+			return new Composer($app['files'], $app['path.base']);
+		});
+
+		$this->app->bindShared('command.dump-autoload', function($app)
+		{
+			return new AutoloadCommand($app['composer']);
+		});
+
+		$this->commands('command.dump-autoload');
 	}
 
 }

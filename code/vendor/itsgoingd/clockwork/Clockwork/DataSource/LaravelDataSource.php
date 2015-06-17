@@ -1,7 +1,6 @@
 <?php
 namespace Clockwork\DataSource;
 
-use Clockwork\DataSource\DataSource;
 use Clockwork\Request\Log;
 use Clockwork\Request\Request;
 use Clockwork\Request\Timeline;
@@ -71,85 +70,19 @@ class LaravelDataSource extends DataSource
 	}
 
 	/**
-	 * Set a custom response instance
+	 * Return request method
 	 */
-	public function setResponse(Response $response)
+	protected function getRequestMethod()
 	{
-		$this->response = $response;
+		return $this->app['request']->getMethod();
 	}
 
 	/**
-	 * Hook up callbacks for various Laravel events, providing information for timeline and log entries
+	 * Return request URI
 	 */
-	public function listenToEvents()
+	protected function getRequestUri()
 	{
-		$timeline = $this->timeline;
-
-		$timeline->startEvent('total', 'Total execution time.', 'start');
-
-		$timeline->startEvent('initialisation', 'Application initialisation.', 'start');
-
-		$this->app->booting(function() use($timeline)
-		{
-			$timeline->endEvent('initialisation');
-			$timeline->startEvent('boot', 'Framework booting.');
-			$timeline->startEvent('run', 'Framework running.');
-		});
-
-		$this->app->booted(function() use($timeline)
-		{
-			$timeline->endEvent('boot');
-		});
-
-		$this->app->shutdown(function() use($timeline)
-		{
-			$timeline->endEvent('run');
-		});
-
-		$this->app->before(function() use($timeline)
-		{
-			$timeline->startEvent('dispatch', 'Router dispatch.');
-		});
-
-		$this->app->after(function() use($timeline)
-		{
-			$timeline->endEvent('dispatch');
-		});
-
-		$this->app['events']->listen('clockwork.controller.start', function() use($timeline)
-		{
-			$timeline->startEvent('controller', 'Controller running.');
-		});
-		$this->app['events']->listen('clockwork.controller.end', function() use($timeline)
-		{
-			$timeline->endEvent('controller');
-		});
-
-		$log = $this->log;
-
-		$this->app['events']->listen('illuminate.log', function($level, $message) use($log)
-		{
-			$log->log($level, $message);
-		});
-
-		$views = $this->views;
-		$that = $this;
-
-		$this->app['events']->listen('composing:*', function($view) use($views, $that)
-		{
-			$time = microtime(true);
-
-			$views->addEvent(
-				'view ' . $view->getName(),
-				'Rendering a view',
-				$time,
-				$time,
-				array(
-					'name' => $view->getName(),
-					'data' => $that->replaceUnserializable($view->getData())
-				)
-			);
-		});
+		return $this->app['request']->getRequestUri();
 	}
 
 	/**
@@ -189,22 +122,6 @@ class LaravelDataSource extends DataSource
 	protected function getRequestHeaders()
 	{
 		return $this->app['request']->headers->all();
-	}
-
-	/**
-	 * Return request method
-	 */
-	protected function getRequestMethod()
-	{
-		return $this->app['request']->getMethod();
-	}
-
-	/**
-	 * Return request URI
-	 */
-	protected function getRequestUri()
-	{
-		return $this->app['request']->getRequestUri();
 	}
 
 	/**
@@ -262,5 +179,82 @@ class LaravelDataSource extends DataSource
 		return $this->removePasswords(
 			$this->replaceUnserializable($this->app['session']->all())
 		);
+	}
+
+	/**
+	 * Set a custom response instance
+	 */
+	public function setResponse(Response $response)
+	{
+		$this->response = $response;
+	}
+
+	/**
+	 * Hook up callbacks for various Laravel events, providing information for timeline and log entries
+	 */
+	public function listenToEvents()
+	{
+		$timeline = $this->timeline;
+
+		$timeline->startEvent('total', 'Total execution time.', 'start');
+
+		$timeline->startEvent('initialisation', 'Application initialisation.', 'start');
+
+		$this->app->booting(function() use($timeline)
+		{
+			$timeline->endEvent('initialisation');
+			$timeline->startEvent('boot', 'Framework booting.');
+			$timeline->startEvent('run', 'Framework running.');
+		});
+
+		$this->app->booted(function() use($timeline)
+		{
+			$timeline->endEvent('boot');
+		});
+
+		$this->app['router']->before(function() use($timeline)
+		{
+			$timeline->startEvent('dispatch', 'Router dispatch.');
+		});
+
+		$this->app['router']->after(function() use($timeline)
+		{
+			$timeline->endEvent('dispatch');
+		});
+
+		$this->app['events']->listen('clockwork.controller.start', function() use($timeline)
+		{
+			$timeline->startEvent('controller', 'Controller running.');
+		});
+		$this->app['events']->listen('clockwork.controller.end', function() use($timeline)
+		{
+			$timeline->endEvent('controller');
+		});
+
+		$log = $this->log;
+
+		$this->app['events']->listen('illuminate.log', function($level, $message, $context) use($log)
+		{
+			$log->log($level, $message, $context);
+		});
+
+		$views = $this->views;
+		$that = $this;
+
+		$this->app['events']->listen('composing:*', function($view) use($views, $that)
+		{
+			$time = microtime(true);
+
+			$views->addEvent(
+				'view ' . $view->getName(),
+				'Rendering a view',
+				$time,
+				$time,
+				array(
+					'name' => $view->getName(),
+					'data' => $that->replaceUnserializable($view->getData())
+				)
+			);
+		});
 	}
 }

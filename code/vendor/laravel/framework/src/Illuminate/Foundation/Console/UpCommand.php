@@ -2,8 +2,7 @@
 
 use Illuminate\Console\Command;
 
-class UpCommand extends Command
-{
+class UpCommand extends Command {
 
 	/**
 	 * The console command name.
@@ -26,7 +25,7 @@ class UpCommand extends Command
 	 */
 	public function fire()
 	{
-		@unlink($this->laravel['config']['app.manifest'] . '/down');
+		@unlink($this->laravel['config']['app.manifest'].'/down');
 
 		$this->info('Application is now live.');
 	}

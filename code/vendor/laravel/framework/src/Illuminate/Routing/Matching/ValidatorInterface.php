@@ -12,7 +12,7 @@ interface ValidatorInterface
 	 * @param  \Illuminate\Routing\Route $route
 	 * @param  \Illuminate\Http\Request  $request
 	 *
-	 * @return bool
+*@return bool
 	 */
 	public function matches(Route $route, Request $request);
 

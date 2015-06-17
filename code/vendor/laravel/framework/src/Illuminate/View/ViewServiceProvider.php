@@ -125,7 +125,7 @@ class ViewServiceProvider extends ServiceProvider
 	 *
 	 * @param  \Illuminate\View\Engines\EngineResolver $resolver
 	 *
-	 * @return void
+*@return void
 	 */
 	public function registerPhpEngine($resolver)
 	{
@@ -139,7 +139,7 @@ class ViewServiceProvider extends ServiceProvider
 	 *
 	 * @param  \Illuminate\View\Engines\EngineResolver $resolver
 	 *
-	 * @return void
+*@return void
 	 */
 	public function registerBladeEngine($resolver)
 	{
@@ -154,7 +154,8 @@ class ViewServiceProvider extends ServiceProvider
 			return new BladeCompiler($app['files'], $cache);
 		});
 
-		$resolver->register('blade', function () use ($app) {
+		$resolver->register('blade', function () use ($app)
+		{
 			return new CompilerEngine($app['blade.compiler'], $app['files']);
 		});
 	}
@@ -164,13 +165,14 @@ class ViewServiceProvider extends ServiceProvider
 	 *
 	 * @param  \Illuminate\Foundation\Application $app
 	 *
-	 * @return bool
+*@return bool
 	 */
 	public function sessionHasErrors($app)
 	{
 		$config = $app['config']['session'];
 
-		if (isset($app['session.store']) && !is_null($config['driver'])) {
+		if (isset($app['session.store']) && !is_null($config['driver']))
+		{
 			return $app['session.store']->has('errors');
 		}
 	}

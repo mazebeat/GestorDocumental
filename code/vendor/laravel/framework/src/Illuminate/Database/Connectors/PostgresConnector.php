@@ -2,24 +2,24 @@
 
 use PDO;
 
-class PostgresConnector extends Connector implements ConnectorInterface
-{
+class PostgresConnector extends Connector implements ConnectorInterface {
 
 	/**
 	 * The default PDO connection options.
 	 *
 	 * @var array
 	 */
-	protected $options = array(PDO::ATTR_CASE              => PDO::CASE_NATURAL,
-	                           PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
-	                           PDO::ATTR_ORACLE_NULLS      => PDO::NULL_NATURAL,
-	                           PDO::ATTR_STRINGIFY_FETCHES => false,);
+	protected $options = array(
+			PDO::ATTR_CASE => PDO::CASE_NATURAL,
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+			PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+			PDO::ATTR_STRINGIFY_FETCHES => false,
+	);
 
 	/**
 	 * Establish a database connection.
 	 *
-	 * @param  array $config
-	 *
+	 * @param  array  $config
 	 * @return \PDO
 	 */
 	public function connect(array $config)
@@ -40,7 +40,8 @@ class PostgresConnector extends Connector implements ConnectorInterface
 		// Unlike MySQL, Postgres allows the concept of "schema" and a default schema
 		// may have been specified on the connections. If that is the case we will
 		// set the default schema search paths to the specified database schema.
-		if (isset($config['schema'])) {
+		if (isset($config['schema']))
+		{
 			$schema = $config['schema'];
 
 			$connection->prepare("set search_path to {$schema}")->execute();
@@ -52,8 +53,7 @@ class PostgresConnector extends Connector implements ConnectorInterface
 	/**
 	 * Create a DSN string from a configuration.
 	 *
-	 * @param  array $config
-	 *
+	 * @param  array   $config
 	 * @return string
 	 */
 	protected function getDsn(array $config)
@@ -70,11 +70,13 @@ class PostgresConnector extends Connector implements ConnectorInterface
 		// If a port was specified, we will add it to this Postgres DSN connections
 		// format. Once we have done that we are ready to return this connection
 		// string back out for usage, as this has been fully constructed here.
-		if (isset($config['port'])) {
+		if (isset($config['port']))
+		{
 			$dsn .= ";port={$port}";
 		}
 
-		if (isset($config['sslmode'])) {
+		if (isset($config['sslmode']))
+		{
 			$dsn .= ";sslmode={$sslmode}";
 		}
 

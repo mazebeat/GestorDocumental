@@ -24,7 +24,7 @@ gestorDocumental.directive('showFolders', ['rootFactory', function (rootFactory)
         link: function (scope, element, attr) {
             scope.root = rootFactory.raiz;
         },
-        template: '<a href="{{ root }}/dashboard/folder/{{ ngModel.root }} "><i class="fa fa-folder-open fa-fw"></i> {{ ngModel.name }}</a>'
+        template: '<a class="btn btn-link" href="{{ root }}/dashboard/folder/{{ ngModel.root }} "><i class="fa fa-folder-open fa-2x fa-fw"></i>&nbsp;{{ ngModel.name }}</a>'
     }
 }]);
 

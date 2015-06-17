@@ -4,7 +4,7 @@
     <ul class="nav nav-pills nav-stacked nav-bracket">
         <li>
             {{ Form::open(array('url' => 'dashboard/years', 'method' => 'POST')) }}
-            {{ Form::selectYear2('year', 2000, null, array('class' => 'form-control chosen-select', 'data-placeholder' => 'Seleccione un año...', 'ng-change' => 'buscarCarpeta()', 'ng-model' => 'year')) }}
+            {{ Form::selectYear2('year', 2000, null, array('class' => 'form-control', 'data-placeholder' => 'Seleccione un año...', 'ng-change' => 'buscarCarpeta()', 'ng-model' => 'year')) }}
             {{ Form::close() }}
         </li>
         {{--<li ng-show="objeto.year"><strong>@{{ objeto.year }}</strong></li>--}}

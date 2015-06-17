@@ -1,7 +1,6 @@
 <?php namespace Illuminate\Foundation;
 
-class AliasLoader
-{
+class AliasLoader {
 
 	/**
 	 * The singleton instance of the loader.
@@ -25,8 +24,7 @@ class AliasLoader
 	/**
 	 * Create a new class alias loader instance.
 	 *
-	 * @param  array $aliases
-	 *
+	 * @param  array  $aliases
 	 * @return void
 	 */
 	public function __construct(array $aliases = array())
@@ -37,14 +35,12 @@ class AliasLoader
 	/**
 	 * Get or create the singleton alias loader instance.
 	 *
-	 * @param  array $aliases
-	 *
+	 * @param  array  $aliases
 	 * @return \Illuminate\Foundation\AliasLoader
 	 */
 	public static function getInstance(array $aliases = array())
 	{
-		if (is_null(static::$instance))
-			return static::$instance = new static($aliases);
+		if (is_null(static::$instance)) return static::$instance = new static($aliases);
 
 		$aliases = array_merge(static::$instance->getAliases(), $aliases);
 
@@ -56,8 +52,7 @@ class AliasLoader
 	/**
 	 * Set the value of the singleton alias loader.
 	 *
-	 * @param  \Illuminate\Foundation\AliasLoader $loader
-	 *
+	 * @param  \Illuminate\Foundation\AliasLoader  $loader
 	 * @return void
 	 */
 	public static function setInstance($loader)
@@ -78,8 +73,7 @@ class AliasLoader
 	/**
 	 * Set the registered aliases.
 	 *
-	 * @param  array $aliases
-	 *
+	 * @param  array  $aliases
 	 * @return void
 	 */
 	public function setAliases(array $aliases)
@@ -90,13 +84,13 @@ class AliasLoader
 	/**
 	 * Load a class alias if it is registered.
 	 *
-	 * @param  string $alias
-	 *
+	 * @param  string  $alias
 	 * @return void
 	 */
 	public function load($alias)
 	{
-		if (isset($this->aliases[$alias])) {
+		if (isset($this->aliases[$alias]))
+		{
 			return class_alias($this->aliases[$alias], $alias);
 		}
 	}
@@ -104,9 +98,8 @@ class AliasLoader
 	/**
 	 * Add an alias to the loader.
 	 *
-	 * @param  string $class
-	 * @param  string $alias
-	 *
+	 * @param  string  $class
+	 * @param  string  $alias
 	 * @return void
 	 */
 	public function alias($class, $alias)
@@ -121,7 +114,8 @@ class AliasLoader
 	 */
 	public function register()
 	{
-		if (!$this->registered) {
+		if ( ! $this->registered)
+		{
 			$this->prependToLoaderStack();
 
 			$this->registered = true;
@@ -151,8 +145,7 @@ class AliasLoader
 	/**
 	 * Set the "registered" state of the loader.
 	 *
-	 * @param  bool $value
-	 *
+	 * @param  bool  $value
 	 * @return void
 	 */
 	public function setRegistered($value)

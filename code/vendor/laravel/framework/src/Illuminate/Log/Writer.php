@@ -25,14 +25,14 @@ class Writer
 	 *
 	 * @var array
 	 */
-	protected $levels = array('debug',
+	protected $levels
+		= array('debug',
 		'info',
 		'notice',
 		'warning',
 		'error',
 		'critical',
-		'alert',
-		'emergency',);
+		'alert', 'emergency',);
 
 	/**
 	 * The event dispatcher instance.
@@ -47,7 +47,7 @@ class Writer
 	 * @param  \Monolog\Logger               $monolog
 	 * @param  \Illuminate\Events\Dispatcher $dispatcher
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(MonologLogger $monolog, Dispatcher $dispatcher = null)
 	{
@@ -64,7 +64,7 @@ class Writer
 	 * @param  string $path
 	 * @param  string $level
 	 *
-	 * @return void
+*@return void
 	 */
 	public function useFiles($path, $level = 'debug')
 	{
@@ -80,13 +80,14 @@ class Writer
 	 *
 	 * @param  string $level
 	 *
-	 * @return int
+*@return int
 	 *
 	 * @throws \InvalidArgumentException
 	 */
 	protected function parseLevel($level)
 	{
-		switch ($level) {
+		switch ($level)
+		{
 			case 'debug':
 				return MonologLogger::DEBUG;
 
@@ -117,7 +118,7 @@ class Writer
 	}
 
 	/**
-	 * Get a defaut Monolog formatter instance.
+	 * Get a default Monolog formatter instance.
 	 *
 	 * @return \Monolog\Formatter\LineFormatter
 	 */
@@ -133,7 +134,7 @@ class Writer
 	 * @param  int    $days
 	 * @param  string $level
 	 *
-	 * @return void
+*@return void
 	 */
 	public function useDailyFiles($path, $days = 0, $level = 'debug')
 	{
@@ -147,10 +148,10 @@ class Writer
 	/**
 	 * Register an error_log handler.
 	 *
-	 * @param  string  $level
-	 * @param  integer $messageType
+	 * @param  string $level
+	 * @param  int    $messageType
 	 *
-	 * @return void
+*@return void
 	 */
 	public function useErrorLog($level = 'debug', $messageType = ErrorLogHandler::OPERATING_SYSTEM)
 	{
@@ -167,13 +168,14 @@ class Writer
 	 *
 	 * @param  \Closure $callback
 	 *
-	 * @return void
+*@return void
 	 *
 	 * @throws \RuntimeException
 	 */
 	public function listen(Closure $callback)
 	{
-		if (!isset($this->dispatcher)) {
+		if (!isset($this->dispatcher))
+		{
 			throw new \RuntimeException("Events dispatcher has not been set.");
 		}
 
@@ -204,7 +206,6 @@ class Writer
 	 * Set the event dispatcher instance.
 	 *
 	 * @param  \Illuminate\Events\Dispatcher
-	 *
 	 * @return void
 	 */
 	public function setEventDispatcher(Dispatcher $dispatcher)
@@ -216,7 +217,6 @@ class Writer
 	 * Dynamically pass log calls into the writer.
 	 *
 	 * @param  mixed (level, param, param)
-	 *
 	 * @return mixed
 	 */
 	public function write()
@@ -232,13 +232,14 @@ class Writer
 	 * @param  string $method
 	 * @param  mixed  $parameters
 	 *
-	 * @return mixed
+*@return mixed
 	 *
 	 * @throws \BadMethodCallException
 	 */
 	public function __call($method, $parameters)
 	{
-		if (in_array($method, $this->levels)) {
+		if (in_array($method, $this->levels))
+		{
 			$this->formatParameters($parameters);
 
 			call_user_func_array(array($this, 'fireLogEvent'), array_merge(array($method), $parameters));
@@ -256,16 +257,21 @@ class Writer
 	 *
 	 * @param  mixed $parameters
 	 *
-	 * @return void
+*@return void
 	 */
 	protected function formatParameters(&$parameters)
 	{
 		if (isset($parameters[0])) {
-			if (is_array($parameters[0])) {
+			if (is_array($parameters[0]))
+			{
 				$parameters[0] = var_export($parameters[0], true);
-			} elseif ($parameters[0] instanceof JsonableInterface) {
+			}
+			elseif ($parameters[0] instanceof JsonableInterface)
+			{
 				$parameters[0] = $parameters[0]->toJson();
-			} elseif ($parameters[0] instanceof ArrayableInterface) {
+			}
+			elseif ($parameters[0] instanceof ArrayableInterface)
+			{
 				$parameters[0] = var_export($parameters[0]->toArray(), true);
 			}
 		}
@@ -274,14 +280,15 @@ class Writer
 	/**
 	 * Call Monolog with the given method and parameters.
 	 *
-	 * @param  string $method
-	 * @param  mixed  $parameters
+	 * @param  string  $method
+	 * @param  mixed   $parameters
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	protected function callMonolog($method, $parameters)
 	{
-		if (is_array($parameters[0])) {
+		if (is_array($parameters[0]))
+		{
 			$parameters[0] = json_encode($parameters[0]);
 		}
 
@@ -291,18 +298,19 @@ class Writer
 	/**
 	 * Fires a log event.
 	 *
-	 * @param  string $level
-	 * @param  string $message
-	 * @param  array  $context
+	 * @param  string  $level
+	 * @param  string  $message
+	 * @param  array   $context
 	 *
-	 * @return void
+*@return void
 	 */
 	protected function fireLogEvent($level, $message, array $context = array())
 	{
 		// If the event dispatcher is set, we will pass along the parameters to the
 		// log listeners. These are useful for building profilers or other tools
 		// that aggregate all of the log messages for a given "request" cycle.
-		if (isset($this->dispatcher)) {
+		if (isset($this->dispatcher))
+		{
 			$this->dispatcher->fire('illuminate.log', compact('level', 'message', 'context'));
 		}
 	}

@@ -32,12 +32,24 @@ class FileLoader implements LoaderInterface
 	 * @param  \Illuminate\Filesystem\Filesystem $files
 	 * @param  string                            $path
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Filesystem $files, $path)
 	{
-		$this->path  = $path;
+		$this->path = $path;
 		$this->files = $files;
+	}
+
+	/**
+	 * Add a new namespace to the loader.
+	 *
+	 * @param  string $namespace
+	 * @param  string $hint
+	 * @return void
+	 */
+	public function addNamespace($namespace, $hint)
+	{
+		$this->hints[$namespace] = $hint;
 	}
 
 	/**
@@ -47,11 +59,12 @@ class FileLoader implements LoaderInterface
 	 * @param  string $group
 	 * @param  string $namespace
 	 *
-	 * @return array
+*@return array
 	 */
 	public function load($locale, $group, $namespace = null)
 	{
-		if (is_null($namespace) || $namespace == '*') {
+		if (is_null($namespace) || $namespace == '*')
+		{
 			return $this->loadPath($this->path, $locale, $group);
 		}
 
@@ -65,11 +78,12 @@ class FileLoader implements LoaderInterface
 	 * @param  string $locale
 	 * @param  string $group
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function loadPath($path, $locale, $group)
 	{
-		if ($this->files->exists($full = "{$path}/{$locale}/{$group}.php")) {
+		if ($this->files->exists($full = "{$path}/{$locale}/{$group}.php"))
+		{
 			return $this->files->getRequire($full);
 		}
 
@@ -83,11 +97,12 @@ class FileLoader implements LoaderInterface
 	 * @param  string $group
 	 * @param  string $namespace
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function loadNamespaced($locale, $group, $namespace)
 	{
-		if (isset($this->hints[$namespace])) {
+		if (isset($this->hints[$namespace]))
+		{
 			$lines = $this->loadPath($this->hints[$namespace], $locale, $group);
 
 			return $this->loadNamespaceOverrides($lines, $locale, $group, $namespace);
@@ -104,30 +119,18 @@ class FileLoader implements LoaderInterface
 	 * @param  string $group
 	 * @param  string $namespace
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function loadNamespaceOverrides(array $lines, $locale, $group, $namespace)
 	{
 		$file = "{$this->path}/packages/{$locale}/{$namespace}/{$group}.php";
 
-		if ($this->files->exists($file)) {
+		if ($this->files->exists($file))
+		{
 			return array_replace_recursive($lines, $this->files->getRequire($file));
 		}
 
 		return $lines;
-	}
-
-	/**
-	 * Add a new namespace to the loader.
-	 *
-	 * @param  string $namespace
-	 * @param  string $hint
-	 *
-	 * @return void
-	 */
-	public function addNamespace($namespace, $hint)
-	{
-		$this->hints[$namespace] = $hint;
 	}
 
 }

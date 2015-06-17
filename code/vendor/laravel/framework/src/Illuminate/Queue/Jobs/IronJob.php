@@ -3,8 +3,7 @@
 use Illuminate\Container\Container;
 use Illuminate\Queue\IronQueue;
 
-class IronJob extends Job
-{
+class IronJob extends Job {
 
 	/**
 	 * The Iron queue instance.
@@ -30,19 +29,45 @@ class IronJob extends Job
 	/**
 	 * Create a new job instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 * @param  \Illuminate\Queue\IronQueue     $iron
-	 * @param  object                          $job
-	 * @param  bool                            $pushed
+	 * @param  \Illuminate\Container\Container  $container
+	 * @param  \Illuminate\Queue\IronQueue  $iron
+	 * @param  object  $job
+	 * @param  bool    $pushed
+	 * @return void
+	 */
+	public function __construct(Container $container,
+                                IronQueue $iron,
+                                $job,
+                                $pushed = false)
+	{
+		$this->job = $job;
+		$this->iron = $iron;
+		$this->pushed = $pushed;
+		$this->container = $container;
+	}
+
+	/**
+	 * Get the number of times the job has been attempted.
+	 *
+	 * @return int
+	 */
+	public function attempts()
+	{
+		return array_get(json_decode($this->job->body, true), 'attempts', 1);
+	}
+
+	/**
+	 * Delete the job from the queue.
 	 *
 	 * @return void
 	 */
-	public function __construct(Container $container, IronQueue $iron, $job, $pushed = false)
+	public function delete()
 	{
-		$this->job       = $job;
-		$this->iron      = $iron;
-		$this->pushed    = $pushed;
-		$this->container = $container;
+		parent::delete();
+
+		if (isset($this->job->pushed)) return;
+
+		$this->iron->deleteMessage($this->getQueue(), $this->job->id);
 	}
 
 	/**
@@ -53,6 +78,16 @@ class IronJob extends Job
 	public function fire()
 	{
 		$this->resolveAndFire(json_decode($this->getRawBody(), true));
+	}
+
+	/**
+	 * Get the name of the queue the job belongs to.
+	 *
+	 * @return string
+	 */
+	public function getQueue()
+	{
+		return array_get(json_decode($this->job->body, true), 'queue');
 	}
 
 	/**
@@ -68,48 +103,20 @@ class IronJob extends Job
 	/**
 	 * Release the job back into the queue.
 	 *
-	 * @param  int $delay
-	 *
+	 * @param  int   $delay
 	 * @return void
 	 */
 	public function release($delay = 0)
 	{
-		if (!$this->pushed)
-			$this->delete();
+		if ( ! $this->pushed) $this->delete();
 
 		$this->recreateJob($delay);
 	}
 
 	/**
-	 * Delete the job from the queue.
-	 *
-	 * @return void
-	 */
-	public function delete()
-	{
-		parent::delete();
-
-		if (isset($this->job->pushed))
-			return;
-
-		$this->iron->deleteMessage($this->getQueue(), $this->job->id);
-	}
-
-	/**
-	 * Get the name of the queue the job belongs to.
-	 *
-	 * @return string
-	 */
-	public function getQueue()
-	{
-		return array_get(json_decode($this->job->body, true), 'queue');
-	}
-
-	/**
 	 * Release a pushed job back onto the queue.
 	 *
-	 * @param  int $delay
-	 *
+	 * @param  int  $delay
 	 * @return void
 	 */
 	protected function recreateJob($delay)
@@ -119,16 +126,6 @@ class IronJob extends Job
 		array_set($payload, 'attempts', array_get($payload, 'attempts', 1) + 1);
 
 		$this->iron->recreate(json_encode($payload), $this->getQueue(), $delay);
-	}
-
-	/**
-	 * Get the number of times the job has been attempted.
-	 *
-	 * @return int
-	 */
-	public function attempts()
-	{
-		return array_get(json_decode($this->job->body, true), 'attempts', 1);
 	}
 
 	/**

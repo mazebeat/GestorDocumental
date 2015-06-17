@@ -22,6 +22,7 @@ class JsonFormatter implements FormatterInterface
 {
 	const BATCH_MODE_JSON     = 1;
 	const BATCH_MODE_NEWLINES = 2;
+
 	protected $batchMode;
 	protected $appendNewline;
 
@@ -38,7 +39,7 @@ class JsonFormatter implements FormatterInterface
 	 * The batch mode option configures the formatting style for
 	 * multiple records. By default, multiple records will be
 	 * formatted as a JSON-encoded array. However, for
-	 * compatibility with some API endpoints, alternive styles
+	 * compatibility with some API endpoints, alternative styles
 	 * are available.
 	 *
 	 * @return int
@@ -56,6 +57,14 @@ class JsonFormatter implements FormatterInterface
 	public function isAppendingNewlines()
 	{
 		return $this->appendNewline;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function format(array $record)
+	{
+		return json_encode($record) . ($this->appendNewline ? "\n" : '');
 	}
 
 	/**
@@ -93,14 +102,6 @@ class JsonFormatter implements FormatterInterface
 		$this->appendNewline = $oldNewline;
 
 		return implode("\n", $records);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function format(array $record)
-	{
-		return json_encode($record) . ($this->appendNewline ? "\n" : '');
 	}
 
 	/**

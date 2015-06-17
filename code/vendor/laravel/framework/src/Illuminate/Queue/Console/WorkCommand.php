@@ -24,9 +24,9 @@ class WorkCommand extends Command
 	protected $description = 'Process the next job on a queue';
 
 	/**
-	 * The queue listener instance.
+	 * The queue worker instance.
 	 *
-	 * @var \Illuminate\Queue\Listener
+	 * @var \Illuminate\Queue\Worker
 	 */
 	protected $worker;
 
@@ -35,7 +35,7 @@ class WorkCommand extends Command
 	 *
 	 * @param  \Illuminate\Queue\Worker $worker
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Worker $worker)
 	{
@@ -97,11 +97,12 @@ class WorkCommand extends Command
 	 * @param  int    $memory
 	 * @param  bool   $daemon
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function runWorker($connection, $queue, $delay, $memory, $daemon = false)
 	{
-		if ($daemon) {
+		if ($daemon)
+		{
 			$this->worker->setCache($this->laravel['cache']->driver());
 
 			$this->worker->setDaemonExceptionHandler($this->laravel['exception']);
@@ -118,13 +119,14 @@ class WorkCommand extends Command
 	 * @param  \Illuminate\Queue\Jobs\Job $job
 	 * @param  bool                       $failed
 	 *
-	 * @return void
+*@return void
 	 */
 	protected function writeOutput(Job $job, $failed)
 	{
 		if ($failed) {
 			$this->output->writeln('<error>Failed:</error> ' . $job->getName());
-		} else {
+		}
+		else {
 			$this->output->writeln('<info>Processed:</info> ' . $job->getName());
 		}
 	}
@@ -136,7 +138,8 @@ class WorkCommand extends Command
 	 */
 	protected function getArguments()
 	{
-		return array(array('connection', InputArgument::OPTIONAL, 'The name of connection', null),);
+		return array(array('connection', InputArgument::OPTIONAL, 'The name of connection', null),
+		);
 	}
 
 	/**
@@ -147,16 +150,19 @@ class WorkCommand extends Command
 	protected function getOptions()
 	{
 		return array(array('queue', null, InputOption::VALUE_OPTIONAL, 'The queue to listen on'),
+
 			array('daemon', null, InputOption::VALUE_NONE, 'Run the worker in daemon mode'),
+
 			array('delay', null, InputOption::VALUE_OPTIONAL, 'Amount of time to delay failed jobs', 0),
+
 			array('force', null, InputOption::VALUE_NONE, 'Force the worker to run even in maintenance mode'),
+
 			array('memory', null, InputOption::VALUE_OPTIONAL, 'The memory limit in megabytes', 128),
+
 			array('sleep', null, InputOption::VALUE_OPTIONAL, 'Number of seconds to sleep when no job is available', 3),
-			array('tries',
-				null,
-				InputOption::VALUE_OPTIONAL,
-				'Number of times to attempt a job before logging it failed',
-				0),);
+
+			array('tries', null, InputOption::VALUE_OPTIONAL, 'Number of times to attempt a job before logging it failed', 0),
+		);
 	}
 
 }

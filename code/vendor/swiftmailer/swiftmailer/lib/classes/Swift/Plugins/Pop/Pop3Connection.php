@@ -1,31 +1,31 @@
 <?php
 
-    /*
-     * This file is part of SwiftMailer.
-     * (c) 2004-2009 Chris Corbyn
+/*
+ * This file is part of SwiftMailer.
+ * (c) 2004-2009 Chris Corbyn
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * Pop3Connection interface for connecting and disconnecting to a POP3 host.
+ *
+ * @author Chris Corbyn
+ */
+interface Swift_Plugins_Pop_Pop3Connection
+{
+    /**
+     * Connect to the POP3 host and throw an Exception if it fails.
      *
-     * For the full copyright and license information, please view the LICENSE
-     * file that was distributed with this source code.
+     * @throws Swift_Plugins_Pop_Pop3Exception
      */
+    public function connect();
 
     /**
-     * Pop3Connection interface for connecting and disconnecting to a POP3 host.
+     * Disconnect from the POP3 host and throw an Exception if it fails.
      *
-     * @author     Chris Corbyn
+     * @throws Swift_Plugins_Pop_Pop3Exception
      */
-    interface Swift_Plugins_Pop_Pop3Connection
-    {
-        /**
-         * Connect to the POP3 host and throw an Exception if it fails.
-         *
-         * @throws Swift_Plugins_Pop_Pop3Exception
-         */
-        public function connect();
-
-        /**
-         * Disconnect from the POP3 host and throw an Exception if it fails.
-         *
-         * @throws Swift_Plugins_Pop_Pop3Exception
-         */
-        public function disconnect();
-    }
+    public function disconnect();
+}

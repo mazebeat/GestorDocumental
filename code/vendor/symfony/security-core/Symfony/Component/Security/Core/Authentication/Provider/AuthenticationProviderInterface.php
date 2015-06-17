@@ -1,35 +1,35 @@
 <?php
 
-    /*
-     * This file is part of the Symfony package.
-     *
-     * (c) Fabien Potencier <fabien@symfony.com>
-     *
-     * For the full copyright and license information, please view the LICENSE
-     * file that was distributed with this source code.
-     */
+/*
+ * This file is part of the Symfony package.
+ *
+ * (c) Fabien Potencier <fabien@symfony.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-    namespace Symfony\Component\Security\Core\Authentication\Provider;
+namespace Symfony\Component\Security\Core\Authentication\Provider;
 
-    use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-    use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 
+/**
+ * AuthenticationProviderInterface is the interface for all authentication
+ * providers.
+ *
+ * Concrete implementations processes specific Token instances.
+ *
+ * @author Fabien Potencier <fabien@symfony.com>
+ */
+interface AuthenticationProviderInterface extends AuthenticationManagerInterface
+{
     /**
-     * AuthenticationProviderInterface is the interface for all authentication
-     * providers.
+     * Checks whether this provider supports the given token.
      *
-     * Concrete implementations processes specific Token instances.
+     * @param TokenInterface $token A TokenInterface instance
      *
-     * @author Fabien Potencier <fabien@symfony.com>
+     * @return bool true if the implementation supports the Token, false otherwise
      */
-    interface AuthenticationProviderInterface extends AuthenticationManagerInterface
-    {
-        /**
-         * Checks whether this provider supports the given token.
-         *
-         * @param TokenInterface $token A TokenInterface instance
-         *
-         * @return bool    true if the implementation supports the Token, false otherwise
-         */
-        public function supports(TokenInterface $token);
-    }
+    public function supports(TokenInterface $token);
+}

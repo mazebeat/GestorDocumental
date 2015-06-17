@@ -9,8 +9,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
-class Command extends \Symfony\Component\Console\Command\Command
-{
+class Command extends \Symfony\Component\Console\Command\Command {
 
 	/**
 	 * The Laravel application instance.
@@ -74,11 +73,13 @@ class Command extends \Symfony\Component\Console\Command\Command
 		// We will loop through all of the arguments and options for the command and
 		// set them all on the base command instance. This specifies what can get
 		// passed into these commands as "parameters" to control the execution.
-		foreach ($this->getArguments() as $arguments) {
+		foreach ($this->getArguments() as $arguments)
+		{
 			call_user_func_array(array($this, 'addArgument'), $arguments);
 		}
 
-		foreach ($this->getOptions() as $options) {
+		foreach ($this->getOptions() as $options)
+		{
 			call_user_func_array(array($this, 'addOption'), $options);
 		}
 	}
@@ -104,29 +105,11 @@ class Command extends \Symfony\Component\Console\Command\Command
 	}
 
 	/**
-	 * Run the console command.
-	 *
-	 * @param  \Symfony\Component\Console\Input\InputInterface   $input
-	 * @param  \Symfony\Component\Console\Output\OutputInterface $output
-	 *
-	 * @return integer
-	 */
-	public function run(InputInterface $input, OutputInterface $output)
-	{
-		$this->input = $input;
-
-		$this->output = $output;
-
-		return parent::run($input, $output);
-	}
-
-	/**
 	 * Call another console command.
 	 *
-	 * @param  string $command
-	 * @param  array  $arguments
-	 *
-	 * @return integer
+	 * @param  string  $command
+	 * @param  array   $arguments
+	 * @return int
 	 */
 	public function call($command, array $arguments = array())
 	{
@@ -140,10 +123,9 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Call another console command silently.
 	 *
-	 * @param  string $command
-	 * @param  array  $arguments
-	 *
-	 * @return integer
+	 * @param  string  $command
+	 * @param  array   $arguments
+	 * @return int
 	 */
 	public function callSilent($command, array $arguments = array())
 	{
@@ -157,14 +139,12 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Get the value of a command argument.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return string|array
 	 */
 	public function argument($key = null)
 	{
-		if (is_null($key))
-			return $this->input->getArguments();
+		if (is_null($key)) return $this->input->getArguments();
 
 		return $this->input->getArgument($key);
 	}
@@ -172,14 +152,12 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Get the value of a command option.
 	 *
-	 * @param  string $key
-	 *
+	 * @param  string  $key
 	 * @return string|array
 	 */
 	public function option($key = null)
 	{
-		if (is_null($key))
-			return $this->input->getOptions();
+		if (is_null($key)) return $this->input->getOptions();
 
 		return $this->input->getOption($key);
 	}
@@ -187,12 +165,11 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Confirm a question with the user.
 	 *
-	 * @param  string $question
-	 * @param  bool   $default
-	 *
+	 * @param  string  $question
+	 * @param  bool    $default
 	 * @return bool
 	 */
-	public function confirm($question, $default = true)
+	public function confirm($question, $default = false)
 	{
 		$helper = $this->getHelperSet()->get('question');
 
@@ -204,9 +181,8 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Prompt the user for input.
 	 *
-	 * @param  string $question
-	 * @param  string $default
-	 *
+	 * @param  string  $question
+	 * @param  string  $default
 	 * @return string
 	 */
 	public function ask($question, $default = null)
@@ -221,10 +197,9 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Prompt the user for input with auto completion.
 	 *
-	 * @param  string $question
-	 * @param  array  $choices
-	 * @param  string $default
-	 *
+	 * @param  string  $question
+	 * @param  array   $choices
+	 * @param  string  $default
 	 * @return string
 	 */
 	public function askWithCompletion($question, array $choices, $default = null)
@@ -241,9 +216,8 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Prompt the user for input but hide the answer from the console.
 	 *
-	 * @param  string $question
-	 * @param  bool   $fallback
-	 *
+	 * @param  string  $question
+	 * @param  bool    $fallback
 	 * @return string
 	 */
 	public function secret($question, $fallback = true)
@@ -260,12 +234,11 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Give the user a single choice from an array of answers.
 	 *
-	 * @param  string $question
-	 * @param  array  $choices
-	 * @param  string $default
-	 * @param  mixed  $attempts
-	 * @param  bool   $multiple
-	 *
+	 * @param  string  $question
+	 * @param  array   $choices
+	 * @param  string  $default
+	 * @param  mixed   $attempts
+	 * @param  bool    $multiple
 	 * @return bool
 	 */
 	public function choice($question, array $choices, $default = null, $attempts = null, $multiple = null)
@@ -282,10 +255,9 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Format input to textual table
 	 *
-	 * @param  array  $headers
-	 * @param  array  $rows
-	 * @param  string $style
-	 *
+	 * @param  array   $headers
+	 * @param  array   $rows
+	 * @param  string  $style
 	 * @return void
 	 */
 	public function table(array $headers, array $rows, $style = 'default')
@@ -298,8 +270,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Write a string as information output.
 	 *
-	 * @param  string $string
-	 *
+	 * @param  string  $string
 	 * @return void
 	 */
 	public function info($string)
@@ -310,8 +281,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Write a string as standard output.
 	 *
-	 * @param  string $string
-	 *
+	 * @param  string  $string
 	 * @return void
 	 */
 	public function line($string)
@@ -322,8 +292,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Write a string as comment output.
 	 *
-	 * @param  string $string
-	 *
+	 * @param  string  $string
 	 * @return void
 	 */
 	public function comment($string)
@@ -334,8 +303,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Write a string as question output.
 	 *
-	 * @param  string $string
-	 *
+	 * @param  string  $string
 	 * @return void
 	 */
 	public function question($string)
@@ -346,8 +314,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Write a string as error output.
 	 *
-	 * @param  string $string
-	 *
+	 * @param  string  $string
 	 * @return void
 	 */
 	public function error($string)
@@ -378,8 +345,7 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Set the Laravel application instance.
 	 *
-	 * @param  \Illuminate\Foundation\Application $laravel
-	 *
+	 * @param  \Illuminate\Foundation\Application  $laravel
 	 * @return void
 	 */
 	public function setLaravel($laravel)
@@ -390,14 +356,29 @@ class Command extends \Symfony\Component\Console\Command\Command
 	/**
 	 * Execute the console command.
 	 *
-	 * @param  \Symfony\Component\Console\Input\InputInterface   $input
-	 * @param  \Symfony\Component\Console\Output\OutputInterface $output
-	 *
+	 * @param  \Symfony\Component\Console\Input\InputInterface  $input
+	 * @param  \Symfony\Component\Console\Output\OutputInterface  $output
 	 * @return mixed
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
 		return $this->fire();
+	}
+
+	/**
+	 * Run the console command.
+	 *
+	 * @param  \Symfony\Component\Console\Input\InputInterface  $input
+	 * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+	 * @return int
+	 */
+	public function run(InputInterface $input, OutputInterface $output)
+	{
+		$this->input = $input;
+
+		$this->output = $output;
+
+		return parent::run($input, $output);
 	}
 
 }

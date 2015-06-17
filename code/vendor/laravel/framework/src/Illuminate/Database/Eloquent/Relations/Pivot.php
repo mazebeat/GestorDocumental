@@ -3,8 +3,7 @@
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class Pivot extends Model
-{
+class Pivot extends Model {
 
 	/**
 	 * The parent model of the relationship.
@@ -37,11 +36,10 @@ class Pivot extends Model
 	/**
 	 * Create a new pivot model instance.
 	 *
-	 * @param  \Illuminate\Database\Eloquent\Model $parent
-	 * @param  array                               $attributes
-	 * @param  string                              $table
-	 * @param  bool                                $exists
-	 *
+	 * @param  \Illuminate\Database\Eloquent\Model  $parent
+	 * @param  array   $attributes
+	 * @param  string  $table
+	 * @param  bool    $exists
 	 * @return void
 	 */
 	public function __construct(Model $parent, $attributes, $table, $exists = false)
@@ -78,6 +76,16 @@ class Pivot extends Model
 	}
 
 	/**
+	 * Delete the pivot model record from the database.
+	 *
+	 * @return int
+	 */
+	public function delete()
+	{
+		return $this->getDeleteQuery()->delete();
+	}
+
+	/**
 	 * Get the name of the "created at" column.
 	 *
 	 * @return string
@@ -88,13 +96,36 @@ class Pivot extends Model
 	}
 
 	/**
-	 * Delete the pivot model record from the database.
+	 * Get the foreign key column name.
 	 *
-	 * @return int
+	 * @return string
 	 */
-	public function delete()
+	public function getForeignKey()
 	{
-		return $this->getDeleteQuery()->delete();
+		return $this->foreignKey;
+	}
+
+	/**
+	 * Get the name of the "updated at" column.
+	 *
+	 * @return string
+	 */
+	public function getUpdatedAtColumn()
+	{
+		return $this->parent->getUpdatedAtColumn();
+	}
+
+	/**
+	 * Set the keys for a save update query.
+	 *
+	 * @param  \Illuminate\Database\Eloquent\Builder
+	 * @return \Illuminate\Database\Eloquent\Builder
+	 */
+	protected function setKeysForSaveQuery(Builder $query)
+	{
+		$query->where($this->foreignKey, $this->getAttribute($this->foreignKey));
+
+		return $query->where($this->otherKey, $this->getAttribute($this->otherKey));
 	}
 
 	/**
@@ -112,16 +143,6 @@ class Pivot extends Model
 	}
 
 	/**
-	 * Get the foreign key column name.
-	 *
-	 * @return string
-	 */
-	public function getForeignKey()
-	{
-		return $this->foreignKey;
-	}
-
-	/**
 	 * Get the "other key" column name.
 	 *
 	 * @return string
@@ -134,9 +155,8 @@ class Pivot extends Model
 	/**
 	 * Set the key names for the pivot model instance.
 	 *
-	 * @param  string $foreignKey
-	 * @param  string $otherKey
-	 *
+	 * @param  string  $foreignKey
+	 * @param  string  $otherKey
 	 * @return $this
 	 */
 	public function setPivotKeys($foreignKey, $otherKey)
@@ -146,30 +166,6 @@ class Pivot extends Model
 		$this->otherKey = $otherKey;
 
 		return $this;
-	}
-
-	/**
-	 * Get the name of the "updated at" column.
-	 *
-	 * @return string
-	 */
-	public function getUpdatedAtColumn()
-	{
-		return $this->parent->getUpdatedAtColumn();
-	}
-
-	/**
-	 * Set the keys for a save update query.
-	 *
-	 * @param  \Illuminate\Database\Eloquent\Builder
-	 *
-	 * @return \Illuminate\Database\Eloquent\Builder
-	 */
-	protected function setKeysForSaveQuery(Builder $query)
-	{
-		$query->where($this->foreignKey, $this->getAttribute($this->foreignKey));
-
-		return $query->where($this->otherKey, $this->getAttribute($this->otherKey));
 	}
 
 }

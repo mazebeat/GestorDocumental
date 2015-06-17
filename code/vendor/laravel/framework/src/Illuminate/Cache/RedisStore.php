@@ -2,8 +2,7 @@
 
 use Illuminate\Redis\Database as Redis;
 
-class RedisStore extends TaggableStore implements StoreInterface
-{
+class RedisStore extends TaggableStore implements StoreInterface {
 
 	/**
 	 * The Redis database connection.
@@ -29,110 +28,28 @@ class RedisStore extends TaggableStore implements StoreInterface
 	/**
 	 * Create a new Redis store.
 	 *
-	 * @param  \Illuminate\Redis\Database $redis
-	 * @param  string                     $prefix
-	 * @param  string                     $connection
-	 *
+	 * @param  \Illuminate\Redis\Database  $redis
+	 * @param  string  $prefix
+	 * @param  string  $connection
 	 * @return void
 	 */
 	public function __construct(Redis $redis, $prefix = '', $connection = 'default')
 	{
-		$this->redis      = $redis;
+		$this->redis = $redis;
 		$this->connection = $connection;
-		$this->prefix     = strlen($prefix) > 0 ? $prefix . ':' : '';
-	}
-
-	/**
-	 * Retrieve an item from the cache by key.
-	 *
-	 * @param  string $key
-	 *
-	 * @return mixed
-	 */
-	public function get($key)
-	{
-		if (!is_null($value = $this->connection()->get($this->prefix . $key))) {
-			return is_numeric($value) ? $value : unserialize($value);
-		}
-	}
-
-	/**
-	 * Get the Redis connection instance.
-	 *
-	 * @return \Predis\ClientInterface
-	 */
-	public function connection()
-	{
-		return $this->redis->connection($this->connection);
-	}
-
-	/**
-	 * Store an item in the cache for a given number of minutes.
-	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 * @param  int    $minutes
-	 *
-	 * @return void
-	 */
-	public function put($key, $value, $minutes)
-	{
-		$value = is_numeric($value) ? $value : serialize($value);
-
-		$this->connection()->setex($this->prefix . $key, $minutes * 60, $value);
+		$this->prefix = strlen($prefix) > 0 ? $prefix.':' : '';
 	}
 
 	/**
 	 * Increment the value of an item in the cache.
 	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 *
-	 * @return int
-	 */
-	public function increment($key, $value = 1)
-	{
-		return $this->connection()->incrby($this->prefix . $key, $value);
-	}
-
-	/**
-	 * Increment the value of an item in the cache.
-	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
 	 * @return int
 	 */
 	public function decrement($key, $value = 1)
 	{
-		return $this->connection()->decrby($this->prefix . $key, $value);
-	}
-
-	/**
-	 * Store an item in the cache indefinitely.
-	 *
-	 * @param  string $key
-	 * @param  mixed  $value
-	 *
-	 * @return void
-	 */
-	public function forever($key, $value)
-	{
-		$value = is_numeric($value) ? $value : serialize($value);
-
-		$this->connection()->set($this->prefix . $key, $value);
-	}
-
-	/**
-	 * Remove an item from the cache.
-	 *
-	 * @param  string $key
-	 *
-	 * @return void
-	 */
-	public function forget($key)
-	{
-		$this->connection()->del($this->prefix . $key);
+		return $this->connection()->decrby($this->prefix.$key, $value);
 	}
 
 	/**
@@ -146,10 +63,97 @@ class RedisStore extends TaggableStore implements StoreInterface
 	}
 
 	/**
+	 * Store an item in the cache indefinitely.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function forever($key, $value)
+	{
+		$value = is_numeric($value) ? $value : serialize($value);
+
+		$this->connection()->set($this->prefix.$key, $value);
+	}
+
+	/**
+	 * Remove an item from the cache.
+	 *
+	 * @param  string  $key
+	 * @return void
+	 */
+	public function forget($key)
+	{
+		$this->connection()->del($this->prefix.$key);
+	}
+
+	/**
+	 * Retrieve an item from the cache by key.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function get($key)
+	{
+		if ( ! is_null($value = $this->connection()->get($this->prefix.$key)))
+		{
+			return is_numeric($value) ? $value : unserialize($value);
+		}
+	}
+
+	/**
+	 * Get the cache key prefix.
+	 *
+	 * @return string
+	 */
+	public function getPrefix()
+	{
+		return $this->prefix;
+	}
+
+	/**
+	 * Increment the value of an item in the cache.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return int
+	 */
+	public function increment($key, $value = 1)
+	{
+		return $this->connection()->incrby($this->prefix.$key, $value);
+	}
+
+	/**
+	 * Store an item in the cache for a given number of minutes.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @param  int     $minutes
+	 * @return void
+	 */
+	public function put($key, $value, $minutes)
+	{
+		$value = is_numeric($value) ? $value : serialize($value);
+
+		$minutes = max(1, $minutes);
+
+		$this->connection()->setex($this->prefix.$key, $minutes * 60, $value);
+	}
+
+	/**
+	 * Get the Redis connection instance.
+	 *
+	 * @return \Predis\ClientInterface
+	 */
+	public function connection()
+	{
+		return $this->redis->connection($this->connection);
+	}
+
+	/**
 	 * Begin executing a new tags operation.
 	 *
-	 * @param  array|mixed $names
-	 *
+	 * @param  array|mixed  $names
 	 * @return \Illuminate\Cache\RedisTaggedCache
 	 */
 	public function tags($names)
@@ -160,8 +164,7 @@ class RedisStore extends TaggableStore implements StoreInterface
 	/**
 	 * Set the connection name to be used.
 	 *
-	 * @param  string $connection
-	 *
+	 * @param  string  $connection
 	 * @return void
 	 */
 	public function setConnection($connection)
@@ -177,16 +180,6 @@ class RedisStore extends TaggableStore implements StoreInterface
 	public function getRedis()
 	{
 		return $this->redis;
-	}
-
-	/**
-	 * Get the cache key prefix.
-	 *
-	 * @return string
-	 */
-	public function getPrefix()
-	{
-		return $this->prefix;
 	}
 
 }

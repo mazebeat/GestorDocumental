@@ -17,13 +17,14 @@ class Database
 	 *
 	 * @param  array $servers
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(array $servers = array())
 	{
 		if (isset($servers['cluster']) && $servers['cluster']) {
 			$this->clients = $this->createAggregateClient($servers);
-		} else {
+		}
+		else {
 			$this->clients = $this->createSingleClients($servers);
 		}
 	}
@@ -33,7 +34,7 @@ class Database
 	 *
 	 * @param  array $servers
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function createAggregateClient(array $servers)
 	{
@@ -47,13 +48,14 @@ class Database
 	 *
 	 * @param  array $servers
 	 *
-	 * @return array
+*@return array
 	 */
 	protected function createSingleClients(array $servers)
 	{
 		$clients = array();
 
-		foreach ($servers as $key => $server) {
+		foreach ($servers as $key => $server)
+		{
 			$clients[$key] = new Client($server);
 		}
 
@@ -65,7 +67,7 @@ class Database
 	 *
 	 * @param  string $name
 	 *
-	 * @return \Predis\ClientInterface
+*@return \Predis\ClientInterface
 	 */
 	public function connection($name = 'default')
 	{
@@ -78,7 +80,7 @@ class Database
 	 * @param  string $method
 	 * @param  array  $parameters
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	public function __call($method, $parameters)
 	{
@@ -91,7 +93,7 @@ class Database
 	 * @param  string $method
 	 * @param  array  $parameters
 	 *
-	 * @return mixed
+*@return mixed
 	 */
 	public function command($method, array $parameters = array())
 	{

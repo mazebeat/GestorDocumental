@@ -1,26 +1,29 @@
-jQuery(window).load(function () {
+$.noConflict();
+var $m = $;
+
+$m(window).load(function ($m) {
 
     // Page Preloader
-    jQuery('#status').fadeOut();
-    jQuery('#preloader').delay(350).fadeOut(function () {
-        jQuery('body').delay(350).css({'overflow': 'visible'});
+    $m('#status').fadeOut();
+    $m('#preloader').delay(350).fadeOut(function () {
+        $m('body').delay(350).css({'overflow': 'visible'});
     });
 });
 
-jQuery(document).ready(function () {
+$m(document).ready(function ($m) {
 
     // Toggle Left Menu
-    jQuery('.nav-parent > a').click(function () {
+    $m('.nav-parent > a').click(function () {
 
-        var parent = jQuery(this).parent();
+        var parent = $m(this).parent();
         var sub = parent.find('> ul');
 
         // Dropdown works only when leftpanel is not collapsed
-        if (!jQuery('body').hasClass('leftpanel-collapsed')) {
+        if (!$m('body').hasClass('leftpanel-collapsed')) {
             if (sub.is(':visible')) {
                 sub.slideUp(200, function () {
                     parent.removeClass('nav-active');
-                    jQuery('.mainpanel').css({height: ''});
+                    $m('.mainpanel').css({height: ''});
                     adjustmainpanelheight();
                 });
             } else {
@@ -35,8 +38,8 @@ jQuery(document).ready(function () {
     });
 
     function closeVisibleSubMenu() {
-        jQuery('.nav-parent').each(function () {
-            var t = jQuery(this);
+        $m('.nav-parent').each(function () {
+            var t = $m(this);
             if (t.hasClass('nav-active')) {
                 t.find('> ul').slideUp(200, function () {
                     t.removeClass('nav-active');
@@ -47,9 +50,9 @@ jQuery(document).ready(function () {
 
     function adjustmainpanelheight() {
         // Adjust mainpanel height
-        var docHeight = jQuery(document).height();
-        if (docHeight > jQuery('.mainpanel').height())
-            jQuery('.mainpanel').height(docHeight);
+        var docHeight = $m(document).height();
+        if (docHeight > $m('.mainpanel').height())
+            $m('.mainpanel').height(docHeight);
     }
 
     adjustmainpanelheight();
@@ -61,14 +64,14 @@ jQuery(document).ready(function () {
     //jQuery('.popovers').popover();
 
     // Close Button in Panels
-    jQuery('.panel .panel-close').click(function () {
-        jQuery(this).closest('.panel').fadeOut(200);
+    $m('.panel .panel-close').click(function () {
+        $m(this).closest('.panel').fadeOut(200);
         return false;
     });
 
     // Minimize Button in Panels
-    jQuery('.minimize').click(function () {
-        var t = jQuery(this);
+    $m('.minimize').click(function () {
+        var t = $m(this);
         var p = t.closest('.panel');
         if (!jQuery(this).hasClass('maximize')) {
             p.find('.panel-body, .panel-footer').slideUp(200);
@@ -88,31 +91,31 @@ jQuery(document).ready(function () {
     //jQuery('.toggle-chat1').toggles({on: false});
 
     // Add class everytime a mouse pointer hover over it
-    jQuery('.nav-bracket > li').hover(function () {
-        jQuery(this).addClass('nav-hover');
+    $m('.nav-bracket > li').hover(function () {
+        $m(this).addClass('nav-hover');
     }, function () {
-        jQuery(this).removeClass('nav-hover');
+        $m(this).removeClass('nav-hover');
     });
 
     // Menu Toggle
-    jQuery('.menutoggle').click(function () {
+    $m('.menutoggle').click(function () {
 
-        var body = jQuery('body');
+        var body = $m('body');
         var bodypos = body.css('position');
 
         if (bodypos != 'relative') {
 
             if (!body.hasClass('leftpanel-collapsed')) {
                 body.addClass('leftpanel-collapsed');
-                jQuery('.nav-bracket ul').attr('style', '');
+                $m('.nav-bracket ul').attr('style', '');
 
-                jQuery(this).addClass('menu-collapsed');
+                $m(this).addClass('menu-collapsed');
 
             } else {
                 body.removeClass('leftpanel-collapsed chat-view');
-                jQuery('.nav-bracket li.active ul').css({display: 'block'});
+                $m('.nav-bracket li.active ul').css({display: 'block'});
 
-                jQuery(this).removeClass('menu-collapsed');
+                $m(this).removeClass('menu-collapsed');
 
             }
         } else {
@@ -128,9 +131,9 @@ jQuery(document).ready(function () {
     });
 
     // Chat View
-    jQuery('#chatview').click(function () {
+    $m('#chatview').click(function () {
 
-        var body = jQuery('body');
+        var body = $m('body');
         var bodypos = body.css('position');
 
         if (bodypos != 'relative') {
@@ -167,14 +170,14 @@ jQuery(document).ready(function () {
 
     reposition_searchform();
 
-    jQuery(window).resize(function () {
+    $m(window).resize(function () {
 
-        if (jQuery('body').css('position') == 'relative') {
-            jQuery('body').removeClass('leftpanel-collapsed chat-view');
+        if ($m('body').css('position') == 'relative') {
+            $m('body').removeClass('leftpanel-collapsed chat-view');
 
         } else {
-            jQuery('body').removeClass('chat-relative-view');
-            jQuery('body').css({left: '', marginRight: ''});
+            $m('body').removeClass('chat-relative-view');
+            $m('body').css({left: '', marginRight: ''});
         }
 
         reposition_searchform();
@@ -182,10 +185,10 @@ jQuery(document).ready(function () {
     });
 
     function reposition_searchform() {
-        if (jQuery('.searchform').css('position') == 'relative') {
-            jQuery('.searchform').insertBefore('.leftpanelinner .userlogged');
+        if ($m('.searchform').css('position') == 'relative') {
+            $m('.searchform').insertBefore('.leftpanelinner .userlogged');
         } else {
-            jQuery('.searchform').insertBefore('.header-right');
+            $m('.searchform').insertBefore('.header-right');
         }
     }
 

@@ -21,15 +21,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 
-class Application extends Container implements HttpKernelInterface, TerminableInterface, ResponsePreparerInterface
-{
+class Application extends Container implements HttpKernelInterface, TerminableInterface, ResponsePreparerInterface {
 
 	/**
 	 * The Laravel framework version.
 	 *
 	 * @var string
 	 */
-	const VERSION = '4.2.11';
+	const VERSION = '4.2.17';
 	/**
 	 * The request class used by the application.
 	 *
@@ -94,8 +93,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Create a new Illuminate application instance.
 	 *
-	 * @param  \Illuminate\Http\Request $request
-	 *
+	 * @param  \Illuminate\Http\Request  $request
 	 * @return void
 	 */
 	public function __construct(Request $request = null)
@@ -110,8 +108,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register the basic bindings into the container.
 	 *
-	 * @param  \Illuminate\Http\Request $request
-	 *
+	 * @param  \Illuminate\Http\Request  $request
 	 * @return void
 	 */
 	protected function registerBaseBindings($request)
@@ -138,7 +135,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	protected function registerBaseServiceProviders()
 	{
-		foreach (array('Event', 'Exception', 'Routing') as $name) {
+		foreach (array('Event', 'Exception', 'Routing') as $name)
+		{
 			$this->{"register{$name}Provider"}();
 		}
 	}
@@ -160,14 +158,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public static function getBootstrapFile()
 	{
-		return __DIR__ . '/start.php';
+		return __DIR__.'/start.php';
 	}
 
 	/**
 	 * Bind the installation paths to the application.
 	 *
-	 * @param  array $paths
-	 *
+	 * @param  array  $paths
 	 * @return void
 	 */
 	public function bindInstallPaths(array $paths)
@@ -177,7 +174,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// Here we will bind the install paths into the container as strings that can be
 		// accessed from any point in the system. Each path key is prefixed with path
 		// so that they have the consistent naming convention inside the container.
-		foreach (array_except($paths, array('app')) as $key => $value) {
+		foreach (array_except($paths, array('app')) as $key => $value)
+		{
 			$this->instance("path.{$key}", realpath($value));
 		}
 	}
@@ -198,12 +196,12 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 * Get or check the current application environment.
 	 *
 	 * @param  mixed
-	 *
 	 * @return string
 	 */
 	public function environment()
 	{
-		if (count(func_get_args()) > 0) {
+		if (count(func_get_args()) > 0)
+		{
 			return in_array($this['env'], func_get_args());
 		}
 
@@ -223,8 +221,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Detect the application's current environment.
 	 *
-	 * @param  array|string $envs
-	 *
+	 * @param  array|string  $envs
 	 * @return string
 	 */
 	public function detectEnvironment($envs)
@@ -247,9 +244,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Force register a service provider with the application.
 	 *
-	 * @param  \Illuminate\Support\ServiceProvider|string $provider
-	 * @param  array                                      $options
-	 *
+	 * @param  \Illuminate\Support\ServiceProvider|string  $provider
+	 * @param  array  $options
 	 * @return \Illuminate\Support\ServiceProvider
 	 */
 	public function forceRegister($provider, $options = array())
@@ -267,7 +263,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// We will simply spin through each of the deferred providers and register each
 		// one and boot them if the application has booted. This should make each of
 		// the remaining services available to this application for immediate use.
-		foreach ($this->deferredServices as $service => $provider) {
+		foreach ($this->deferredServices as $service => $provider)
+		{
 			$this->loadDeferredProvider($service);
 		}
 
@@ -277,8 +274,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Load the provider for a deferred service.
 	 *
-	 * @param  string $service
-	 *
+	 * @param  string  $service
 	 * @return void
 	 */
 	protected function loadDeferredProvider($service)
@@ -288,7 +284,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// If the service provider has not already been loaded and registered we can
 		// register it with the application and remove the service from this list
 		// of deferred services, since it will already be loaded on subsequent.
-		if (!isset($this->loadedProviders[$provider])) {
+		if ( ! isset($this->loadedProviders[$provider]))
+		{
 			$this->registerDeferredProvider($provider, $service);
 		}
 	}
@@ -296,9 +293,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a deferred provider and service.
 	 *
-	 * @param  string $provider
-	 * @param  string $service
-	 *
+	 * @param  string  $provider
+	 * @param  string  $service
 	 * @return void
 	 */
 	public function registerDeferredProvider($provider, $service = null)
@@ -306,13 +302,14 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// Once the provider that provides the deferred service has been registered we
 		// will remove it from our local list of the deferred services with related
 		// providers so that this container does not try to resolve it out again.
-		if ($service)
-			unset($this->deferredServices[$service]);
+		if ($service) unset($this->deferredServices[$service]);
 
 		$this->register($instance = new $provider($this));
 
-		if (!$this->booted) {
-			$this->booting(function () use ($instance) {
+		if ( ! $this->booted)
+		{
+			$this->booting(function() use ($instance)
+			{
 				$instance->boot();
 			});
 		}
@@ -321,8 +318,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a new boot listener.
 	 *
-	 * @param  mixed $callback
-	 *
+	 * @param  mixed  $callback
 	 * @return void
 	 */
 	public function booting($callback)
@@ -331,54 +327,9 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	}
 
 	/**
-	 * Resolve the given type from the container.
-	 *
-	 * (Overriding Container::make)
-	 *
-	 * @param  string $abstract
-	 * @param  array  $parameters
-	 *
-	 * @return mixed
-	 */
-	public function make($abstract, $parameters = array())
-	{
-		$abstract = $this->getAlias($abstract);
-
-		if (isset($this->deferredServices[$abstract])) {
-			$this->loadDeferredProvider($abstract);
-		}
-
-		return parent::make($abstract, $parameters);
-	}
-
-	/**
-	 * "Extend" an abstract type in the container.
-	 *
-	 * (Overriding Container::extend)
-	 *
-	 * @param  string   $abstract
-	 * @param  \Closure $closure
-	 *
-	 * @return void
-	 *
-	 * @throws \InvalidArgumentException
-	 */
-	public function extend($abstract, Closure $closure)
-	{
-		$abstract = $this->getAlias($abstract);
-
-		if (isset($this->deferredServices[$abstract])) {
-			$this->loadDeferredProvider($abstract);
-		}
-
-		return parent::extend($abstract, $closure);
-	}
-
-	/**
 	 * Register a "before" application filter.
 	 *
-	 * @param  \Closure|string $callback
-	 *
+	 * @param  \Closure|string  $callback
 	 * @return void
 	 */
 	public function before($callback)
@@ -389,8 +340,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register an "after" application filter.
 	 *
-	 * @param  \Closure|string $callback
-	 *
+	 * @param  \Closure|string  $callback
 	 * @return void
 	 */
 	public function after($callback)
@@ -401,8 +351,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a "finish" application filter.
 	 *
-	 * @param  \Closure|string $callback
-	 *
+	 * @param  \Closure|string  $callback
 	 * @return void
 	 */
 	public function finish($callback)
@@ -413,13 +362,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a function for determining when to use array sessions.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function useArraySessions(Closure $callback)
 	{
-		$this->bind('session.reject', function () use ($callback) {
+		$this->bind('session.reject', function() use ($callback)
+		{
 			return $callback;
 		});
 	}
@@ -427,16 +376,14 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a new "booted" listener.
 	 *
-	 * @param  mixed $callback
-	 *
+	 * @param  mixed  $callback
 	 * @return void
 	 */
 	public function booted($callback)
 	{
 		$this->bootedCallbacks[] = $callback;
 
-		if ($this->isBooted())
-			$this->fireAppCallbacks(array($callback));
+		if ($this->isBooted()) $this->fireAppCallbacks(array($callback));
 	}
 
 	/**
@@ -452,13 +399,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Call the booting callbacks for the application.
 	 *
-	 * @param  array $callbacks
-	 *
+	 * @param  array  $callbacks
 	 * @return void
 	 */
 	protected function fireAppCallbacks(array $callbacks)
 	{
-		foreach ($callbacks as $callback) {
+		foreach ($callbacks as $callback)
+		{
 			call_user_func($callback, $this);
 		}
 	}
@@ -466,8 +413,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Run the application and send the response.
 	 *
-	 * @param  \Symfony\Component\HttpFoundation\Request $request
-	 *
+	 * @param  \Symfony\Component\HttpFoundation\Request  $request
 	 * @return void
 	 */
 	public function run(SymfonyRequest $request = null)
@@ -490,7 +436,10 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	{
 		$sessionReject = $this->bound('session.reject') ? $this['session.reject'] : null;
 
-		$client = (new Builder)->push('Illuminate\Cookie\Guard', $this['encrypter'])->push('Illuminate\Cookie\Queue', $this['cookie'])->push('Illuminate\Session\Middleware', $this['session'], $sessionReject);
+		$client = (new Builder)
+                    ->push('Illuminate\Cookie\Guard', $this['encrypter'])
+                    ->push('Illuminate\Cookie\Queue', $this['cookie'])
+                    ->push('Illuminate\Session\Middleware', $this['session'], $sessionReject);
 
 		$this->mergeCustomMiddlewares($client);
 
@@ -502,8 +451,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 *
 	 * (Overriding Container::bound)
 	 *
-	 * @param  string $abstract
-	 *
+	 * @param  string  $abstract
 	 * @return bool
 	 */
 	public function bound($abstract)
@@ -512,15 +460,59 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	}
 
 	/**
+	 * "Extend" an abstract type in the container.
+	 *
+	 * (Overriding Container::extend)
+	 *
+	 * @param  string   $abstract
+	 * @param  \Closure  $closure
+	 * @return void
+	 *
+	 * @throws \InvalidArgumentException
+	 */
+	public function extend($abstract, Closure $closure)
+	{
+		$abstract = $this->getAlias($abstract);
+
+		if (isset($this->deferredServices[$abstract]))
+		{
+			$this->loadDeferredProvider($abstract);
+		}
+
+		return parent::extend($abstract, $closure);
+	}
+
+	/**
+	 * Resolve the given type from the container.
+	 *
+	 * (Overriding Container::make)
+	 *
+	 * @param  string  $abstract
+	 * @param  array   $parameters
+	 * @return mixed
+	 */
+	public function make($abstract, $parameters = array())
+	{
+		$abstract = $this->getAlias($abstract);
+
+		if (isset($this->deferredServices[$abstract]))
+		{
+			$this->loadDeferredProvider($abstract);
+		}
+
+		return parent::make($abstract, $parameters);
+	}
+
+	/**
 	 * Merge the developer defined middlewares onto the stack.
 	 *
 	 * @param  \Stack\Builder
-	 *
 	 * @return void
 	 */
 	protected function mergeCustomMiddlewares(Builder $stack)
 	{
-		foreach ($this->middlewares as $middleware) {
+		foreach ($this->middlewares as $middleware)
+		{
 			list($class, $parameters) = array_values($middleware);
 
 			array_unshift($parameters, $class);
@@ -532,9 +524,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Add a HttpKernel middleware onto the stack.
 	 *
-	 * @param  string $class
+	 * @param  string  $class
 	 * @param  array  $parameters
-	 *
 	 * @return $this
 	 */
 	public function middleware($class, array $parameters = array())
@@ -547,13 +538,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Remove a custom middleware from the application.
 	 *
-	 * @param  string $class
-	 *
+	 * @param  string  $class
 	 * @return void
 	 */
 	public function forgetMiddleware($class)
 	{
-		$this->middlewares = array_filter($this->middlewares, function ($m) use ($class) {
+		$this->middlewares = array_filter($this->middlewares, function($m) use ($class)
+		{
 			return $m['class'] != $class;
 		});
 	}
@@ -565,25 +556,26 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 *
 	 * @implements HttpKernelInterface::handle
 	 *
-	 * @param  \Symfony\Component\HttpFoundation\Request $request
-	 * @param  int                                       $type
-	 * @param  bool                                      $catch
-	 *
+	 * @param  \Symfony\Component\HttpFoundation\Request  $request
+	 * @param  int   $type
+	 * @param  bool  $catch
 	 * @return \Symfony\Component\HttpFoundation\Response
 	 *
 	 * @throws \Exception
 	 */
 	public function handle(SymfonyRequest $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
 	{
-		try {
+		try
+		{
 			$this->refreshRequest($request = Request::createFromBase($request));
 
 			$this->boot();
 
 			return $this->dispatch($request);
-		} catch (\Exception $e) {
-			if ($this->runningUnitTests())
-				throw $e;
+		}
+		catch (\Exception $e)
+		{
+			if ( ! $catch || $this->runningUnitTests()) throw $e;
 
 			return $this['exception']->handleException($e);
 		}
@@ -592,8 +584,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Refresh the bound request instance in the container.
 	 *
-	 * @param  \Illuminate\Http\Request $request
-	 *
+	 * @param  \Illuminate\Http\Request  $request
 	 * @return void
 	 */
 	protected function refreshRequest(Request $request)
@@ -610,12 +601,9 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public function boot()
 	{
-		if ($this->booted)
-			return;
+		if ($this->booted) return;
 
-		array_walk($this->serviceProviders, function ($p) {
-			$p->boot();
-		});
+		array_walk($this->serviceProviders, function($p) { $p->boot(); });
 
 		$this->bootApplication();
 	}
@@ -640,20 +628,20 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Handle the given request and get the response.
 	 *
-	 * @param  \Illuminate\Http\Request $request
-	 *
+	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function dispatch(Request $request)
 	{
-		if ($this->isDownForMaintenance()) {
+		if ($this->isDownForMaintenance())
+		{
 			$response = $this['events']->until('illuminate.app.down');
 
-			if (!is_null($response))
-				return $this->prepareResponse($response, $request);
+			if ( ! is_null($response)) return $this->prepareResponse($response, $request);
 		}
 
-		if ($this->runningUnitTests() && !$this['session']->isStarted()) {
+		if ($this->runningUnitTests() && ! $this['session']->isStarted())
+		{
 			$this['session']->start();
 		}
 
@@ -667,22 +655,30 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public function isDownForMaintenance()
 	{
-		return file_exists($this['config']['app.manifest'] . '/down');
+		return file_exists($this['config']['app.manifest'].'/down');
 	}
 
 	/**
 	 * Prepare the given value as a Response object.
 	 *
-	 * @param  mixed $value
-	 *
+	 * @param  mixed  $value
 	 * @return \Symfony\Component\HttpFoundation\Response
 	 */
 	public function prepareResponse($value)
 	{
-		if (!$value instanceof SymfonyResponse)
-			$value = new Response($value);
+		if ( ! $value instanceof SymfonyResponse) $value = new Response($value);
 
 		return $value->prepare($this['request']);
+	}
+
+	/**
+	 * Determine if the application is ready for responses.
+	 *
+	 * @return bool
+	 */
+	public function readyForResponses()
+	{
+		return $this->booted;
 	}
 
 	/**
@@ -698,13 +694,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Prepare the request by injecting any services.
 	 *
-	 * @param  \Illuminate\Http\Request $request
-	 *
+	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Illuminate\Http\Request
 	 */
 	public function prepareRequest(Request $request)
 	{
-		if (!is_null($this['config']['session.driver']) && !$request->hasSession()) {
+		if ( ! is_null($this['config']['session.driver']) && ! $request->hasSession())
+		{
 			$request->setSession($this['session']->driver());
 		}
 
@@ -712,11 +708,10 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	}
 
 	/**
-	 * Terminate the request and send the response to the browser.
+	 * Call the "finish" and "shutdown" callbacks assigned to the application.
 	 *
 	 * @param  \Symfony\Component\HttpFoundation\Request  $request
-	 * @param  \Symfony\Component\HttpFoundation\Response $response
-	 *
+	 * @param  \Symfony\Component\HttpFoundation\Response  $response
 	 * @return void
 	 */
 	public function terminate(SymfonyRequest $request, SymfonyResponse $response)
@@ -730,13 +725,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 * Call the "finish" callbacks assigned to the application.
 	 *
 	 * @param  \Symfony\Component\HttpFoundation\Request  $request
-	 * @param  \Symfony\Component\HttpFoundation\Response $response
-	 *
+	 * @param  \Symfony\Component\HttpFoundation\Response  $response
 	 * @return void
 	 */
 	public function callFinishCallbacks(SymfonyRequest $request, SymfonyResponse $response)
 	{
-		foreach ($this->finishCallbacks as $callback) {
+		foreach ($this->finishCallbacks as $callback)
+		{
 			call_user_func($callback, $request, $response);
 		}
 	}
@@ -744,34 +739,25 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a "shutdown" callback.
 	 *
-	 * @param  callable $callback
-	 *
+	 * @param  callable  $callback
 	 * @return void
 	 */
 	public function shutdown(callable $callback = null)
 	{
-		if (is_null($callback)) {
+		if (is_null($callback))
+		{
 			$this->fireAppCallbacks($this->shutdownCallbacks);
-		} else {
+		}
+		else
+		{
 			$this->shutdownCallbacks[] = $callback;
 		}
 	}
 
 	/**
-	 * Determine if the application is ready for responses.
-	 *
-	 * @return bool
-	 */
-	public function readyForResponses()
-	{
-		return $this->booted;
-	}
-
-	/**
 	 * Register a maintenance mode event listener.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function down(Closure $callback)
@@ -782,10 +768,9 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Throw an HttpException with the given data.
 	 *
-	 * @param  int    $code
-	 * @param  string $message
-	 * @param  array  $headers
-	 *
+	 * @param  int     $code
+	 * @param  string  $message
+	 * @param  array   $headers
 	 * @return void
 	 *
 	 * @throws \Symfony\Component\HttpKernel\Exception\HttpException
@@ -793,7 +778,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public function abort($code, $message = '', array $headers = array())
 	{
-		if ($code == 404) {
+		if ($code == 404)
+		{
 			throw new NotFoundHttpException($message);
 		}
 
@@ -803,13 +789,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a 404 error handler.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function missing(Closure $callback)
 	{
-		$this->error(function (NotFoundHttpException $e) use ($callback) {
+		$this->error(function(NotFoundHttpException $e) use ($callback)
+		{
 			return call_user_func($callback, $e);
 		});
 	}
@@ -817,8 +803,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register an application error handler.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function error(Closure $callback)
@@ -829,8 +814,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register an error handler at the bottom of the stack.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function pushError(Closure $callback)
@@ -841,13 +825,13 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register an error handler for fatal errors.
 	 *
-	 * @param  \Closure $callback
-	 *
+	 * @param  \Closure  $callback
 	 * @return void
 	 */
 	public function fatal(Closure $callback)
 	{
-		$this->error(function (FatalErrorException $e) use ($callback) {
+		$this->error(function(FatalErrorException $e) use ($callback)
+		{
 			return call_user_func($callback, $e);
 		});
 	}
@@ -859,7 +843,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public function getConfigLoader()
 	{
-		return new FileLoader(new Filesystem, $this['path'] . '/config');
+		return new FileLoader(new Filesystem, $this['path'].'/config');
 	}
 
 	/**
@@ -897,8 +881,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Set the application's deferred services.
 	 *
-	 * @param  array $services
-	 *
+	 * @param  array  $services
 	 * @return void
 	 */
 	public function setDeferredServices(array $services)
@@ -909,8 +892,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Determine if the given service is a deferred service.
 	 *
-	 * @param  string $service
-	 *
+	 * @param  string  $service
 	 * @return bool
 	 */
 	public function isDeferredService($service)
@@ -935,9 +917,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Call a method on the default request class.
 	 *
-	 * @param  string $method
+	 * @param  string  $method
 	 * @param  array  $parameters
-	 *
 	 * @return mixed
 	 */
 	public static function onRequest($method, $parameters = array())
@@ -948,14 +929,12 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Get or set the request class for the application.
 	 *
-	 * @param  string $class
-	 *
+	 * @param  string  $class
 	 * @return string
 	 */
 	public static function requestClass($class = null)
 	{
-		if (!is_null($class))
-			static::$requestClass = $class;
+		if ( ! is_null($class)) static::$requestClass = $class;
 
 		return static::$requestClass;
 	}
@@ -973,8 +952,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Set the current application locale.
 	 *
-	 * @param  string $locale
-	 *
+	 * @param  string  $locale
 	 * @return void
 	 */
 	public function setLocale($locale)
@@ -993,40 +971,43 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 */
 	public function registerCoreContainerAliases()
 	{
-		$aliases = array('app'                      => 'Illuminate\Foundation\Application',
-		                 'artisan'                  => 'Illuminate\Console\Application',
-		                 'auth'                     => 'Illuminate\Auth\AuthManager',
-		                 'auth.reminder.repository' => 'Illuminate\Auth\Reminders\ReminderRepositoryInterface',
-		                 'blade.compiler'           => 'Illuminate\View\Compilers\BladeCompiler',
-		                 'cache'                    => 'Illuminate\Cache\CacheManager',
-		                 'cache.store'              => 'Illuminate\Cache\Repository',
-		                 'config'                   => 'Illuminate\Config\Repository',
-		                 'cookie'                   => 'Illuminate\Cookie\CookieJar',
-		                 'encrypter'                => 'Illuminate\Encryption\Encrypter',
-		                 'db'                       => 'Illuminate\Database\DatabaseManager',
-		                 'events'                   => 'Illuminate\Events\Dispatcher',
-		                 'files'                    => 'Illuminate\Filesystem\Filesystem',
-		                 'form'                     => 'Illuminate\Html\FormBuilder',
-		                 'hash'                     => 'Illuminate\Hashing\HasherInterface',
-		                 'html'                     => 'Illuminate\Html\HtmlBuilder',
-		                 'translator'               => 'Illuminate\Translation\Translator',
-		                 'log'                      => 'Illuminate\Log\Writer',
-		                 'mailer'                   => 'Illuminate\Mail\Mailer',
-		                 'paginator'                => 'Illuminate\Pagination\Factory',
-		                 'auth.reminder'            => 'Illuminate\Auth\Reminders\PasswordBroker',
-		                 'queue'                    => 'Illuminate\Queue\QueueManager',
-		                 'redirect'                 => 'Illuminate\Routing\Redirector',
-		                 'redis'                    => 'Illuminate\Redis\Database',
-		                 'request'                  => 'Illuminate\Http\Request',
-		                 'router'                   => 'Illuminate\Routing\Router',
-		                 'session'                  => 'Illuminate\Session\SessionManager',
-		                 'session.store'            => 'Illuminate\Session\Store',
-		                 'remote'                   => 'Illuminate\Remote\RemoteManager',
-		                 'url'                      => 'Illuminate\Routing\UrlGenerator',
-		                 'validator'                => 'Illuminate\Validation\Factory',
-		                 'view'                     => 'Illuminate\View\Factory',);
+		$aliases = array(
+			'app'            => 'Illuminate\Foundation\Application',
+			'artisan'        => 'Illuminate\Console\Application',
+			'auth'           => 'Illuminate\Auth\AuthManager',
+			'auth.reminder.repository' => 'Illuminate\Auth\Reminders\ReminderRepositoryInterface',
+			'blade.compiler' => 'Illuminate\View\Compilers\BladeCompiler',
+			'cache'          => 'Illuminate\Cache\CacheManager',
+			'cache.store'    => 'Illuminate\Cache\Repository',
+			'config'         => 'Illuminate\Config\Repository',
+			'cookie'         => 'Illuminate\Cookie\CookieJar',
+			'encrypter'      => 'Illuminate\Encryption\Encrypter',
+			'db'             => 'Illuminate\Database\DatabaseManager',
+			'events'         => 'Illuminate\Events\Dispatcher',
+			'files'          => 'Illuminate\Filesystem\Filesystem',
+			'form'           => 'Illuminate\Html\FormBuilder',
+			'hash'           => 'Illuminate\Hashing\HasherInterface',
+			'html'           => 'Illuminate\Html\HtmlBuilder',
+			'translator'     => 'Illuminate\Translation\Translator',
+			'log'            => 'Illuminate\Log\Writer',
+			'mailer'         => 'Illuminate\Mail\Mailer',
+			'paginator'      => 'Illuminate\Pagination\Factory',
+			'auth.reminder'  => 'Illuminate\Auth\Reminders\PasswordBroker',
+			'queue'          => 'Illuminate\Queue\QueueManager',
+			'redirect'       => 'Illuminate\Routing\Redirector',
+			'redis'          => 'Illuminate\Redis\Database',
+			'request'        => 'Illuminate\Http\Request',
+			'router'         => 'Illuminate\Routing\Router',
+			'session'        => 'Illuminate\Session\SessionManager',
+			'session.store'  => 'Illuminate\Session\Store',
+			'remote'         => 'Illuminate\Remote\RemoteManager',
+			'url'            => 'Illuminate\Routing\UrlGenerator',
+			'validator'      => 'Illuminate\Validation\Factory',
+			'view'           => 'Illuminate\View\Factory',
+		);
 
-		foreach ($aliases as $key => $alias) {
+		foreach ($aliases as $key => $alias)
+		{
 			$this->alias($key, $alias);
 		}
 	}
@@ -1044,21 +1025,21 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Register a service provider with the application.
 	 *
-	 * @param  \Illuminate\Support\ServiceProvider|string $provider
-	 * @param  array                                      $options
-	 * @param  bool                                       $force
-	 *
+	 * @param  \Illuminate\Support\ServiceProvider|string  $provider
+	 * @param  array  $options
+	 * @param  bool   $force
 	 * @return \Illuminate\Support\ServiceProvider
 	 */
 	public function register($provider, $options = array(), $force = false)
 	{
-		if ($registered = $this->getRegistered($provider) && !$force)
-			return $registered;
+		if ($registered = $this->getRegistered($provider) && ! $force)
+                                     return $registered;
 
 		// If the given "provider" is a string, we will resolve it, passing in the
 		// application instance automatically for the developer. This is simply
 		// a more convenient way of specifying your service provider classes.
-		if (is_string($provider)) {
+		if (is_string($provider))
+		{
 			$provider = $this->resolveProviderClass($provider);
 		}
 
@@ -1067,7 +1048,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// Once we have registered the service we will iterate through the options
 		// and set each of them on the application so they will be available on
 		// the actual loading of the service objects and for developer usage.
-		foreach ($options as $key => $value) {
+		foreach ($options as $key => $value)
+		{
 			$this[$key] = $value;
 		}
 
@@ -1076,8 +1058,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 		// If the application has already booted, we will call this boot method on
 		// the provider class so it has an opportunity to do its boot logic and
 		// will be ready for any usage by the developer's application logics.
-		if ($this->booted)
-			$provider->boot();
+		if ($this->booted) $provider->boot();
 
 		return $provider;
 	}
@@ -1085,16 +1066,17 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Get the registered service provider instance if it exists.
 	 *
-	 * @param  \Illuminate\Support\ServiceProvider|string $provider
-	 *
+	 * @param  \Illuminate\Support\ServiceProvider|string  $provider
 	 * @return \Illuminate\Support\ServiceProvider|null
 	 */
 	public function getRegistered($provider)
 	{
 		$name = is_string($provider) ? $provider : get_class($provider);
 
-		if (array_key_exists($name, $this->loadedProviders)) {
-			return array_first($this->serviceProviders, function ($key, $value) use ($name) {
+		if (array_key_exists($name, $this->loadedProviders))
+		{
+			return array_first($this->serviceProviders, function($key, $value) use ($name)
+			{
 				return get_class($value) == $name;
 			});
 		}
@@ -1103,8 +1085,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	/**
 	 * Resolve a service provider instance from the class name.
 	 *
-	 * @param  string $provider
-	 *
+	 * @param  string  $provider
 	 * @return \Illuminate\Support\ServiceProvider
 	 */
 	public function resolveProviderClass($provider)
@@ -1116,7 +1097,6 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 	 * Mark the given provider as registered.
 	 *
 	 * @param  \Illuminate\Support\ServiceProvider
-	 *
 	 * @return void
 	 */
 	protected function markAsRegistered($provider)

@@ -21,372 +21,390 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Table
 {
-	private static $styles;
-	/**
-	 * Table headers.
-	 *
-	 * @var array
-	 */
-	private $headers = array();
-	/**
-	 * Table rows.
-	 *
-	 * @var array
-	 */
-	private $rows = array();
-	/**
-	 * Column widths cache.
-	 *
-	 * @var array
-	 */
-	private $columnWidths = array();
-	/**
-	 * Number of columns cache.
-	 *
-	 * @var array
-	 */
-	private $numberOfColumns;
-	/**
-	 * @var OutputInterface
-	 */
-	private $output;
-	/**
-	 * @var TableStyle
-	 */
-	private $style;
+    /**
+     * Table headers.
+     *
+     * @var array
+     */
+    private $headers = array();
 
-	public function __construct(OutputInterface $output)
-	{
-		$this->output = $output;
+    /**
+     * Table rows.
+     *
+     * @var array
+     */
+    private $rows = array();
 
-		if (!self::$styles) {
-			self::$styles = self::initStyles();
-		}
+    /**
+     * Column widths cache.
+     *
+     * @var array
+     */
+    private $columnWidths = array();
 
-		$this->setStyle('default');
-	}
+    /**
+     * Number of columns cache.
+     *
+     * @var array
+     */
+    private $numberOfColumns;
 
-	private static function initStyles()
-	{
-		$borderless = new TableStyle();
-		$borderless->setHorizontalBorderChar('=')->setVerticalBorderChar(' ')->setCrossingChar(' ');
+    /**
+     * @var OutputInterface
+     */
+    private $output;
 
-		$compact = new TableStyle();
-		$compact->setHorizontalBorderChar('')->setVerticalBorderChar(' ')->setCrossingChar('')->setCellRowContentFormat('%s');
+    /**
+     * @var TableStyle
+     */
+    private $style;
 
-		return array('default'    => new TableStyle(),
-		             'borderless' => $borderless,
-		             'compact'    => $compact,);
-	}
+    private static $styles;
 
-	/**
-	 * Sets a style definition.
-	 *
-	 * @param string     $name  The style name
-	 * @param TableStyle $style A TableStyle instance
-	 */
-	public static function setStyleDefinition($name, TableStyle $style)
-	{
-		if (!self::$styles) {
-			self::$styles = self::initStyles();
-		}
+    public function __construct(OutputInterface $output)
+    {
+        $this->output = $output;
 
-		self::$styles[$name] = $style;
-	}
+        if (!self::$styles) {
+            self::$styles = self::initStyles();
+        }
 
-	/**
-	 * Gets a style definition by name.
-	 *
-	 * @param string $name The style name
-	 *
-	 * @return TableStyle A TableStyle instance
-	 */
-	public static function getStyleDefinition($name)
-	{
-		if (!self::$styles) {
-			self::$styles = self::initStyles();
-		}
+        $this->setStyle('default');
+    }
 
-		if (!self::$styles[$name]) {
-			throw new \InvalidArgumentException(sprintf('Style "%s" is not defined.', $name));
-		}
+    /**
+     * Sets a style definition.
+     *
+     * @param string     $name  The style name
+     * @param TableStyle $style A TableStyle instance
+     */
+    public static function setStyleDefinition($name, TableStyle $style)
+    {
+        if (!self::$styles) {
+            self::$styles = self::initStyles();
+        }
 
-		return self::$styles[$name];
-	}
+        self::$styles[$name] = $style;
+    }
 
-	/**
-	 * Gets the current table style.
-	 *
-	 * @return TableStyle
-	 */
-	public function getStyle()
-	{
-		return $this->style;
-	}
+    /**
+     * Gets a style definition by name.
+     *
+     * @param string $name The style name
+     *
+     * @return TableStyle A TableStyle instance
+     */
+    public static function getStyleDefinition($name)
+    {
+        if (!self::$styles) {
+            self::$styles = self::initStyles();
+        }
 
-	/**
-	 * Sets table style.
-	 *
-	 * @param TableStyle|string $name The style name or a TableStyle instance
-	 *
-	 * @return Table
-	 */
-	public function setStyle($name)
-	{
-		if ($name instanceof TableStyle) {
-			$this->style = $name;
-		} elseif (isset(self::$styles[$name])) {
-			$this->style = self::$styles[$name];
-		} else {
-			throw new \InvalidArgumentException(sprintf('Style "%s" is not defined.', $name));
-		}
+        if (!self::$styles[$name]) {
+            throw new \InvalidArgumentException(sprintf('Style "%s" is not defined.', $name));
+        }
 
-		return $this;
-	}
+        return self::$styles[$name];
+    }
 
-	public function setHeaders(array $headers)
-	{
-		$this->headers = array_values($headers);
+    /**
+     * Sets table style.
+     *
+     * @param TableStyle|string $name The style name or a TableStyle instance
+     *
+     * @return Table
+     */
+    public function setStyle($name)
+    {
+        if ($name instanceof TableStyle) {
+            $this->style = $name;
+        } elseif (isset(self::$styles[$name])) {
+            $this->style = self::$styles[$name];
+        } else {
+            throw new \InvalidArgumentException(sprintf('Style "%s" is not defined.', $name));
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function setRows(array $rows)
-	{
-		$this->rows = array();
+    /**
+     * Gets the current table style.
+     *
+     * @return TableStyle
+     */
+    public function getStyle()
+    {
+        return $this->style;
+    }
 
-		return $this->addRows($rows);
-	}
+    public function setHeaders(array $headers)
+    {
+        $this->headers = array_values($headers);
 
-	public function addRows(array $rows)
-	{
-		foreach ($rows as $row) {
-			$this->addRow($row);
-		}
+        return $this;
+    }
 
-		return $this;
-	}
+    public function setRows(array $rows)
+    {
+        $this->rows = array();
 
-	public function addRow($row)
-	{
-		if ($row instanceof TableSeparator) {
-			$this->rows[] = $row;
+        return $this->addRows($rows);
+    }
 
-			return;
-		}
+    public function addRows(array $rows)
+    {
+        foreach ($rows as $row) {
+            $this->addRow($row);
+        }
 
-		if (!is_array($row)) {
-			throw new \InvalidArgumentException('A row must be an array or a TableSeparator instance.');
-		}
+        return $this;
+    }
 
-		$this->rows[] = array_values($row);
+    public function addRow($row)
+    {
+        if ($row instanceof TableSeparator) {
+            $this->rows[] = $row;
 
-		$keys   = array_keys($this->rows);
-		$rowKey = array_pop($keys);
+            return;
+        }
 
-		foreach ($row as $key => $cellValue) {
-			if (!strstr($cellValue, "\n")) {
-				continue;
-			}
+        if (!is_array($row)) {
+            throw new \InvalidArgumentException('A row must be an array or a TableSeparator instance.');
+        }
 
-			$lines                     = explode("\n", $cellValue);
-			$this->rows[$rowKey][$key] = $lines[0];
-			unset($lines[0]);
+        $this->rows[] = array_values($row);
 
-			foreach ($lines as $lineKey => $line) {
-				$nextRowKey = $rowKey + $lineKey + 1;
+        end($this->rows);
+        $rowKey = key($this->rows);
+        reset($this->rows);
 
-				if (isset($this->rows[$nextRowKey])) {
-					$this->rows[$nextRowKey][$key] = $line;
-				} else {
-					$this->rows[$nextRowKey] = array($key => $line);
-				}
-			}
-		}
+        foreach ($row as $key => $cellValue) {
+            if (!strstr($cellValue, "\n")) {
+                continue;
+            }
 
-		return $this;
-	}
+            $lines = explode("\n", $cellValue);
+            $this->rows[$rowKey][$key] = $lines[0];
+            unset($lines[0]);
 
-	public function setRow($column, array $row)
-	{
-		$this->rows[$column] = $row;
+            foreach ($lines as $lineKey => $line) {
+                $nextRowKey = $rowKey + $lineKey + 1;
 
-		return $this;
-	}
+                if (isset($this->rows[$nextRowKey])) {
+                    $this->rows[$nextRowKey][$key] = $line;
+                } else {
+                    $this->rows[$nextRowKey] = array($key => $line);
+                }
+            }
+        }
 
-	/**
-	 * Renders table to output.
-	 *
-	 * Example:
-	 * +---------------+-----------------------+------------------+
-	 * | ISBN          | Title                 | Author           |
-	 * +---------------+-----------------------+------------------+
-	 * | 99921-58-10-7 | Divine Comedy         | Dante Alighieri  |
-	 * | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
-	 * | 960-425-059-0 | The Lord of the Rings | J. R. R. Tolkien |
-	 * +---------------+-----------------------+------------------+
-	 */
-	public function render()
-	{
-		$this->renderRowSeparator();
-		$this->renderRow($this->headers, $this->style->getCellHeaderFormat());
-		if (!empty($this->headers)) {
-			$this->renderRowSeparator();
-		}
-		foreach ($this->rows as $row) {
-			if ($row instanceof TableSeparator) {
-				$this->renderRowSeparator();
-			} else {
-				$this->renderRow($row, $this->style->getCellRowFormat());
-			}
-		}
-		if (!empty($this->rows)) {
-			$this->renderRowSeparator();
-		}
+        return $this;
+    }
 
-		$this->cleanup();
-	}
+    public function setRow($column, array $row)
+    {
+        $this->rows[$column] = $row;
 
-	/**
-	 * Renders horizontal header separator.
-	 *
-	 * Example: +-----+-----------+-------+
-	 */
-	private function renderRowSeparator()
-	{
-		if (0 === $count = $this->getNumberOfColumns()) {
-			return;
-		}
+        return $this;
+    }
 
-		if (!$this->style->getHorizontalBorderChar() && !$this->style->getCrossingChar()) {
-			return;
-		}
+    /**
+     * Renders table to output.
+     *
+     * Example:
+     * +---------------+-----------------------+------------------+
+     * | ISBN          | Title                 | Author           |
+     * +---------------+-----------------------+------------------+
+     * | 99921-58-10-7 | Divine Comedy         | Dante Alighieri  |
+     * | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
+     * | 960-425-059-0 | The Lord of the Rings | J. R. R. Tolkien |
+     * +---------------+-----------------------+------------------+
+     */
+    public function render()
+    {
+        $this->renderRowSeparator();
+        $this->renderRow($this->headers, $this->style->getCellHeaderFormat());
+        if (!empty($this->headers)) {
+            $this->renderRowSeparator();
+        }
+        foreach ($this->rows as $row) {
+            if ($row instanceof TableSeparator) {
+                $this->renderRowSeparator();
+            } else {
+                $this->renderRow($row, $this->style->getCellRowFormat());
+            }
+        }
+        if (!empty($this->rows)) {
+            $this->renderRowSeparator();
+        }
 
-		$markup = $this->style->getCrossingChar();
-		for ($column = 0; $column < $count; $column++) {
-			$markup .= str_repeat($this->style->getHorizontalBorderChar(), $this->getColumnWidth($column)) . $this->style->getCrossingChar();
-		}
+        $this->cleanup();
+    }
 
-		$this->output->writeln(sprintf($this->style->getBorderFormat(), $markup));
-	}
+    /**
+     * Renders horizontal header separator.
+     *
+     * Example: +-----+-----------+-------+
+     */
+    private function renderRowSeparator()
+    {
+        if (0 === $count = $this->getNumberOfColumns()) {
+            return;
+        }
 
-	/**
-	 * Gets number of columns for this table.
-	 *
-	 * @return int
-	 */
-	private function getNumberOfColumns()
-	{
-		if (null !== $this->numberOfColumns) {
-			return $this->numberOfColumns;
-		}
+        if (!$this->style->getHorizontalBorderChar() && !$this->style->getCrossingChar()) {
+            return;
+        }
 
-		$columns = array(count($this->headers));
-		foreach ($this->rows as $row) {
-			$columns[] = count($row);
-		}
+        $markup = $this->style->getCrossingChar();
+        for ($column = 0; $column < $count; $column++) {
+            $markup .= str_repeat($this->style->getHorizontalBorderChar(), $this->getColumnWidth($column)).$this->style->getCrossingChar();
+        }
 
-		return $this->numberOfColumns = max($columns);
-	}
+        $this->output->writeln(sprintf($this->style->getBorderFormat(), $markup));
+    }
 
-	/**
-	 * Gets column width.
-	 *
-	 * @param int $column
-	 *
-	 * @return int
-	 */
-	private function getColumnWidth($column)
-	{
-		if (isset($this->columnWidths[$column])) {
-			return $this->columnWidths[$column];
-		}
+    /**
+     * Renders vertical column separator.
+     */
+    private function renderColumnSeparator()
+    {
+        $this->output->write(sprintf($this->style->getBorderFormat(), $this->style->getVerticalBorderChar()));
+    }
 
-		$lengths = array($this->getCellWidth($this->headers, $column));
-		foreach ($this->rows as $row) {
-			if ($row instanceof TableSeparator) {
-				continue;
-			}
+    /**
+     * Renders table row.
+     *
+     * Example: | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
+     *
+     * @param array  $row
+     * @param string $cellFormat
+     */
+    private function renderRow(array $row, $cellFormat)
+    {
+        if (empty($row)) {
+            return;
+        }
 
-			$lengths[] = $this->getCellWidth($row, $column);
-		}
+        $this->renderColumnSeparator();
+        for ($column = 0, $count = $this->getNumberOfColumns(); $column < $count; $column++) {
+            $this->renderCell($row, $column, $cellFormat);
+            $this->renderColumnSeparator();
+        }
+        $this->output->writeln('');
+    }
 
-		return $this->columnWidths[$column] = max($lengths) + strlen($this->style->getCellRowContentFormat()) - 2;
-	}
+    /**
+     * Renders table cell with padding.
+     *
+     * @param array  $row
+     * @param int    $column
+     * @param string $cellFormat
+     */
+    private function renderCell(array $row, $column, $cellFormat)
+    {
+        $cell = isset($row[$column]) ? $row[$column] : '';
+        $width = $this->getColumnWidth($column);
 
-	/**
-	 * Gets cell width.
-	 *
-	 * @param array $row
-	 * @param int   $column
-	 *
-	 * @return int
-	 */
-	private function getCellWidth(array $row, $column)
-	{
-		return isset($row[$column]) ? Helper::strlenWithoutDecoration($this->output->getFormatter(), $row[$column]) : 0;
-	}
+        // str_pad won't work properly with multi-byte strings, we need to fix the padding
+        if (function_exists('mb_strlen') && false !== $encoding = mb_detect_encoding($cell)) {
+            $width += strlen($cell) - mb_strlen($cell, $encoding);
+        }
 
-	/**
-	 * Renders table row.
-	 *
-	 * Example: | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
-	 *
-	 * @param array  $row
-	 * @param string $cellFormat
-	 */
-	private function renderRow(array $row, $cellFormat)
-	{
-		if (empty($row)) {
-			return;
-		}
+        $width += Helper::strlen($cell) - Helper::strlenWithoutDecoration($this->output->getFormatter(), $cell);
 
-		$this->renderColumnSeparator();
-		for ($column = 0, $count = $this->getNumberOfColumns(); $column < $count; $column++) {
-			$this->renderCell($row, $column, $cellFormat);
-			$this->renderColumnSeparator();
-		}
-		$this->output->writeln('');
-	}
+        $content = sprintf($this->style->getCellRowContentFormat(), $cell);
 
-	/**
-	 * Renders vertical column separator.
-	 */
-	private function renderColumnSeparator()
-	{
-		$this->output->write(sprintf($this->style->getBorderFormat(), $this->style->getVerticalBorderChar()));
-	}
+        $this->output->write(sprintf($cellFormat, str_pad($content, $width, $this->style->getPaddingChar(), $this->style->getPadType())));
+    }
 
-	/**
-	 * Renders table cell with padding.
-	 *
-	 * @param array  $row
-	 * @param int    $column
-	 * @param string $cellFormat
-	 */
-	private function renderCell(array $row, $column, $cellFormat)
-	{
-		$cell  = isset($row[$column]) ? $row[$column] : '';
-		$width = $this->getColumnWidth($column);
+    /**
+     * Gets number of columns for this table.
+     *
+     * @return int
+     */
+    private function getNumberOfColumns()
+    {
+        if (null !== $this->numberOfColumns) {
+            return $this->numberOfColumns;
+        }
 
-		// str_pad won't work properly with multi-byte strings, we need to fix the padding
-		if (function_exists('mb_strlen') && false !== $encoding = mb_detect_encoding($cell)) {
-			$width += strlen($cell) - mb_strlen($cell, $encoding);
-		}
+        $columns = array(count($this->headers));
+        foreach ($this->rows as $row) {
+            $columns[] = count($row);
+        }
 
-		$width += Helper::strlen($cell) - Helper::strlenWithoutDecoration($this->output->getFormatter(), $cell);
+        return $this->numberOfColumns = max($columns);
+    }
 
-		$content = sprintf($this->style->getCellRowContentFormat(), $cell);
+    /**
+     * Gets column width.
+     *
+     * @param int $column
+     *
+     * @return int
+     */
+    private function getColumnWidth($column)
+    {
+        if (isset($this->columnWidths[$column])) {
+            return $this->columnWidths[$column];
+        }
 
-		$this->output->write(sprintf($cellFormat, str_pad($content, $width, $this->style->getPaddingChar(), $this->style->getPadType())));
-	}
+        $lengths = array($this->getCellWidth($this->headers, $column));
+        foreach ($this->rows as $row) {
+            if ($row instanceof TableSeparator) {
+                continue;
+            }
 
-	/**
-	 * Called after rendering to cleanup cache data.
-	 */
-	private function cleanup()
-	{
-		$this->columnWidths    = array();
-		$this->numberOfColumns = null;
-	}
+            $lengths[] = $this->getCellWidth($row, $column);
+        }
+
+        return $this->columnWidths[$column] = max($lengths) + strlen($this->style->getCellRowContentFormat()) - 2;
+    }
+
+    /**
+     * Gets cell width.
+     *
+     * @param array $row
+     * @param int   $column
+     *
+     * @return int
+     */
+    private function getCellWidth(array $row, $column)
+    {
+        return isset($row[$column]) ? Helper::strlenWithoutDecoration($this->output->getFormatter(), $row[$column]) : 0;
+    }
+
+    /**
+     * Called after rendering to cleanup cache data.
+     */
+    private function cleanup()
+    {
+        $this->columnWidths = array();
+        $this->numberOfColumns = null;
+    }
+
+    private static function initStyles()
+    {
+        $borderless = new TableStyle();
+        $borderless
+            ->setHorizontalBorderChar('=')
+            ->setVerticalBorderChar(' ')
+            ->setCrossingChar(' ')
+        ;
+
+        $compact = new TableStyle();
+        $compact
+            ->setHorizontalBorderChar('')
+            ->setVerticalBorderChar(' ')
+            ->setCrossingChar('')
+            ->setCellRowContentFormat('%s')
+        ;
+
+        return array(
+            'default' => new TableStyle(),
+            'borderless' => $borderless,
+            'compact' => $compact,
+        );
+    }
 }

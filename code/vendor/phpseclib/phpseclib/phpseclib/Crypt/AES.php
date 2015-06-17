@@ -56,7 +56,7 @@
  * @category  Crypt
  * @package   Crypt_AES
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMVIII Jim Wigginton
+ * @copyright 2008 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -154,28 +154,6 @@ class Crypt_AES extends Crypt_Rijndael
     }
 
     /**
-     * Sets the key length
-     *
-     * Valid key lengths are 128, 192, and 256.  If the length is less than 128, it will be rounded up to
-     * 128.  If the length is greater than 128 and invalid, it will be rounded down to the closest valid amount.
-     *
-     * @see Crypt_Rijndael:setKeyLength()
-     * @access public
-     * @param Integer $length
-     */
-    function setKeyLength($length)
-    {
-        switch ($length) {
-            case 160:
-                $length = 192;
-                break;
-            case 224:
-                $length = 256;
-        }
-        parent::setKeyLength($length);
-    }
-
-    /**
      * Sets the key.
      *
      * Rijndael supports five different key lengths, AES only supports three.
@@ -203,5 +181,27 @@ class Crypt_AES extends Crypt_Rijndael
             }
             $this->_setupEngine();
         }
+    }
+
+    /**
+     * Sets the key length
+     *
+     * Valid key lengths are 128, 192, and 256.  If the length is less than 128, it will be rounded up to
+     * 128.  If the length is greater than 128 and invalid, it will be rounded down to the closest valid amount.
+     *
+     * @see Crypt_Rijndael:setKeyLength()
+     * @access public
+     * @param Integer $length
+     */
+    function setKeyLength($length)
+    {
+        switch ($length) {
+            case 160:
+                $length = 192;
+                break;
+            case 224:
+                $length = 256;
+        }
+        parent::setKeyLength($length);
     }
 }

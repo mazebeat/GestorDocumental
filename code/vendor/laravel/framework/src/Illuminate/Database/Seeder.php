@@ -3,8 +3,7 @@
 use Illuminate\Console\Command;
 use Illuminate\Container\Container;
 
-class Seeder
-{
+class Seeder {
 
 	/**
 	 * The container instance.
@@ -23,15 +22,15 @@ class Seeder
 	/**
 	 * Seed the given connection from the given path.
 	 *
-	 * @param  string $class
-	 *
+	 * @param  string  $class
 	 * @return void
 	 */
 	public function call($class)
 	{
 		$this->resolve($class)->run();
 
-		if (isset($this->command)) {
+		if (isset($this->command))
+		{
 			$this->command->getOutput()->writeln("<info>Seeded:</info> $class");
 		}
 	}
@@ -41,28 +40,29 @@ class Seeder
 	 *
 	 * @return void
 	 */
-	public function run()
-	{
-	}
+	public function run() {}
 
 	/**
 	 * Resolve an instance of the given seeder class.
 	 *
-	 * @param  string $class
-	 *
+	 * @param  string  $class
 	 * @return \Illuminate\Database\Seeder
 	 */
 	protected function resolve($class)
 	{
-		if (isset($this->container)) {
+		if (isset($this->container))
+		{
 			$instance = $this->container->make($class);
 
 			$instance->setContainer($this->container);
-		} else {
+		}
+		else
+		{
 			$instance = new $class;
 		}
 
-		if (isset($this->command)) {
+		if (isset($this->command))
+		{
 			$instance->setCommand($this->command);
 		}
 
@@ -72,8 +72,7 @@ class Seeder
 	/**
 	 * Set the IoC container instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 *
+	 * @param  \Illuminate\Container\Container  $container
 	 * @return $this
 	 */
 	public function setContainer(Container $container)
@@ -86,8 +85,7 @@ class Seeder
 	/**
 	 * Set the console command instance.
 	 *
-	 * @param  \Illuminate\Console\Command $command
-	 *
+	 * @param  \Illuminate\Console\Command  $command
 	 * @return $this
 	 */
 	public function setCommand(Command $command)

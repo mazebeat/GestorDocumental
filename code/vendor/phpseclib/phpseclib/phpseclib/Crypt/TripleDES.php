@@ -47,7 +47,7 @@
  * @category  Crypt
  * @package   Crypt_TripleDES
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMVII Jim Wigginton
+ * @copyright 2007 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -214,6 +214,160 @@ class Crypt_TripleDES extends Crypt_DES
     }
 
     /**
+     * Creates the key schedule
+     *
+     * @see Crypt_DES::_setupKey()
+     * @see Crypt_Base::_setupKey()
+     * @access private
+     */
+    function _setupKey()
+    {
+        switch (true) {
+            // if $key <= 64bits we configure our internal pure-php cipher engine
+            // to act as regular [1]DES, not as 3DES. mcrypt.so::tripledes does the same.
+            case strlen($this->key) <= 8:
+                $this->des_rounds = 1;
+                break;
+
+            // otherwise, if $key > 64bits, we configure our engine to work as 3DES.
+            default:
+                $this->des_rounds = 3;
+
+                // (only) if 3CBC is used we have, of course, to setup the $des[0-2] keys also separately.
+                if ($this->mode_3cbc) {
+                    $this->des[0]->_setupKey();
+                    $this->des[1]->_setupKey();
+                    $this->des[2]->_setupKey();
+
+                    // because $des[0-2] will, now, do all the work we can return here
+                    // not need unnecessary stress parent::_setupKey() with our, now unused, $key.
+                    return;
+                }
+        }
+        // setup our key
+        parent::_setupKey();
+    }
+
+    /**
+     * Decrypts a message.
+     *
+     * @see Crypt_Base::decrypt()
+     * @access public
+     * @param String $ciphertext
+     * @return String $plaintext
+     */
+    function decrypt($ciphertext)
+    {
+        if ($this->mode_3cbc && strlen($this->key) > 8) {
+            return $this->_unpad(
+                $this->des[0]->decrypt(
+                    $this->des[1]->encrypt(
+                        $this->des[2]->decrypt(
+                            str_pad($ciphertext, (strlen($ciphertext) + 7) & 0xFFFFFFF8, "\0")
+                        )
+                    )
+                )
+            );
+        }
+
+        return parent::decrypt($ciphertext);
+    }
+
+    /**
+     * Treat consecutive packets as if they are a discontinuous buffer.
+     *
+     * The default behavior.
+     *
+     * @see Crypt_Base::disableContinuousBuffer()
+     * @see Crypt_TripleDES::enableContinuousBuffer()
+     * @access public
+     */
+    function disableContinuousBuffer()
+    {
+        parent::disableContinuousBuffer();
+        if ($this->mode_3cbc) {
+            $this->des[0]->disableContinuousBuffer();
+            $this->des[1]->disableContinuousBuffer();
+            $this->des[2]->disableContinuousBuffer();
+        }
+    }
+
+    /**
+     * Treat consecutive "packets" as if they are a continuous buffer.
+     *
+     * Say you have a 16-byte plaintext $plaintext.  Using the default behavior, the two following code snippets
+     * will yield different outputs:
+     *
+     * <code>
+     *    echo $des->encrypt(substr($plaintext, 0, 8));
+     *    echo $des->encrypt(substr($plaintext, 8, 8));
+     * </code>
+     * <code>
+     *    echo $des->encrypt($plaintext);
+     * </code>
+     *
+     * The solution is to enable the continuous buffer.  Although this will resolve the above discrepancy, it creates
+     * another, as demonstrated with the following:
+     *
+     * <code>
+     *    $des->encrypt(substr($plaintext, 0, 8));
+     *    echo $des->decrypt($des->encrypt(substr($plaintext, 8, 8)));
+     * </code>
+     * <code>
+     *    echo $des->decrypt($des->encrypt(substr($plaintext, 8, 8)));
+     * </code>
+     *
+     * With the continuous buffer disabled, these would yield the same output.  With it enabled, they yield different
+     * outputs.  The reason is due to the fact that the initialization vector's change after every encryption /
+     * decryption round when the continuous buffer is enabled.  When it's disabled, they remain constant.
+     *
+     * Put another way, when the continuous buffer is enabled, the state of the Crypt_DES() object changes after each
+     * encryption / decryption round, whereas otherwise, it'd remain constant.  For this reason, it's recommended that
+     * continuous buffers not be used.  They do offer better security and are, in fact, sometimes required (SSH uses them),
+     * however, they are also less intuitive and more likely to cause you problems.
+     *
+     * @see Crypt_Base::enableContinuousBuffer()
+     * @see Crypt_TripleDES::disableContinuousBuffer()
+     * @access public
+     */
+    function enableContinuousBuffer()
+    {
+        parent::enableContinuousBuffer();
+        if ($this->mode_3cbc) {
+            $this->des[0]->enableContinuousBuffer();
+            $this->des[1]->enableContinuousBuffer();
+            $this->des[2]->enableContinuousBuffer();
+        }
+    }
+
+    /**
+     * Encrypts a message.
+     *
+     * @see Crypt_Base::encrypt()
+     * @access public
+     * @param String $plaintext
+     * @return String $cipertext
+     */
+    function encrypt($plaintext)
+    {
+        // parent::en/decrypt() is able to do all the work for all modes and keylengths,
+        // except for: CRYPT_DES_MODE_3CBC (inner chaining CBC) with a key > 64bits
+
+        // if the key is smaller then 8, do what we'd normally do
+        if ($this->mode_3cbc && strlen($this->key) > 8) {
+            return $this->des[2]->encrypt(
+                $this->des[1]->decrypt(
+                    $this->des[0]->encrypt(
+                        $this->_pad($plaintext)
+                    )
+                )
+            );
+        }
+
+        return parent::encrypt($plaintext);
+    }
+
+    /**
      * Sets the initialization vector. (optional)
      *
      * SetIV is not required when CRYPT_DES_MODE_ECB is being used.  If not explicitly set, it'll be assumed
@@ -270,159 +424,5 @@ class Crypt_TripleDES extends Crypt_DES
             $this->des[1]->setKey(substr($key,  8, 8));
             $this->des[2]->setKey(substr($key, 16, 8));
         }
-    }
-
-    /**
-     * Encrypts a message.
-     *
-     * @see Crypt_Base::encrypt()
-     * @access public
-     * @param String $plaintext
-     * @return String $cipertext
-     */
-    function encrypt($plaintext)
-    {
-        // parent::en/decrypt() is able to do all the work for all modes and keylengths,
-        // except for: CRYPT_DES_MODE_3CBC (inner chaining CBC) with a key > 64bits
-
-        // if the key is smaller then 8, do what we'd normally do
-        if ($this->mode_3cbc && strlen($this->key) > 8) {
-            return $this->des[2]->encrypt(
-                $this->des[1]->decrypt(
-                    $this->des[0]->encrypt(
-                        $this->_pad($plaintext)
-                    )
-                )
-            );
-        }
-
-        return parent::encrypt($plaintext);
-    }
-
-    /**
-     * Decrypts a message.
-     *
-     * @see Crypt_Base::decrypt()
-     * @access public
-     * @param String $ciphertext
-     * @return String $plaintext
-     */
-    function decrypt($ciphertext)
-    {
-        if ($this->mode_3cbc && strlen($this->key) > 8) {
-            return $this->_unpad(
-                $this->des[0]->decrypt(
-                    $this->des[1]->encrypt(
-                        $this->des[2]->decrypt(
-                            str_pad($ciphertext, (strlen($ciphertext) + 7) & 0xFFFFFFF8, "\0")
-                        )
-                    )
-                )
-            );
-        }
-
-        return parent::decrypt($ciphertext);
-    }
-
-    /**
-     * Treat consecutive "packets" as if they are a continuous buffer.
-     *
-     * Say you have a 16-byte plaintext $plaintext.  Using the default behavior, the two following code snippets
-     * will yield different outputs:
-     *
-     * <code>
-     *    echo $des->encrypt(substr($plaintext, 0, 8));
-     *    echo $des->encrypt(substr($plaintext, 8, 8));
-     * </code>
-     * <code>
-     *    echo $des->encrypt($plaintext);
-     * </code>
-     *
-     * The solution is to enable the continuous buffer.  Although this will resolve the above discrepancy, it creates
-     * another, as demonstrated with the following:
-     *
-     * <code>
-     *    $des->encrypt(substr($plaintext, 0, 8));
-     *    echo $des->decrypt($des->encrypt(substr($plaintext, 8, 8)));
-     * </code>
-     * <code>
-     *    echo $des->decrypt($des->encrypt(substr($plaintext, 8, 8)));
-     * </code>
-     *
-     * With the continuous buffer disabled, these would yield the same output.  With it enabled, they yield different
-     * outputs.  The reason is due to the fact that the initialization vector's change after every encryption /
-     * decryption round when the continuous buffer is enabled.  When it's disabled, they remain constant.
-     *
-     * Put another way, when the continuous buffer is enabled, the state of the Crypt_DES() object changes after each
-     * encryption / decryption round, whereas otherwise, it'd remain constant.  For this reason, it's recommended that
-     * continuous buffers not be used.  They do offer better security and are, in fact, sometimes required (SSH uses them),
-     * however, they are also less intuitive and more likely to cause you problems.
-     *
-     * @see Crypt_Base::enableContinuousBuffer()
-     * @see Crypt_TripleDES::disableContinuousBuffer()
-     * @access public
-     */
-    function enableContinuousBuffer()
-    {
-        parent::enableContinuousBuffer();
-        if ($this->mode_3cbc) {
-            $this->des[0]->enableContinuousBuffer();
-            $this->des[1]->enableContinuousBuffer();
-            $this->des[2]->enableContinuousBuffer();
-        }
-    }
-
-    /**
-     * Treat consecutive packets as if they are a discontinuous buffer.
-     *
-     * The default behavior.
-     *
-     * @see Crypt_Base::disableContinuousBuffer()
-     * @see Crypt_TripleDES::enableContinuousBuffer()
-     * @access public
-     */
-    function disableContinuousBuffer()
-    {
-        parent::disableContinuousBuffer();
-        if ($this->mode_3cbc) {
-            $this->des[0]->disableContinuousBuffer();
-            $this->des[1]->disableContinuousBuffer();
-            $this->des[2]->disableContinuousBuffer();
-        }
-    }
-
-    /**
-     * Creates the key schedule
-     *
-     * @see Crypt_DES::_setupKey()
-     * @see Crypt_Base::_setupKey()
-     * @access private
-     */
-    function _setupKey()
-    {
-        switch (true) {
-            // if $key <= 64bits we configure our internal pure-php cipher engine
-            // to act as regular [1]DES, not as 3DES. mcrypt.so::tripledes does the same.
-            case strlen($this->key) <= 8:
-                $this->des_rounds = 1;
-                break;
-
-            // otherwise, if $key > 64bits, we configure our engine to work as 3DES.
-            default:
-                $this->des_rounds = 3;
-
-                // (only) if 3CBC is used we have, of course, to setup the $des[0-2] keys also separately.
-                if ($this->mode_3cbc) {
-                    $this->des[0]->_setupKey();
-                    $this->des[1]->_setupKey();
-                    $this->des[2]->_setupKey();
-
-                    // because $des[0-2] will, now, do all the work we can return here
-                    // not need unnecessary stress parent::_setupKey() with our, now unused, $key.
-                    return;
-                }
-        }
-        // setup our key
-        parent::_setupKey();
     }
 }

@@ -11,7 +11,8 @@
 \HTML::macro('menu_active', function ($route, $name) {
 	if (\Request::is($route . '/*') OR \Request::is($route)) {
 		$active = '<li class="active"><a href="' . \URL::to($route) . '">' . $name . '</a></li>';
-	} else {
+	}
+	else {
 		$active = '<li><a href="' . \URL::to($route) . '">' . $name . '</a></li>';
 	}
 
@@ -24,12 +25,12 @@
 \HTML::macro('load_documents', function ($dir) {
 	$output = '';
 	//	var_dump('a_'.substr($dir, 0, 4).'**m_'.substr($dir, 4, 2).'**c_'.substr($dir, 6, strlen($dir)));
-	$ws = new \WebServiceController('/GestionDocIntelidata/RetornaListaAlfrescoPort?WSDL', '192.168.1.86', '8080', 'opRequestList', false);
+	$ws = new \WebServiceController('/GestionDocIntelidata/RetornaListaAlfrescoPort?wsdl', 'opRequestList');
 	$ws->setRutaCarpeta(base64_decode($dir));
 	$result = $ws->get('showFolder');
-	//	dd($result);
 
-	$element = '<div class="col-xs-6 col-sm-4 col-md-3 %s">
+	$element
+			= '<div class="col-xs-6 col-sm-4 col-md-3 %s">
 				    <div class="thmb">
 				        <div class="ckbox ckbox-default">
 				            <input type="checkbox" id="check%d" value="1"/>
@@ -40,44 +41,56 @@
 				                <span class="caret"></span>
 				            </button>
 				            <ul class="dropdown-menu fm-menu" role="menu">
-				                <li><a href="' . \URL::to('#') . '"><i class="fa fa-envelope-o fa-fw"></i>Email</a></li>
-				                <li><a href="' . \URL::to('#') . '"><i class="fa fa-print fa-fw"></i>Imprimir</a></li>
-				                <li><a href="' . \URL::to('#') . '"><i class="fa fa-download fa-fw"></i>Descargar</a></li>
-				                <li><a href="' . \URL::to('#') . '"><i class="fa fa-trash-o fa-fw"></i>Eliminar</a></li>
+				                <li><a href="' . \URL::to('#') . '" ng-click="actions(this)" ng-model="actions.email"><i class="fa fa-envelope-o fa-fw"></i>Email</a></li>
+				                <li><a href="' . \URL::to('#') . '" ng-click="actions(this)" ng-model="actions.print"><i class="fa fa-print fa-fw"></i>Imprimir</a></li>
+				                <li><a href="' . \URL::to('#') . '" ng-click="actions(this)" ng-model="actions.download"><i class="fa fa-download fa-fw"></i>Descargar</a></li>
+				                <li><a href="' . \URL::to('#') . '" ng-click="actions(this)" ng-model="actions.trash"><i class="fa fa-trash-o fa-fw"></i>Eliminar</a></li>
 				            </ul>
 				        </div>
 				        <div class="thmb-prev text-center">
 				            <span>%s</span>
 				        </div>
-				        <h5 class="fm-title"><a href="' . \URL::to('#') . '">%s</a></h5>
+				        <h5 class="fm-title"><a href="%s">%s</a></h5>
 				        <small class="text-muted">Agregado: %s</small>
 				    </div>
 				</div>';
 
 	foreach ($result->lista as $key => $value) {
+		$crypto = '';
+
 		if (is_object($value)) {
 			$año = explode('a_', $value->strcarpetaaño)[1];
 			$mes = explode('m_', $value->strcarpetames)[1];
 
-			$id        = $key;
-			$doc_name  = $value->strnombredocumento;// 'document.xls';
-			$extension = explode('.', $doc_name)[1];// 'xls';
-			$type      = 'document';
-			$image_url = 'images/files/media-%s.png';
-			$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
+			$id            = $key;
+			$cliente       = $value->strnombrecliente;
+			$doc_name      = $value->strnombredocumento;// 'document.xls';
+			$extension     = explode('.', $doc_name)[1];// 'xls';
+			$tipodocumento = $value->strtipodocumento;
+			$type          = 'document';
+			//			$image_url     = 'images/files/media-%s.png';
+			$image_url = 'images/photos/media-doc.png';
+			$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => 'img-responsive'));
 			$created   = new \Carbon($value->strfechacreaciondocumento);
-		} else {
+		}
+		else {
 			$año = explode('a_', $result->lista->strcarpetaaño)[1];
 			$mes = explode('m_', $result->lista->strcarpetames)[1];
 
-			$id        = $key;
-			$doc_name  = $result->lista->strnombredocumento;// 'document.xls';
-			$extension = explode('.', $doc_name)[1];// 'xls';
-			$type      = 'document';
-			$image_url = 'images/files/media-%s.png';
+			$id            = $key;
+			$cliente       = $result->lista->strnombrecliente;
+			$doc_name      = $result->lista->strnombredocumento;// 'document.xls';
+			$extension     = explode('.', $doc_name)[1];// 'xls';
+			$tipodocumento = $result->lista->strtipodocumento;
+			$type          = 'document';
+			//			$image_url     = 'images/files/media-%s.png';
+			$image_url = 'images/photos/media-doc.png';
 			$image     = \HTML::image(sprintf($image_url, $extension), null, array('class' => ''));
 			$created   = new \Carbon($result->lista->strfechacreaciondocumento);
 
+			$crypto = \Crypt::encrypt($id . '||' . $cliente . '||' . $tipodocumento);
+
+			$output = sprintf($element, $type, $id, $id, $image, \URL::to('dashboard/viewer/' . $crypto), $doc_name, $created);
 			break;
 		}
 		//
@@ -99,7 +112,9 @@
 		//public 'strusuariomodificaciondocumento' => string 'admin' (length=5)
 		//public 'strversiondocumento' => string '1.1' (length=3)
 
-		$output .= sprintf($element, $type, $id, $id, $image, $doc_name, $created);
+		$crypto = \Crypt::encrypt($id . '||' . $cliente . '||' . $tipodocumento);
+
+		$output .= sprintf($element, $type, $id, $id, $image, \URL::to('dashboard/viewer/' . $crypto), $doc_name, $created);
 	}
 
 	return $output;
@@ -109,14 +124,15 @@
 	if (count($metas) > 0) {
 		$tags = '<ul class="tag-list">';
 		foreach ($metas as $value) {
-			$tags .= sprintf('<li><a href = "' . \URL::to('#') . '">%s</a></li>', $value);
+			$tags .= sprintf('<li ><a href = "' . \URL::to('#') . '" >%s </a ></li > ', $value);
 		}
-		$tags .= '</ul >';
-	} else {
-		$tags = '<div class="alert alert-danger">
-        <button aria-hidden="true" data-dismiss="alert" class="close" type="button"><i class="fa fa-times"></i></button>
-        No se encontraron etiquetas<strong>!</strong>.
-    </div>';
+		$tags .= '</ul>';
+	}
+	else {
+		$tags
+				= '<div class="alert alert-danger" >
+        <button aria - hidden = "true" data - dismiss = "alert" class="close" type = "button" ><i class="fa fa-times" ></i ></button > No se encontraron etiquetas < strong>!</strong >.
+    </div > ';
 	}
 
 	return $tags;
@@ -139,19 +155,20 @@
 
 	for ($i = 1; $i <= 3; $i++) {
 
-		$output .= '<tr>
-            <td>
-                <div class="rdio rdio-primary">' . \Form::radio('user', $i, false, array('id' => $i)) . '<label for="' . $i . '"></label>
-                </div>
-            </td>
-            <td>' . $i . '</td>
-            <td>2004/01/23</td>
-            <td>16.517.430-6</td>
-            <td>888888888888888</td>
-            <td>Alexis San Martin</td>
-            <td><span class="label label-success">Activo</span></td>
-            <td>10</td>
-        </tr>';
+		$output
+				.= ' < tr>
+            <td >
+                <div class="rdio rdio-primary" > ' . \Form::radio('user', $i, false, array('id' => $i)) . ' < label for="' . $i . '" ></label >
+                </div >
+            </td >
+            <td > ' . $i . '</td >
+            <td > 2004 / 01 / 23</td >
+            <td > 16.517.430 - 6 </td >
+            <td > 888888888888888</td >
+            <td > Alexis San Martin </td >
+            <td ><span class="label label-success" > Activo</span ></td >
+            <td > 10</td >
+        </tr > ';
 	}
 
 	return $output;
@@ -171,17 +188,19 @@
 });
 
 \Form::macro('chosen', function ($name, $list = array(), $options = array()) {
-	$options['class'] .= ' chosen-select';
-	if (!isset($options['name']))
+	$options['class'] .= ' chosen - select';
+	if (!isset($options['name'])) {
 		$options['name'] = $name;
-	if (!isset($options['id']))
+	}
+	if (!isset($options['id'])) {
 		$options['id'] = $name;
+	}
 
 	$html   = array();
 	$html[] = '<option value=""></option>';
 
 	foreach ($list as $value => $display) {
-		$html[] = sprintf('<option value="%d">%d</option>', $value, $display);
+		$html[] = sprintf('<option value="%d">%d </option>', $value, $display);
 	}
 
 	$options = attributes($options);
@@ -191,22 +210,25 @@
 });
 
 \Form::macro('selectYear2', function ($name, $startYear = null, $endYear = null, $options = array()) {
-	if ($endYear == null)
+	if ($endYear == null) {
 		$endYear = \Carbon\Carbon::now()->year;
-	if ($endYear == null)
+	}
+	if ($endYear == null) {
 		$endYear = 1980;
+	}
 
 	$years = range($endYear, $startYear);
 	$list  = array_combine($years, $years); // [2013 => 2013]
 
-	if (!isset($options['name']))
+	if (!isset($options['name'])) {
 		$options['name'] = $name;
+	}
 
 	$html   = array();
-	$html[] = '<option value=""></option>';
+	$html[] = '<option value="">Seleccione un año...</option>';
 
 	foreach ($list as $value => $display) {
-		$html[] = sprintf('<option value="%d">%d</option>', $value, $display);
+		$html[] = sprintf('<option value = "%d" >%d </option > ', $value, $display);
 	}
 
 	$options = attributes($options);
@@ -216,13 +238,20 @@
 });
 
 \Form::macro('checkbox2', function ($name, $title, $value, $class = 'default', $check = false, $options = array()) {
-	$output = '<div class="ckbox ckbox-%s">%s%s</div>';
-	if (!isset($options['name']))
+	$output = ' <div class="ckbox ck   box-%s">%s %s</div>';
+	if (!isset($options['name'])) {
 		$options['name'] = $name;
-	if (!isset($options['id']))
+	}
+	if (!isset($options['id'])) {
 		$options['id'] = $name;
+	}
 
 	return sprintf($output, $class, \Form::checkbox($name, $value, $check, $options), \Form::label($name, $title, $options));
+});
+
+\HTML::macro('preview', function ($file) {
+	$mime      = mime_content_type($file);
+	$extension = \File::extension($file);
 });
 
 function attributes($attributes)
@@ -232,8 +261,9 @@ function attributes($attributes)
 	foreach ((array)$attributes as $key => $value) {
 		$element = attributeElement($key, $value);
 
-		if (!is_null($element))
+		if (!is_null($element)) {
 			$html[] = $element;
+		}
 	}
 
 	return count($html) > 0 ? ' ' . implode(' ', $html) : '';
@@ -241,9 +271,12 @@ function attributes($attributes)
 
 function attributeElement($key, $value)
 {
-	if (is_numeric($key))
+	if (is_numeric($key)) {
 		$key = $value;
+	}
 
-	if (!is_null($value))
-		return $key . '="' . e($value) . '"';
+	if (!is_null($value)) {
+		return $key . '
+			= "' . e($value) . '"';
+	}
 }

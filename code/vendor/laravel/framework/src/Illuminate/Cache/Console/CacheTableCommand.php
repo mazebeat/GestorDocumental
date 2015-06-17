@@ -32,7 +32,7 @@ class CacheTableCommand extends Command
 	 *
 	 * @param  \Illuminate\Filesystem\Filesystem $files
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(Filesystem $files)
 	{

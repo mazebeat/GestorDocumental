@@ -2,8 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 
-class RedisServiceProvider extends ServiceProvider
-{
+class RedisServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -13,18 +12,6 @@ class RedisServiceProvider extends ServiceProvider
 	protected $defer = true;
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bindShared('redis', function ($app) {
-			return new Database($app['config']['database.redis']);
-		});
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
@@ -32,6 +19,19 @@ class RedisServiceProvider extends ServiceProvider
 	public function provides()
 	{
 		return array('redis');
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->app->bindShared('redis', function($app)
+		{
+			return new Database($app['config']['database.redis']);
+		});
 	}
 
 }

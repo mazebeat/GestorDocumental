@@ -41,13 +41,13 @@ class MigrateMakeCommand extends BaseCommand
 	 * @param  \Illuminate\Database\Migrations\MigrationCreator $creator
 	 * @param  string                                           $packagePath
 	 *
-	 * @return void
+*@return void
 	 */
 	public function __construct(MigrationCreator $creator, $packagePath)
 	{
 		parent::__construct();
 
-		$this->creator     = $creator;
+		$this->creator = $creator;
 		$this->packagePath = $packagePath;
 	}
 
@@ -85,7 +85,7 @@ class MigrateMakeCommand extends BaseCommand
 	 * @param  string $table
 	 * @param  bool   $create
 	 *
-	 * @return string
+*@return string
 	 */
 	protected function writeMigration($name, $table, $create)
 	{
@@ -114,9 +114,13 @@ class MigrateMakeCommand extends BaseCommand
 	protected function getOptions()
 	{
 		return array(array('bench', null, InputOption::VALUE_OPTIONAL, 'The workbench the migration belongs to.', null),
+
 			array('create', null, InputOption::VALUE_OPTIONAL, 'The table to be created.'),
+
 			array('package', null, InputOption::VALUE_OPTIONAL, 'The package the migration belongs to.', null),
+
 			array('path', null, InputOption::VALUE_OPTIONAL, 'Where to store the migration.', null),
+
 			array('table', null, InputOption::VALUE_OPTIONAL, 'The table to migrate.'),);
 	}
 

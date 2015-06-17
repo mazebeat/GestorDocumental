@@ -31,8 +31,7 @@ class ErrorLogHandler extends AbstractProcessingHandler
 	 * @param integer $messageType    Says where the error should go.
 	 * @param integer $level          The minimum logging level at which this handler will be triggered
 	 * @param Boolean $bubble         Whether the messages that are handled can bubble up the stack or not
-	 * @param Boolean $expandNewlines If set to true, newlines in the message will be expanded to be take multiple
-	 *                                log entries
+	 * @param Boolean $expandNewlines If set to true, newlines in the message will be expanded to be take multiple log entries
 	 */
 	public function __construct($messageType = self::OPERATING_SYSTEM, $level = Logger::DEBUG, $bubble = true, $expandNewlines = false)
 	{
@@ -52,8 +51,7 @@ class ErrorLogHandler extends AbstractProcessingHandler
 	 */
 	public static function getAvailableTypes()
 	{
-		return array(self::OPERATING_SYSTEM,
-			self::SAPI,);
+		return array(self::OPERATING_SYSTEM, self::SAPI,);
 	}
 
 	/**
@@ -74,7 +72,8 @@ class ErrorLogHandler extends AbstractProcessingHandler
 			foreach ($lines as $line) {
 				error_log($line, $this->messageType);
 			}
-		} else {
+		}
+		else {
 			error_log((string)$record['formatted'], $this->messageType);
 		}
 	}

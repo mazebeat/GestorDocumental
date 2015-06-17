@@ -17,257 +17,261 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 class FileProfilerStorage implements ProfilerStorageInterface
 {
-	/**
-	 * Folder where profiler data are stored.
-	 *
-	 * @var string
-	 */
-	private $folder;
+    /**
+     * Folder where profiler data are stored.
+     *
+     * @var string
+     */
+    private $folder;
 
-	/**
-	 * Constructs the file storage using a "dsn-like" path.
-	 *
-	 * Example : "file:/path/to/the/storage/folder"
-	 *
-	 * @param string $dsn The DSN
-	 *
-	 * @throws \RuntimeException
-	 */
-	public function __construct($dsn)
-	{
-		if (0 !== strpos($dsn, 'file:')) {
-			throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use FileStorage with an invalid dsn "%s". The expected format is "file:/path/to/the/storage/folder".', $dsn));
-		}
-		$this->folder = substr($dsn, 5);
+    /**
+     * Constructs the file storage using a "dsn-like" path.
+     *
+     * Example : "file:/path/to/the/storage/folder"
+     *
+     * @param string $dsn The DSN
+     *
+     * @throws \RuntimeException
+     */
+    public function __construct($dsn)
+    {
+        if (0 !== strpos($dsn, 'file:')) {
+            throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use FileStorage with an invalid dsn "%s". The expected format is "file:/path/to/the/storage/folder".', $dsn));
+        }
+        $this->folder = substr($dsn, 5);
 
-		if (!is_dir($this->folder)) {
-			mkdir($this->folder, 0777, true);
-		}
-	}
+        if (!is_dir($this->folder)) {
+            mkdir($this->folder, 0777, true);
+        }
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function find($ip, $url, $limit, $method, $start = null, $end = null)
-	{
-		$file = $this->getIndexFilename();
+    /**
+     * {@inheritdoc}
+     */
+    public function find($ip, $url, $limit, $method, $start = null, $end = null)
+    {
+        $file = $this->getIndexFilename();
 
-		if (!file_exists($file)) {
-			return array();
-		}
+        if (!file_exists($file)) {
+            return array();
+        }
 
-		$file = fopen($file, 'r');
-		fseek($file, 0, SEEK_END);
+        $file = fopen($file, 'r');
+        fseek($file, 0, SEEK_END);
 
-		$result = array();
-		while (count($result) < $limit && $line = $this->readLineFromFile($file)) {
-			list($csvToken, $csvIp, $csvMethod, $csvUrl, $csvTime, $csvParent) = str_getcsv($line);
+        $result = array();
+        while (count($result) < $limit && $line = $this->readLineFromFile($file)) {
+            list($csvToken, $csvIp, $csvMethod, $csvUrl, $csvTime, $csvParent) = str_getcsv($line);
 
-			$csvTime = (int)$csvTime;
+            $csvTime = (int) $csvTime;
 
-			if ($ip && false === strpos($csvIp, $ip) || $url && false === strpos($csvUrl, $url) || $method && false === strpos($csvMethod, $method)) {
-				continue;
-			}
+            if ($ip && false === strpos($csvIp, $ip) || $url && false === strpos($csvUrl, $url) || $method && false === strpos($csvMethod, $method)) {
+                continue;
+            }
 
-			if (!empty($start) && $csvTime < $start) {
-				continue;
-			}
+            if (!empty($start) && $csvTime < $start) {
+                continue;
+            }
 
-			if (!empty($end) && $csvTime > $end) {
-				continue;
-			}
+            if (!empty($end) && $csvTime > $end) {
+                continue;
+            }
 
-			$result[$csvToken] = array('token'  => $csvToken,
-			                           'ip'     => $csvIp,
-			                           'method' => $csvMethod,
-			                           'url'    => $csvUrl,
-			                           'time'   => $csvTime,
-			                           'parent' => $csvParent,);
-		}
+            $result[$csvToken] = array(
+                'token' => $csvToken,
+                'ip' => $csvIp,
+                'method' => $csvMethod,
+                'url' => $csvUrl,
+                'time' => $csvTime,
+                'parent' => $csvParent,
+            );
+        }
 
-		fclose($file);
+        fclose($file);
 
-		return array_values($result);
-	}
+        return array_values($result);
+    }
 
-	/**
-	 * Gets the index filename.
-	 *
-	 * @return string The index filename
-	 */
-	protected function getIndexFilename()
-	{
-		return $this->folder . '/index.csv';
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function purge()
+    {
+        $flags = \FilesystemIterator::SKIP_DOTS;
+        $iterator = new \RecursiveDirectoryIterator($this->folder, $flags);
+        $iterator = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
 
-	/**
-	 * Reads a line in the file, backward.
-	 *
-	 * This function automatically skips the empty lines and do not include the line return in result value.
-	 *
-	 * @param resource $file The file resource, with the pointer placed at the end of the line to read
-	 *
-	 * @return mixed A string representing the line or null if beginning of file is reached
-	 */
-	protected function readLineFromFile($file)
-	{
-		$line     = '';
-		$position = ftell($file);
+        foreach ($iterator as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            } else {
+                rmdir($file);
+            }
+        }
+    }
 
-		if (0 === $position) {
-			return;
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function read($token)
+    {
+        if (!$token || !file_exists($file = $this->getFilename($token))) {
+            return;
+        }
 
-		while (true) {
-			$chunkSize = min($position, 1024);
-			$position -= $chunkSize;
-			fseek($file, $position);
+        return $this->createProfileFromData($token, unserialize(file_get_contents($file)));
+    }
 
-			if (0 === $chunkSize) {
-				// bof reached
-				break;
-			}
+    /**
+     * {@inheritdoc}
+     */
+    public function write(Profile $profile)
+    {
+        $file = $this->getFilename($profile->getToken());
 
-			$buffer = fread($file, $chunkSize);
+        $profileIndexed = is_file($file);
+        if (!$profileIndexed) {
+            // Create directory
+            $dir = dirname($file);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+        }
 
-			if (false === ($upTo = strrpos($buffer, "\n"))) {
-				$line = $buffer . $line;
-				continue;
-			}
+        // Store profile
+        $data = array(
+            'token' => $profile->getToken(),
+            'parent' => $profile->getParentToken(),
+            'children' => array_map(function ($p) { return $p->getToken(); }, $profile->getChildren()),
+            'data' => $profile->getCollectors(),
+            'ip' => $profile->getIp(),
+            'method' => $profile->getMethod(),
+            'url' => $profile->getUrl(),
+            'time' => $profile->getTime(),
+        );
 
-			$position += $upTo;
-			$line = substr($buffer, $upTo + 1) . $line;
-			fseek($file, max(0, $position), SEEK_SET);
+        if (false === file_put_contents($file, serialize($data))) {
+            return false;
+        }
 
-			if ('' !== $line) {
-				break;
-			}
-		}
+        if (!$profileIndexed) {
+            // Add to index
+            if (false === $file = fopen($this->getIndexFilename(), 'a')) {
+                return false;
+            }
 
-		return '' === $line ? null : $line;
-	}
+            fputcsv($file, array(
+                $profile->getToken(),
+                $profile->getIp(),
+                $profile->getMethod(),
+                $profile->getUrl(),
+                $profile->getTime(),
+                $profile->getParentToken(),
+            ));
+            fclose($file);
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function purge()
-	{
-		$flags    = \FilesystemIterator::SKIP_DOTS;
-		$iterator = new \RecursiveDirectoryIterator($this->folder, $flags);
-		$iterator = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
+        return true;
+    }
 
-		foreach ($iterator as $file) {
-			if (is_file($file)) {
-				unlink($file);
-			} else {
-				rmdir($file);
-			}
-		}
-	}
+    /**
+     * Gets filename to store data, associated to the token.
+     *
+     * @param string $token
+     *
+     * @return string The profile filename
+     */
+    protected function getFilename($token)
+    {
+        // Uses 4 last characters, because first are mostly the same.
+        $folderA = substr($token, -2, 2);
+        $folderB = substr($token, -4, 2);
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function read($token)
-	{
-		if (!$token || !file_exists($file = $this->getFilename($token))) {
-			return;
-		}
+        return $this->folder.'/'.$folderA.'/'.$folderB.'/'.$token;
+    }
 
-		return $this->createProfileFromData($token, unserialize(file_get_contents($file)));
-	}
+    /**
+     * Gets the index filename.
+     *
+     * @return string The index filename
+     */
+    protected function getIndexFilename()
+    {
+        return $this->folder.'/index.csv';
+    }
 
-	/**
-	 * Gets filename to store data, associated to the token.
-	 *
-	 * @param string $token
-	 *
-	 * @return string The profile filename
-	 */
-	protected function getFilename($token)
-	{
-		// Uses 4 last characters, because first are mostly the same.
-		$folderA = substr($token, -2, 2);
-		$folderB = substr($token, -4, 2);
+    /**
+     * Reads a line in the file, backward.
+     *
+     * This function automatically skips the empty lines and do not include the line return in result value.
+     *
+     * @param resource $file The file resource, with the pointer placed at the end of the line to read
+     *
+     * @return mixed A string representing the line or null if beginning of file is reached
+     */
+    protected function readLineFromFile($file)
+    {
+        $line = '';
+        $position = ftell($file);
 
-		return $this->folder . '/' . $folderA . '/' . $folderB . '/' . $token;
-	}
+        if (0 === $position) {
+            return;
+        }
 
-	protected function createProfileFromData($token, $data, $parent = null)
-	{
-		$profile = new Profile($token);
-		$profile->setIp($data['ip']);
-		$profile->setMethod($data['method']);
-		$profile->setUrl($data['url']);
-		$profile->setTime($data['time']);
-		$profile->setCollectors($data['data']);
+        while (true) {
+            $chunkSize = min($position, 1024);
+            $position -= $chunkSize;
+            fseek($file, $position);
 
-		if (!$parent && $data['parent']) {
-			$parent = $this->read($data['parent']);
-		}
+            if (0 === $chunkSize) {
+                // bof reached
+                break;
+            }
 
-		if ($parent) {
-			$profile->setParent($parent);
-		}
+            $buffer = fread($file, $chunkSize);
 
-		foreach ($data['children'] as $token) {
-			if (!$token || !file_exists($file = $this->getFilename($token))) {
-				continue;
-			}
+            if (false === ($upTo = strrpos($buffer, "\n"))) {
+                $line = $buffer.$line;
+                continue;
+            }
 
-			$profile->addChild($this->createProfileFromData($token, unserialize(file_get_contents($file)), $profile));
-		}
+            $position += $upTo;
+            $line = substr($buffer, $upTo + 1).$line;
+            fseek($file, max(0, $position), SEEK_SET);
 
-		return $profile;
-	}
+            if ('' !== $line) {
+                break;
+            }
+        }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function write(Profile $profile)
-	{
-		$file = $this->getFilename($profile->getToken());
+        return '' === $line ? null : $line;
+    }
 
-		$profileIndexed = is_file($file);
-		if (!$profileIndexed) {
-			// Create directory
-			$dir = dirname($file);
-			if (!is_dir($dir)) {
-				mkdir($dir, 0777, true);
-			}
-		}
+    protected function createProfileFromData($token, $data, $parent = null)
+    {
+        $profile = new Profile($token);
+        $profile->setIp($data['ip']);
+        $profile->setMethod($data['method']);
+        $profile->setUrl($data['url']);
+        $profile->setTime($data['time']);
+        $profile->setCollectors($data['data']);
 
-		// Store profile
-		$data = array('token'    => $profile->getToken(),
-		              'parent'   => $profile->getParentToken(),
-		              'children' => array_map(function ($p) {
-			              return $p->getToken();
-		              }, $profile->getChildren()),
-		              'data'     => $profile->getCollectors(),
-		              'ip'       => $profile->getIp(),
-		              'method'   => $profile->getMethod(),
-		              'url'      => $profile->getUrl(),
-		              'time'     => $profile->getTime(),);
+        if (!$parent && $data['parent']) {
+            $parent = $this->read($data['parent']);
+        }
 
-		if (false === file_put_contents($file, serialize($data))) {
-			return false;
-		}
+        if ($parent) {
+            $profile->setParent($parent);
+        }
 
-		if (!$profileIndexed) {
-			// Add to index
-			if (false === $file = fopen($this->getIndexFilename(), 'a')) {
-				return false;
-			}
+        foreach ($data['children'] as $token) {
+            if (!$token || !file_exists($file = $this->getFilename($token))) {
+                continue;
+            }
 
-			fputcsv($file, array($profile->getToken(),
-				$profile->getIp(),
-				$profile->getMethod(),
-				$profile->getUrl(),
-				$profile->getTime(),
-				$profile->getParentToken(),));
-			fclose($file);
-		}
+            $profile->addChild($this->createProfileFromData($token, unserialize(file_get_contents($file)), $profile));
+        }
 
-		return true;
-	}
+        return $profile;
+    }
 }

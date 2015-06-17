@@ -12,144 +12,146 @@
 namespace Symfony\Component\HttpFoundation\Session\Attribute;
 
 /**
- * This class relates to session attribute storage
+ * This class relates to session attribute storage.
  */
 class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Countable
 {
-	/**
-	 * @var array
-	 */
-	protected $attributes = array();
-	private $name = 'attributes';
-	/**
-	 * @var string
-	 */
-	private $storageKey;
+    private $name = 'attributes';
 
-	/**
-	 * Constructor.
-	 *
-	 * @param string $storageKey The key used to store attributes in the session
-	 */
-	public function __construct($storageKey = '_sf2_attributes')
-	{
-		$this->storageKey = $storageKey;
-	}
+    /**
+     * @var string
+     */
+    private $storageKey;
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getName()
-	{
-		return $this->name;
-	}
+    /**
+     * @var array
+     */
+    protected $attributes = array();
 
-	public function setName($name)
-	{
-		$this->name = $name;
-	}
+    /**
+     * Constructor.
+     *
+     * @param string $storageKey The key used to store attributes in the session
+     */
+    public function __construct($storageKey = '_sf2_attributes')
+    {
+        $this->storageKey = $storageKey;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function initialize(array &$attributes)
-	{
-		$this->attributes = &$attributes;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getStorageKey()
-	{
-		return $this->storageKey;
-	}
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function has($name)
-	{
-		return array_key_exists($name, $this->attributes);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function initialize(array &$attributes)
+    {
+        $this->attributes = &$attributes;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function get($name, $default = null)
-	{
-		return array_key_exists($name, $this->attributes) ? $this->attributes[$name] : $default;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function getStorageKey()
+    {
+        return $this->storageKey;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function all()
-	{
-		return $this->attributes;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function has($name)
+    {
+        return array_key_exists($name, $this->attributes);
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function replace(array $attributes)
-	{
-		$this->attributes = array();
-		foreach ($attributes as $key => $value) {
-			$this->set($key, $value);
-		}
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function get($name, $default = null)
+    {
+        return array_key_exists($name, $this->attributes) ? $this->attributes[$name] : $default;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function set($name, $value)
-	{
-		$this->attributes[$name] = $value;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function set($name, $value)
+    {
+        $this->attributes[$name] = $value;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function remove($name)
-	{
-		$retval = null;
-		if (array_key_exists($name, $this->attributes)) {
-			$retval = $this->attributes[$name];
-			unset($this->attributes[$name]);
-		}
+    /**
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        return $this->attributes;
+    }
 
-		return $retval;
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function replace(array $attributes)
+    {
+        $this->attributes = array();
+        foreach ($attributes as $key => $value) {
+            $this->set($key, $value);
+        }
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function clear()
-	{
-		$return           = $this->attributes;
-		$this->attributes = array();
+    /**
+     * {@inheritdoc}
+     */
+    public function remove($name)
+    {
+        $retval = null;
+        if (array_key_exists($name, $this->attributes)) {
+            $retval = $this->attributes[$name];
+            unset($this->attributes[$name]);
+        }
 
-		return $return;
-	}
+        return $retval;
+    }
 
-	/**
-	 * Returns an iterator for attributes.
-	 *
-	 * @return \ArrayIterator An \ArrayIterator instance
-	 */
-	public function getIterator()
-	{
-		return new \ArrayIterator($this->attributes);
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $return = $this->attributes;
+        $this->attributes = array();
 
-	/**
-	 * Returns the number of attributes.
-	 *
-	 * @return int     The number of attributes
-	 */
-	public function count()
-	{
-		return count($this->attributes);
-	}
+        return $return;
+    }
+
+    /**
+     * Returns an iterator for attributes.
+     *
+     * @return \ArrayIterator An \ArrayIterator instance
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->attributes);
+    }
+
+    /**
+     * Returns the number of attributes.
+     *
+     * @return int The number of attributes
+     */
+    public function count()
+    {
+        return count($this->attributes);
+    }
 }

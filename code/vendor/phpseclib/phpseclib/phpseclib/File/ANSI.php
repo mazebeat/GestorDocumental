@@ -31,7 +31,7 @@
  * @category  File
  * @package   File_ANSI
  * @author    Jim Wigginton <terrafrost@php.net>
- * @copyright MMXII Jim Wigginton
+ * @copyright 2012 Jim Wigginton
  * @license   http://www.opensource.org/licenses/mit-license.html  MIT License
  * @link      http://phpseclib.sourceforge.net
  */
@@ -244,18 +244,6 @@ class File_ANSI
         $this->color = false;
 
         $this->ansi = '';
-    }
-
-    /**
-     * Set the number of lines that should be logged past the terminal height
-     *
-     * @param Integer $x
-     * @param Integer $y
-     * @access public
-     */
-    function setHistory($history)
-    {
-        $this->max_history = $history;
     }
 
     /**
@@ -499,6 +487,43 @@ class File_ANSI
     }
 
     /**
+     * Returns the current screen and the x previous lines
+     *
+     * @access public
+     * @return String
+     */
+    function getHistory()
+    {
+        $scrollback = '';
+        for ($i = 0; $i < count($this->history); $i++) {
+            for ($j = 0; $j <= $this->max_x + 1; $j++) {
+                if (isset($this->history_attrs[$i][$j])) {
+                    $scrollback.= $this->history_attrs[$i][$j];
+                }
+                if (isset($this->history[$i][$j])) {
+                    $scrollback.= htmlspecialchars($this->history[$i][$j]);
+                }
+            }
+            $scrollback.= "\r\n";
+        }
+        $scrollback.= $this->_getScreen();
+
+        return '<pre style="color: white; background: black" width="' . ($this->max_x + 1) . '">' . $scrollback . '</pre>';
+    }
+
+    /**
+     * Set the number of lines that should be logged past the terminal height
+     *
+     * @param Integer $x
+     * @param Integer $y
+     * @access public
+     */
+    function setHistory($history)
+    {
+        $this->max_history = $history;
+    }
+
+    /**
      * Returns the current screen without preformating
      *
      * @access private
@@ -530,30 +555,5 @@ class File_ANSI
     function getScreen()
     {
         return '<pre style="color: white; background: black" width="' . ($this->max_x + 1) . '">' . $this->_getScreen() . '</pre>';
-    }
-
-    /**
-     * Returns the current screen and the x previous lines
-     *
-     * @access public
-     * @return String
-     */
-    function getHistory()
-    {
-        $scrollback = '';
-        for ($i = 0; $i < count($this->history); $i++) {
-            for ($j = 0; $j <= $this->max_x + 1; $j++) {
-                if (isset($this->history_attrs[$i][$j])) {
-                    $scrollback.= $this->history_attrs[$i][$j];
-                }
-                if (isset($this->history[$i][$j])) {
-                    $scrollback.= htmlspecialchars($this->history[$i][$j]);
-                }
-            }
-            $scrollback.= "\r\n";
-        }
-        $scrollback.= $this->_getScreen();
-
-        return '<pre style="color: white; background: black" width="' . ($this->max_x + 1) . '">' . $scrollback . '</pre>';
     }
 }

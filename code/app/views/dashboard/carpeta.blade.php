@@ -80,6 +80,7 @@ Visualización carpeta cliente
 		</div>
 	</div>
 </div>
+
 <div class="row">
 	<div class="col-md-12">
 		<h4>Detalle Documentos</h4>
@@ -155,6 +156,7 @@ Visualización carpeta cliente
 
 @section('text-script')
 <script>
+
 	jQuery('.thmb').hover(function () {
 		var t = jQuery(this);
 		t.find('.ckbox').show();

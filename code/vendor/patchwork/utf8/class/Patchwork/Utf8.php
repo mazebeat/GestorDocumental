@@ -21,6 +21,7 @@ class Utf8
 {
     protected static
 
+    $pathPrefix,
     $commonCaseFold = array(
         array('µ','ſ',"\xCD\x85",'ς',"\xCF\x90","\xCF\x91","\xCF\x95","\xCF\x96","\xCF\xB0","\xCF\xB1","\xCF\xB5","\xE1\xBA\x9B","\xE1\xBE\xBE"),
         array('μ','s','ι',       'σ','β',       'θ',       'φ',       'π',       'κ',       'ρ',       'ε',       "\xE1\xB9\xA1",'ι'           )
@@ -89,6 +90,50 @@ class Utf8
         return $s;
     }
 
+    protected static function getData($file)
+    {
+        $file = __DIR__ . '/Utf8/data/' . $file . '.ser';
+        if (file_exists($file)) return unserialize(file_get_contents($file));
+        else return false;
+    }
+
+    static function wrapPath($path = '')
+    {
+        if (null === static::$pathPrefix)
+        {
+            if (extension_loaded('wfio'))
+            {
+                static::$pathPrefix = 'wfio://';
+            }
+            else if ('\\' === DIRECTORY_SEPARATOR && class_exists('COM', false))
+            {
+                static::$pathPrefix = 'utf8'.mt_rand();
+                stream_wrapper_register(static::$pathPrefix, 'Patchwork\Utf8\WindowsStreamWrapper');
+                static::$pathPrefix .= '://';
+            } else {
+                if ('\\' === DIRECTORY_SEPARATOR) {
+                    trigger_error('The `wfio` or `com_dotnet` extension is required to handle UTF-8 filesystem access on Windows');
+                }
+                static::$pathPrefix = 'file://';
+            }
+        }
+
+        return static::$pathPrefix . $path;
+    }
+
+    // Unicode transformation for caseless matching
+    // see http://unicode.org/reports/tr21/tr21-5.html
+
+    static function filter_input($type, $var, $filter = FILTER_DEFAULT, $option = null)
+    {
+        if (4 > func_num_args()) $var = filter_input($type, $var, $filter);
+        else $var = filter_input($type, $var, $filter, $option);
+
+        return static::filter($var);
+    }
+
+    // Generic case sensitive collation support for self::strnatcmp()
+
     static function filter($var, $normalization_form = 4 /* n::NFC */, $leading_combining = '◌')
     {
         switch (gettype($var))
@@ -132,40 +177,13 @@ class Utf8
         return $var;
     }
 
-    // Unicode transformation for caseless matching
-    // see http://unicode.org/reports/tr21/tr21-5.html
-
-    static function strtocasefold($s, $full = true)
-    {
-        $s = str_replace(self::$commonCaseFold[0], self::$commonCaseFold[1], $s);
-
-        if ($full)
-        {
-            static $fullCaseFold = false;
-            $fullCaseFold || $fullCaseFold = static::getData('caseFolding_full');
-
-            $s = str_replace($fullCaseFold[0], $fullCaseFold[1], $s);
-        }
-
-        return static::strtolower($s);
-    }
-
-    // Generic case sensitive collation support for self::strnatcmp()
-
-    static function strtonatfold($s)
-    {
-        $s = n::normalize($s, n::NFD);
-        return preg_replace('/\p{Mn}+/u', '', $s);
-    }
-
     // PHP string functions that need UTF-8 awareness
 
-    static function filter_input($type, $var, $filter = FILTER_DEFAULT, $option = null)
+    static function utf8_encode($s)
     {
-        if (4 > func_num_args()) $var = filter_input($type, $var, $filter);
-        else $var = filter_input($type, $var, $filter, $option);
-
-        return static::filter($var);
+        $s = utf8_encode($s);
+        if (false === strpos($s, "\xC2")) return $s;
+        else return str_replace(self::$cp1252, self::$utf8, $s);
     }
 
     static function filter_input_array($type, $def = null, $add_empty = true)
@@ -190,24 +208,10 @@ class Utf8
         return static::filter($json);
     }
 
-    static function substr($s, $start, $len = 2147483647)
-    {
-/**/    static $bug62759;
-
-/**/    isset($bug62759) or $bug62759 = extension_loaded('intl') && 'à' === grapheme_substr('éà', 1, -2);
-
-/**/    if ($bug62759)
-/**/    {
-            return PHP\Shim\Intl::grapheme_substr_workaround62759($s, $start, $len);
-/**/    }
-/**/    else
-/**/    {
-            return grapheme_substr($s, $start, $len);
-/**/    }
-    }
-
     static function strlen($s) {return grapheme_strlen($s);}
+
     static function strpos ($s, $needle, $offset = 0) {return grapheme_strpos ($s, $needle, $offset);}
+
     static function strrpos($s, $needle, $offset = 0) {return grapheme_strrpos($s, $needle, $offset);}
 
     static function stripos($s, $needle, $offset = 0)
@@ -249,10 +253,11 @@ class Utf8
     }
 
     static function strstr  ($s, $needle, $before_needle = false) {return grapheme_strstr($s, $needle, $before_needle);}
+
     static function strrchr ($s, $needle, $before_needle = false) {return mb_strrchr ($s, $needle, $before_needle, 'UTF-8');}
+
     static function strrichr($s, $needle, $before_needle = false) {return mb_strrichr($s, $needle, $before_needle, 'UTF-8');}
 
-    static function strtolower($s) {return mb_strtolower($s, 'UTF-8');}
     static function strtoupper($s) {return mb_strtoupper($s, 'UTF-8');}
 
     static function wordwrap($s, $width = 75, $break = "\n", $cut = false)
@@ -307,6 +312,42 @@ class Utf8
         return $s . implode('', $chars);
     }
 
+    static function str_split($s, $len = 1)
+    {
+        if (1 > $len = (int) $len)
+        {
+            $len = func_get_arg(1);
+            return str_split($s, $len);
+        }
+
+/**/    if (extension_loaded('intl'))
+/**/    {
+            $a = array();
+            $p = 0;
+            $l = strlen($s);
+
+            while ($p < $l) $a[] = grapheme_extract($s, 1, GRAPHEME_EXTR_COUNT, $p, $p);
+/**/    }
+/**/    else
+/**/    {
+            preg_match_all('/' . GRAPHEME_CLUSTER_RX . '/u', $s, $a);
+            $a = $a[0];
+/**/    }
+
+        if (1 == $len) return $a;
+
+        $s = array();
+        $p = -1;
+
+        foreach ($a as $l => $a)
+        {
+            if ($l % $len) $s[$p] .= $a;
+            else $s[++$p] = $a;
+        }
+
+        return $s;
+    }
+
     static function chr($c)
     {
         if (0x80 > $c %= 0x200000) return chr($c);
@@ -322,12 +363,6 @@ class Utf8
         return array_count_values($s);
     }
 
-    static function ltrim($s, $charlist = INF)
-    {
-        $charlist = INF === $charlist ? '\s' : self::rxClass($charlist);
-        return preg_replace("/^{$charlist}+/u", '', $s);
-    }
-
     static function ord($s)
     {
         $a = ($s = unpack('C*', substr($s, 0, 4))) ? $s[1] : 0;
@@ -337,13 +372,37 @@ class Utf8
         return $a;
     }
 
+    static function trim($s, $charlist = INF) {return self::rtrim(self::ltrim($s, $charlist), $charlist);}
+
     static function rtrim($s, $charlist = INF)
     {
         $charlist = INF === $charlist ? '\s' : self::rxClass($charlist);
         return preg_replace("/{$charlist}+$/u", '', $s);
     }
 
-    static function trim($s, $charlist = INF) {return self::rtrim(self::ltrim($s, $charlist), $charlist);}
+    protected static function rxClass($s, $class = '')
+    {
+        $class = array($class);
+
+        foreach (self::str_split($s) as $s)
+        {
+            if ('-' === $s) $class[0] = '-' . $class[0];
+            else if (!isset($s[2])) $class[0] .= preg_quote($s, '/');
+            else if (1 === iconv_strlen($s, 'UTF-8')) $class[0] .= $s;
+            else $class[] = $s;
+        }
+
+        $class[0] = '[' . $class[0] . ']';
+
+        if (1 === count($class)) return $class[0];
+        else return '(?:' . implode('|', $class) . ')';
+    }
+
+    static function ltrim($s, $charlist = INF)
+    {
+        $charlist = INF === $charlist ? '\s' : self::rxClass($charlist);
+        return preg_replace("/^{$charlist}+/u", '', $s);
+    }
 
     static function str_ireplace($search, $replace, $subject, &$count = null)
     {
@@ -397,42 +456,6 @@ class Utf8
         return implode('', $s);
     }
 
-    static function str_split($s, $len = 1)
-    {
-        if (1 > $len = (int) $len)
-        {
-            $len = func_get_arg(1);
-            return str_split($s, $len);
-        }
-
-/**/    if (extension_loaded('intl'))
-/**/    {
-            $a = array();
-            $p = 0;
-            $l = strlen($s);
-
-            while ($p < $l) $a[] = grapheme_extract($s, 1, GRAPHEME_EXTR_COUNT, $p, $p);
-/**/    }
-/**/    else
-/**/    {
-            preg_match_all('/' . GRAPHEME_CLUSTER_RX . '/u', $s, $a);
-            $a = $a[0];
-/**/    }
-
-        if (1 == $len) return $a;
-
-        $s = array();
-        $p = -1;
-
-        foreach ($a as $l => $a)
-        {
-            if ($l % $len) $s[$p] .= $a;
-            else $s[++$p] = $a;
-        }
-
-        return $s;
-    }
-
     static function str_word_count($s, $format = 0, $charlist = '')
     {
         $charlist = self::rxClass($charlist, '\pL');
@@ -456,12 +479,53 @@ class Utf8
         return $charlist;
     }
 
-    static function strcmp       ($a, $b) {return $a . '' === $b . '' ? 0 : strcmp(n::normalize($a, n::NFD), n::normalize($b, n::NFD));}
-    static function strnatcmp    ($a, $b) {return $a . '' === $b . '' ? 0 : strnatcmp(self::strtonatfold($a), self::strtonatfold($b));}
-    static function strcasecmp   ($a, $b) {return self::strcmp   (static::strtocasefold($a), static::strtocasefold($b));}
     static function strnatcasecmp($a, $b) {return self::strnatcmp(static::strtocasefold($a), static::strtocasefold($b));}
+
+    static function strnatcmp    ($a, $b) {return $a . '' === $b . '' ? 0 : strnatcmp(self::strtonatfold($a), self::strtonatfold($b));}
+
+    static function strtonatfold($s)
+    {
+        $s = n::normalize($s, n::NFD);
+        return preg_replace('/\p{Mn}+/u', '', $s);
+    }
+
+    static function strtocasefold($s, $full = true)
+    {
+        $s = str_replace(self::$commonCaseFold[0], self::$commonCaseFold[1], $s);
+
+        if ($full)
+        {
+            static $fullCaseFold = false;
+            $fullCaseFold || $fullCaseFold = static::getData('caseFolding_full');
+
+            $s = str_replace($fullCaseFold[0], $fullCaseFold[1], $s);
+        }
+
+        return static::strtolower($s);
+    }
+
+    static function strtolower($s) {return mb_strtolower($s, 'UTF-8');}
+
     static function strncasecmp  ($a, $b, $len) {return self::strncmp(static::strtocasefold($a), static::strtocasefold($b), $len);}
     static function strncmp      ($a, $b, $len) {return self::strcmp(self::substr($a, 0, $len), self::substr($b, 0, $len));}
+
+    static function strcmp       ($a, $b) {return $a . '' === $b . '' ? 0 : strcmp(n::normalize($a, n::NFD), n::normalize($b, n::NFD));}
+
+    static function substr($s, $start, $len = 2147483647)
+    {
+/**/    static $bug62759;
+
+/**/    isset($bug62759) or $bug62759 = extension_loaded('intl') && 'à' === grapheme_substr('éà', 1, -2);
+
+/**/    if ($bug62759)
+/**/    {
+            return PHP\Shim\Intl::grapheme_substr_workaround62759($s, $start, $len);
+/**/    }
+/**/    else
+/**/    {
+            return grapheme_substr($s, $start, $len);
+/**/    }
+    }
 
     static function strcspn($s, $charlist, $start = 0, $len = 2147483647)
     {
@@ -514,6 +578,8 @@ class Utf8
         return $i ? static::strcasecmp($a, $b) : self::strcmp($a, $b);
     }
 
+    static function strcasecmp   ($a, $b) {return self::strcmp   (static::strtocasefold($a), static::strtocasefold($b));}
+
     static function substr_count($s, $needle, $offset = 0, $len = 2147483647)
     {
         return substr_count(self::substr($s, $offset, $len), $needle);
@@ -533,15 +599,21 @@ class Utf8
         return static::ucwords($c) . substr($s, strlen($c));
     }
 
+    static function ucwords($s)
+    {
+        return preg_replace_callback(
+            "/\b(.)/u",
+            function ($matches) {
+                return mb_convert_case($matches[1], MB_CASE_TITLE, 'UTF-8');
+            },
+            $s
+        );
+    }
+
     static function lcfirst($s)
     {
         $c = iconv_substr($s, 0, 1, 'UTF-8');
         return static::strtolower($c) . substr($s, strlen($c));
-    }
-
-    static function ucwords($s)
-    {
-        return mb_convert_case($s, MB_CASE_TITLE, 'UTF-8');
     }
 
     static function number_format($number, $decimals = 0, $dec_point = '.', $thousands_sep = ',')
@@ -561,42 +633,34 @@ class Utf8
         return number_format($number, $decimals, $dec_point, $thousands_sep);
     }
 
-    static function utf8_encode($s)
-    {
-        $s = utf8_encode($s);
-        if (false === strpos($s, "\xC2")) return $s;
-        else return str_replace(self::$cp1252, self::$utf8, $s);
-    }
-
     static function utf8_decode($s)
     {
         $s = str_replace(self::$utf8, self::$cp1252, $s);
         return utf8_decode($s);
     }
 
-
-    protected static function rxClass($s, $class = '')
+    static function strwidth($s)
     {
-        $class = array($class);
-
-        foreach (self::str_split($s) as $s)
+        if (false !== strpos($s, "\r"))
         {
-            if ('-' === $s) $class[0] = '-' . $class[0];
-            else if (!isset($s[2])) $class[0] .= preg_quote($s, '/');
-            else if (1 === iconv_strlen($s, 'UTF-8')) $class[0] .= $s;
-            else $class[] = $s;
+            $s = str_replace("\r\n", "\n", $s);
+            $s = strtr($s, "\r", "\n");
+        }
+        $width = 0;
+
+        foreach (explode("\n", $s) as $s)
+        {
+            $s = preg_replace('/\x1B\[[\d;]*m/', '', $s);
+            $c = substr_count($s, "\xAD") - substr_count($s, "\x08");
+            $s = preg_replace('/[\x00\x05\x07\p{Mn}\p{Me}\p{Cf}\x{1160}-\x{11FF}\x{200B}]+/u', '', $s);
+            preg_replace('/[\x{1100}-\x{115F}\x{2329}\x{232A}\x{2E80}-\x{303E}\x{3040}-\x{A4CF}\x{AC00}-\x{D7A3}\x{F900}-\x{FAFF}\x{FE10}-\x{FE19}\x{FE30}-\x{FE6F}\x{FF00}-\x{FF60}\x{FFE0}-\x{FFE6}\x{20000}-\x{2FFFD}\x{30000}-\x{3FFFD}]/u', '', $s, -1, $wide);
+
+            if ($width < $c = iconv_strlen($s, 'UTF-8') + $wide + $c)
+            {
+                $width = $c;
+            }
         }
 
-        $class[0] = '[' . $class[0] . ']';
-
-        if (1 === count($class)) return $class[0];
-        else return '(?:' . implode('|', $class) . ')';
-    }
-
-    protected static function getData($file)
-    {
-        $file = __DIR__ . '/Utf8/data/' . $file . '.ser';
-        if (file_exists($file)) return unserialize(file_get_contents($file));
-        else return false;
+        return $width;
     }
 }

@@ -2,8 +2,7 @@
 
 use Illuminate\Database\Connection;
 
-class DatabaseSessionHandler implements \SessionHandlerInterface, ExistenceAwareInterface
-{
+class DatabaseSessionHandler implements \SessionHandlerInterface, ExistenceAwareInterface {
 
 	/**
 	 * The database connection instance.
@@ -29,23 +28,14 @@ class DatabaseSessionHandler implements \SessionHandlerInterface, ExistenceAware
 	/**
 	 * Create a new database session handler instance.
 	 *
-	 * @param  \Illuminate\Database\Connection $connection
-	 * @param  string                          $table
-	 *
+	 * @param  \Illuminate\Database\Connection  $connection
+	 * @param  string  $table
 	 * @return void
 	 */
 	public function __construct(Connection $connection, $table)
 	{
-		$this->table      = $table;
+		$this->table = $table;
 		$this->connection = $connection;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function open($savePath, $sessionName)
-	{
-		return true;
 	}
 
 	/**
@@ -54,45 +44,6 @@ class DatabaseSessionHandler implements \SessionHandlerInterface, ExistenceAware
 	public function close()
 	{
 		return true;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function read($sessionId)
-	{
-		$session = (object)$this->getQuery()->find($sessionId);
-
-		if (isset($session->payload)) {
-			$this->exists = true;
-
-			return base64_decode($session->payload);
-		}
-	}
-
-	/**
-	 * Get a fresh query builder instance for the table.
-	 *
-	 * @return \Illuminate\Database\Query\Builder
-	 */
-	protected function getQuery()
-	{
-		return $this->connection->table($this->table);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function write($sessionId, $data)
-	{
-		if ($this->exists) {
-			$this->getQuery()->where('id', $sessionId)->update(['payload'       => base64_encode($data),
-			                                                    'last_activity' => time(),]);
-		} else {
-			$this->getQuery()->insert(['id'            => $sessionId,
-			                           'payload'       => base64_encode($data),
-			                           'last_activity' => time(),]);
-		}
 	}
 
 	/**
@@ -112,10 +63,63 @@ class DatabaseSessionHandler implements \SessionHandlerInterface, ExistenceAware
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public function open($savePath, $sessionName)
+	{
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function read($sessionId)
+	{
+		$session = (object) $this->getQuery()->find($sessionId);
+
+		if (isset($session->payload))
+		{
+			$this->exists = true;
+
+			return base64_decode($session->payload);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function write($sessionId, $data)
+	{
+		if ($this->exists)
+		{
+			$this->getQuery()->where('id', $sessionId)->update([
+				'payload' => base64_encode($data), 'last_activity' => time(),
+			]);
+		}
+		else
+		{
+			$this->getQuery()->insert([
+				'id' => $sessionId, 'payload' => base64_encode($data), 'last_activity' => time(),
+			]);
+		}
+
+		$this->exists = true;
+	}
+
+	/**
+	 * Get a fresh query builder instance for the table.
+	 *
+	 * @return \Illuminate\Database\Query\Builder
+	 */
+	protected function getQuery()
+	{
+		return $this->connection->table($this->table);
+	}
+
+	/**
 	 * Set the existence state for the session.
 	 *
-	 * @param  bool $value
-	 *
+	 * @param  bool  $value
 	 * @return $this
 	 */
 	public function setExists($value)

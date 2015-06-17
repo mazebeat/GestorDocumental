@@ -5,8 +5,7 @@ use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\QueueServiceProvider;
 use Illuminate\Support\Traits\CapsuleManagerTrait;
 
-class Manager
-{
+class Manager {
 
 	use CapsuleManagerTrait;
 
@@ -20,8 +19,7 @@ class Manager
 	/**
 	 * Create a new queue capsule manager.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 *
+	 * @param  \Illuminate\Container\Container  $container
 	 * @return void
 	 */
 	public function __construct(Container $container = null)
@@ -73,11 +71,10 @@ class Manager
 	/**
 	 * Push a new job onto the queue.
 	 *
-	 * @param  string $job
-	 * @param  mixed  $data
-	 * @param  string $queue
-	 * @param  string $connection
-	 *
+	 * @param  string  $job
+	 * @param  mixed   $data
+	 * @param  string  $queue
+	 * @param  string  $connection
 	 * @return mixed
 	 */
 	public static function push($job, $data = '', $queue = null, $connection = null)
@@ -88,11 +85,10 @@ class Manager
 	/**
 	 * Push a new an array of jobs onto the queue.
 	 *
-	 * @param  array  $jobs
-	 * @param  mixed  $data
-	 * @param  string $queue
-	 * @param  string $connection
-	 *
+	 * @param  array   $jobs
+	 * @param  mixed   $data
+	 * @param  string  $queue
+	 * @param  string  $connection
 	 * @return mixed
 	 */
 	public static function bulk($jobs, $data = '', $queue = null, $connection = null)
@@ -103,12 +99,11 @@ class Manager
 	/**
 	 * Push a new job onto the queue after a delay.
 	 *
-	 * @param  \DateTime|int $delay
-	 * @param  string        $job
-	 * @param  mixed         $data
-	 * @param  string        $queue
-	 * @param  string        $connection
-	 *
+	 * @param  \DateTime|int  $delay
+	 * @param  string  $job
+	 * @param  mixed   $data
+	 * @param  string  $queue
+	 * @param  string  $connection
 	 * @return mixed
 	 */
 	public static function later($delay, $job, $data = '', $queue = null, $connection = null)
@@ -119,9 +114,8 @@ class Manager
 	/**
 	 * Dynamically pass methods to the default connection.
 	 *
-	 * @param  string $method
-	 * @param  array  $parameters
-	 *
+	 * @param  string  $method
+	 * @param  array   $parameters
 	 * @return mixed
 	 */
 	public static function __callStatic($method, $parameters)
@@ -132,8 +126,7 @@ class Manager
 	/**
 	 * Get a connection instance from the global manager.
 	 *
-	 * @param  string $connection
-	 *
+	 * @param  string  $connection
 	 * @return \Illuminate\Queue\QueueInterface
 	 */
 	public static function connection($connection = null)
@@ -144,8 +137,7 @@ class Manager
 	/**
 	 * Get a registered connection instance.
 	 *
-	 * @param  string $name
-	 *
+	 * @param  string  $name
 	 * @return \Illuminate\Queue\QueueInterface
 	 */
 	public function getConnection($name = null)
@@ -156,9 +148,8 @@ class Manager
 	/**
 	 * Register a connection with the manager.
 	 *
-	 * @param  array  $config
-	 * @param  string $name
-	 *
+	 * @param  array   $config
+	 * @param  string  $name
 	 * @return void
 	 */
 	public function addConnection(array $config, $name = 'default')
@@ -179,9 +170,8 @@ class Manager
 	/**
 	 * Pass dynamic instance methods to the manager.
 	 *
-	 * @param  string $method
+	 * @param  string  $method
 	 * @param  array  $parameters
-	 *
 	 * @return mixed
 	 */
 	public function __call($method, $parameters)

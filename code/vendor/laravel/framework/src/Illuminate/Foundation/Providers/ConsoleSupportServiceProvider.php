@@ -10,7 +10,8 @@ class ConsoleSupportServiceProvider extends ServiceProvider
 	 *
 	 * @var array
 	 */
-	protected $providers = array('Illuminate\Foundation\Providers\CommandCreatorServiceProvider',
+	protected $providers
+		= array('Illuminate\Foundation\Providers\CommandCreatorServiceProvider',
 		'Illuminate\Foundation\Providers\ComposerServiceProvider',
 		'Illuminate\Foundation\Providers\KeyGeneratorServiceProvider',
 		'Illuminate\Foundation\Providers\MaintenanceServiceProvider',
@@ -18,8 +19,7 @@ class ConsoleSupportServiceProvider extends ServiceProvider
 		'Illuminate\Foundation\Providers\PublisherServiceProvider',
 		'Illuminate\Foundation\Providers\RouteListServiceProvider',
 		'Illuminate\Foundation\Providers\ServerServiceProvider',
-		'Illuminate\Foundation\Providers\TinkerServiceProvider',
-		'Illuminate\Queue\FailConsoleServiceProvider',);
+		'Illuminate\Foundation\Providers\TinkerServiceProvider', 'Illuminate\Queue\FailConsoleServiceProvider',);
 
 	/**
 	 * An array of the service provider instances.
@@ -34,20 +34,6 @@ class ConsoleSupportServiceProvider extends ServiceProvider
 	 * @var bool
 	 */
 	protected $defer = true;
-
-	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->instances = array();
-
-		foreach ($this->providers as $provider) {
-			$this->instances[] = $this->app->register($provider);
-		}
-	}
 
 	/**
 	 * Get the services provided by the provider.
@@ -65,6 +51,20 @@ class ConsoleSupportServiceProvider extends ServiceProvider
 		}
 
 		return $provides;
+	}
+
+	/**
+	 * Register the service provider.
+	 *
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->instances = array();
+
+		foreach ($this->providers as $provider) {
+			$this->instances[] = $this->app->register($provider);
+		}
 	}
 
 }

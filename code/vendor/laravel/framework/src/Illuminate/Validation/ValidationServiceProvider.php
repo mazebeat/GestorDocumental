@@ -2,8 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 
-class ValidationServiceProvider extends ServiceProvider
-{
+class ValidationServiceProvider extends ServiceProvider {
 
 	/**
 	 * Indicates if loading of the provider is deferred.
@@ -11,6 +10,16 @@ class ValidationServiceProvider extends ServiceProvider
 	 * @var bool
 	 */
 	protected $defer = true;
+
+	/**
+	 * Get the services provided by the provider.
+	 *
+	 * @return array
+	 */
+	public function provides()
+	{
+		return array('validator', 'validation.presence');
+	}
 
 	/**
 	 * Register the service provider.
@@ -21,13 +30,15 @@ class ValidationServiceProvider extends ServiceProvider
 	{
 		$this->registerPresenceVerifier();
 
-		$this->app->bindShared('validator', function ($app) {
+		$this->app->bindShared('validator', function($app)
+		{
 			$validator = new Factory($app['translator'], $app);
 
 			// The validation presence verifier is responsible for determining the existence
 			// of values in a given data collection, typically a relational database or
 			// other persistent data stores. And it is used to check for uniqueness.
-			if (isset($app['validation.presence'])) {
+			if (isset($app['validation.presence']))
+			{
 				$validator->setPresenceVerifier($app['validation.presence']);
 			}
 
@@ -42,19 +53,10 @@ class ValidationServiceProvider extends ServiceProvider
 	 */
 	protected function registerPresenceVerifier()
 	{
-		$this->app->bindShared('validation.presence', function ($app) {
+		$this->app->bindShared('validation.presence', function($app)
+		{
 			return new DatabasePresenceVerifier($app['db']);
 		});
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return array('validator', 'validation.presence');
 	}
 
 }

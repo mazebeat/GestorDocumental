@@ -6,8 +6,7 @@ use Illuminate\Container\Container;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\SerializableClosure;
 
-abstract class Queue
-{
+abstract class Queue {
 
 	/**
 	 * The IoC container instance.
@@ -27,17 +26,17 @@ abstract class Queue
 	}
 
 	/**
-	 * Push a new an array of jobs onto the queue.
+	 * Push an array of jobs onto the queue.
 	 *
-	 * @param  array  $jobs
-	 * @param  mixed  $data
-	 * @param  string $queue
-	 *
+	 * @param  array   $jobs
+	 * @param  mixed   $data
+	 * @param  string  $queue
 	 * @return mixed
 	 */
 	public function bulk($jobs, $data = '', $queue = null)
 	{
-		foreach ((array)$jobs as $job) {
+		foreach ((array) $jobs as $job)
+		{
 			$this->push($job, $data, $queue);
 		}
 	}
@@ -45,8 +44,7 @@ abstract class Queue
 	/**
 	 * Set the IoC container instance.
 	 *
-	 * @param  \Illuminate\Container\Container $container
-	 *
+	 * @param  \Illuminate\Container\Container  $container
 	 * @return void
 	 */
 	public function setContainer(Container $container)
@@ -57,8 +55,7 @@ abstract class Queue
 	/**
 	 * Set the encrypter instance.
 	 *
-	 * @param  \Illuminate\Encryption\Encrypter $crypt
-	 *
+	 * @param  \Illuminate\Encryption\Encrypter  $crypt
 	 * @return void
 	 */
 	public function setEncrypter(Encrypter $crypt)
@@ -69,15 +66,15 @@ abstract class Queue
 	/**
 	 * Create a payload string from the given job and data.
 	 *
-	 * @param  string $job
-	 * @param  mixed  $data
-	 * @param  string $queue
-	 *
+	 * @param  string  $job
+	 * @param  mixed   $data
+	 * @param  string  $queue
 	 * @return string
 	 */
 	protected function createPayload($job, $data = '', $queue = null)
 	{
-		if ($job instanceof Closure) {
+		if ($job instanceof Closure)
+		{
 			return json_encode($this->createClosurePayload($job, $data));
 		}
 
@@ -87,9 +84,8 @@ abstract class Queue
 	/**
 	 * Create a payload string for the given Closure job.
 	 *
-	 * @param  \Closure $job
-	 * @param  mixed    $data
-	 *
+	 * @param  \Closure  $job
+	 * @param  mixed     $data
 	 * @return string
 	 */
 	protected function createClosurePayload($job, $data)
@@ -102,10 +98,9 @@ abstract class Queue
 	/**
 	 * Set additional meta on a payload string.
 	 *
-	 * @param  string $payload
-	 * @param  string $key
-	 * @param  string $value
-	 *
+	 * @param  string  $payload
+	 * @param  string  $key
+	 * @param  string  $value
 	 * @return string
 	 */
 	protected function setMeta($payload, $key, $value)
@@ -118,17 +113,17 @@ abstract class Queue
 	/**
 	 * Calculate the number of seconds with the given delay.
 	 *
-	 * @param  \DateTime|int $delay
-	 *
+	 * @param  \DateTime|int  $delay
 	 * @return int
 	 */
 	protected function getSeconds($delay)
 	{
-		if ($delay instanceof DateTime) {
+		if ($delay instanceof DateTime)
+		{
 			return max(0, $delay->getTimestamp() - $this->getTime());
 		}
 
-		return (int)$delay;
+		return (int) $delay;
 	}
 
 	/**
